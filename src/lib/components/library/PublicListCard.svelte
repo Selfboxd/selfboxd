@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { PublicListPreview } from '#lib/catalog/lists.js';
+	import type { Chart } from '#lib/catalog/charts.js';
+	import type { FilmSummary } from '#lib/catalog/film.js';
 	import { publicListPreviewSize } from '#lib/catalog/lists.js';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
@@ -8,36 +9,77 @@
 	import { getLocale } from '#lib/paraglide/runtime.js';
 
 	interface Props {
-		list: PublicListPreview;
+		/** What the card tells about the list; counts are omitted when `null`. */
+		list: {
+			name: string;
+			owner: string | null;
+			itemCount: number | null;
+			likes: number | null;
+			preview: FilmSummary[];
+		};
+		/** The page the card opens: a public list or a TMDB chart. */
+		target: { list: number } | { chart: Chart };
+		/** Whether the posters sit beside the name instead of above it. */
+		row?: boolean;
 	}
 
-	let { list }: Props = $props();
+	let { list, target, row = false }: Props = $props();
 
-	const href = $derived(resolve('/(app)/lists/[id]', { id: String(list.id) }));
+	const href = $derived(
+		'chart' in target
+			? resolve('/(app)/lists/official/[chart]', { chart: target.chart })
+			: resolve('/(app)/lists/[id]', { id: String(target.list) })
+	);
+
 	const empty = $derived(
 		Array.from({ length: publicListPreviewSize - list.preview.length }, (_, index) => index)
 	);
 	const compact = $derived(new Intl.NumberFormat(getLocale(), { notation: 'compact' }));
 </script>
 
-<article>
+<article class:row>
 	<a class="stack" {href} tabindex="-1" aria-hidden="true">
 		{#each list.preview as film (film.id)}
 			<FilmPoster {film} size="medium" linked={false} />
 		{/each}
 		{#each empty as slot (slot)}<span class="slot"></span>{/each}
 	</a>
-	<h3><a {href}>{list.name}</a></h3>
-	<p class="meta">
-		{#if list.owner}<span class="owner">{list.owner}</span>{/if}
-		{#if list.itemCount !== null}<span>{m.list_count({ count: list.itemCount })}</span>{/if}
-		{#if list.likes}
-			<span class="likes"><Icon name="heart" filled /> {compact.format(list.likes)}</span>
-		{/if}
-	</p>
+	<div class="text">
+		<h3><a {href}>{list.name}</a></h3>
+		<p class="meta">
+			{#if list.owner}<span class="owner">{list.owner}</span>{/if}
+			{#if list.itemCount !== null}<span>{m.list_count({ count: list.itemCount })}</span>{/if}
+			{#if list.likes}
+				<span class="likes"><Icon name="heart" filled /> {compact.format(list.likes)}</span>
+			{/if}
+		</p>
+	</div>
 </article>
 
 <style>
+	.row {
+		display: grid;
+		grid-template-columns: var(--list-stack-width) minmax(0, 1fr);
+		gap: var(--space-4);
+		align-items: center;
+	}
+
+	.row .stack {
+		margin-bottom: 0;
+	}
+
+	.row h3 {
+		font-size: var(--font-size-prose);
+	}
+
+	.text {
+		min-width: 0;
+	}
+
+	h3 {
+		overflow-wrap: anywhere;
+	}
+
 	.stack {
 		display: flex;
 		overflow: hidden;

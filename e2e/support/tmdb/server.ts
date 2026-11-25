@@ -24,7 +24,8 @@ const summaries = [bladeRunner, sequel].map((entry: Record<string, unknown>) => 
 	title: entry.title,
 	original_title: entry.original_title,
 	release_date: entry.release_date,
-	poster_path: entry.poster_path
+	poster_path: entry.poster_path,
+	backdrop_path: entry.backdrop_path
 }));
 
 /** Number of requests received for each path. */
@@ -65,7 +66,9 @@ const validListKey = 'valid-mdblist-key';
 const publicLists = [
 	{ id: 101, name: 'Neon Noir', user_name: 'curator', items: 45, likes: 1200 },
 	{ id: 102, name: 'Rainy Cities', user_name: 'curator', items: 2, likes: null },
-	{ id: 103, name: '<img src=x onerror=alert(1)>', user_name: null, items: 0, likes: 0 }
+	{ id: 103, name: '<img src=x onerror=alert(1)>', user_name: null, items: 0, likes: 0 },
+	{ id: 104, name: 'Slow Burners', user_name: 'curator', items: 1, likes: 12 },
+	{ id: 105, name: 'Replicants', user_name: 'deckard', items: 1, likes: 3 }
 ];
 
 function mdblist(url: URL, response: ServerResponse) {
@@ -174,6 +177,14 @@ const server = createServer((request, response) => {
 			page,
 			total_pages: genre === '878' ? 3 : 1,
 			results: page === 1 ? ordered : ordered.slice(0, 1)
+		});
+	} else if (/^\/3\/movie\/(popular|top_rated|now_playing|upcoming)$/.test(url.pathname)) {
+		const page = Number(url.searchParams.get('page') ?? '1');
+		const top = url.pathname.endsWith('top_rated');
+		send(response, 200, {
+			page,
+			total_pages: top ? 2 : 1,
+			results: page === 1 ? summaries : summaries.slice(1)
 		});
 	} else if (url.pathname === '/3/trending/movie/week') {
 		send(response, 200, { page: 1, results: summaries });

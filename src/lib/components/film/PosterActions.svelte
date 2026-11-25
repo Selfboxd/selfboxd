@@ -192,11 +192,12 @@
 
 	.bar {
 		display: flex;
-		gap: var(--space-2);
+		gap: 0.45em;
 		align-items: center;
-		padding: var(--space-1) var(--space-2);
+		padding: 0.3em 0.5em;
 		border-radius: var(--radius-medium);
 		background: var(--color-poster-bar);
+		font-size: var(--font-size-poster-action);
 	}
 
 	.bar button {
@@ -205,7 +206,7 @@
 		border: 0;
 		background: none;
 		color: var(--color-heading);
-		font-size: var(--font-size-poster-action);
+		font-size: inherit;
 		cursor: pointer;
 		transition:
 			color var(--duration-fast),
@@ -222,7 +223,7 @@
 	}
 
 	.eye {
-		height: 1em;
+		height: 0.8em;
 		fill: currentcolor;
 		fill-rule: evenodd;
 	}
@@ -239,14 +240,16 @@
 		color: var(--color-like);
 	}
 
-	:global(.poster.small) > .actions .bar {
-		gap: var(--space-1);
-		padding: 2px var(--space-1);
-		font-size: var(--font-size-small);
+	:global(.poster.small) > .actions {
+		padding-bottom: 2px;
 	}
 
-	:global(.poster.small) > .actions .bar button {
-		font-size: inherit;
+	:global(.poster.small) > .actions .bar {
+		font-size: var(--font-size-poster-action-small);
+	}
+
+	:global(.poster.large) > .actions .bar {
+		font-size: var(--font-size-poster-action-large);
 	}
 
 	.menu {

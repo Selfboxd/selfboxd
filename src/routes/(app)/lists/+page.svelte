@@ -2,12 +2,14 @@
 	import { resolve } from '$app/paths';
 	import FormError from '#lib/components/FormError.svelte';
 	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
+	import { chartName } from '#lib/i18n/charts.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const id = $props.id();
+	const lists = $derived(data.lists);
 </script>
 
 <svelte:head>
@@ -21,45 +23,57 @@
 	</a>
 </header>
 
-{#if data.state === 'not_configured'}
+{#if lists.state === 'not_configured'}
 	<p class="form-message notice" role="status">
 		{data.user?.isAdmin ? m.mdblist_not_configured_admin() : m.mdblist_not_configured_user()}
 		{#if data.user?.isAdmin}
 			<a href={resolve('/(app)/settings/instance')}>{m.tmdb_open_settings()}</a>
 		{/if}
 	</p>
+{:else if lists.state === 'error'}
+	<FormError
+		message={lists.error === 'unauthorized'
+			? m.error_mdblist_key_invalid()
+			: m.catalogue_lists_unavailable()}
+	/>
 {:else}
-	<section>
-		<h2 class="section-title split-title">
-			<span>
-				{data.query
-					? m.catalogue_lists_matches({ query: data.query })
-					: m.catalogue_lists_popular()}
-			</span>
-			<form class="find" method="GET" role="search">
-				<label for="{id}-find">{m.catalogue_lists_find()}</label>
-				<input id="{id}-find" type="search" name="q" value={data.query} autocomplete="off" />
-			</form>
-		</h2>
-
-		{#if data.state === 'error'}
-			<FormError
-				message={data.error === 'unauthorized'
-					? m.error_mdblist_key_invalid()
-					: m.catalogue_lists_unavailable()}
-			/>
-		{:else if data.lists.length === 0}
-			<p>{m.catalogue_lists_empty()}</p>
-		{:else}
-			<div class="grid">
-				{#each data.lists as list (list.id)}
-					<PublicListCard {list} />
+	{#if lists.featured.length > 0}
+		<section aria-labelledby="{id}-featured">
+			<h2 class="section-title" id="{id}-featured">{m.catalogue_lists_featured()}</h2>
+			<div class="grid featured">
+				{#each lists.featured as list (list.id)}
+					<PublicListCard {list} target={{ list: list.id }} />
 				{/each}
 			</div>
-		{/if}
-	</section>
-	<p class="credit">{m.catalogue_lists_credit()}</p>
+		</section>
+	{/if}
+	{#if lists.popular.length > 0}
+		<section aria-labelledby="{id}-popular">
+			<h2 class="section-title" id="{id}-popular">{m.catalogue_lists_popular()}</h2>
+			<div class="grid rows">
+				{#each lists.popular as list (list.id)}
+					<PublicListCard {list} target={{ list: list.id }} row />
+				{/each}
+			</div>
+		</section>
+	{/if}
 {/if}
+
+{#if data.official.length > 0}
+	<section aria-labelledby="{id}-official">
+		<h2 class="section-title" id="{id}-official">{m.catalogue_lists_official()}</h2>
+		<div class="grid official">
+			{#each data.official as { chart, preview } (chart)}
+				<PublicListCard
+					list={{ name: chartName(chart), owner: 'TMDB', itemCount: null, likes: null, preview }}
+					target={{ chart }}
+				/>
+			{/each}
+		</div>
+	</section>
+{/if}
+
+{#if lists.state === 'ready'}<p class="credit">{m.catalogue_lists_credit()}</p>{/if}
 
 <style>
 	.hero {
@@ -80,6 +94,7 @@
 	}
 
 	.notice {
+		margin-bottom: var(--space-8);
 		background: var(--color-panel);
 		color: var(--color-text-strong);
 	}
@@ -89,56 +104,42 @@
 		text-decoration: underline;
 	}
 
-	.split-title {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-2);
-		align-items: baseline;
-		justify-content: space-between;
-	}
-
-	.find {
-		display: flex;
-		gap: var(--space-2);
-		align-items: baseline;
-	}
-
-	.find input {
-		width: 12rem;
-		padding: var(--space-1) var(--space-2);
-		border: 0;
-		border-radius: var(--radius-small);
-		background: var(--color-input);
-		box-shadow: var(--shadow-input);
-		color: var(--color-input-text);
-		font: inherit;
-		font-size: var(--font-size-control);
-		letter-spacing: 0;
-		text-transform: none;
-	}
-
-	.find input:focus {
-		background: var(--color-input-focus);
-		box-shadow: none;
-		color: var(--color-input-focus-text);
-		outline: none;
+	section {
+		margin-bottom: var(--space-12);
 	}
 
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: var(--space-8) var(--space-6);
 	}
 
+	.featured {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.rows {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-4) var(--space-8);
+	}
+
+	.official {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+
 	.credit {
-		margin-top: var(--space-12);
 		color: var(--color-text-muted);
 		font-size: var(--font-size-small);
 	}
 
 	@media (max-width: 48rem) {
-		.grid {
+		.featured,
+		.rows {
 			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.official {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 </style>

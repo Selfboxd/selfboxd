@@ -304,8 +304,6 @@
 	"catalogue_lists_hero": "收藏、整理、分享。片单是归类电影的最佳方式。",
 	"catalogue_lists_start": "创建你自己的片单",
 	"catalogue_lists_popular": "热门片单",
-	"catalogue_lists_matches": "与“{query}”匹配的片单",
-	"catalogue_lists_find": "查找片单",
 	"catalogue_lists_empty": "没有匹配的片单。",
 	"catalogue_lists_unavailable": "无法连接 MDBList，请稍后再试。",
 	"catalogue_lists_credit": "片单数据来自 MDBList。本产品未获 MDBList 认可或认证。",
@@ -320,5 +318,16 @@
 	"instance_mdblist_configured": "已配置 MDBList 密钥。",
 	"instance_mdblist_missing": "未配置 MDBList 密钥。",
 	"instance_mdblist_remove": "移除 MDBList 密钥",
-	"error_mdblist_key_invalid": "MDBList 未接受此密钥。"
+	"error_mdblist_key_invalid": "MDBList 未接受此密钥。",
+	"list_by": "列表作者",
+	"list_progress": "你已看过",
+	"list_progress_count": "{total} 部中的 {watched} 部",
+	"catalogue_lists_featured": "精选列表",
+	"catalogue_lists_official": "官方精选",
+	"chart_popular": "热门电影",
+	"chart_top_rated": "高分电影",
+	"chart_now_playing": "正在上映",
+	"chart_upcoming": "即将上映",
+	"chart_empty": "此榜单在本页没有电影。",
+	"search_section_lists": "列表"
 }

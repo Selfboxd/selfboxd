@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
-import { getFilm, searchFilms, type TmdbContext } from './service';
+import { getChart, getFilm, searchFilms, type TmdbContext } from './service';
 
 const filmBody = readFileSync('e2e/support/tmdb/film-78.json', 'utf8');
 
@@ -146,6 +146,49 @@ describe('TMDB service', () => {
 			const result = await searchFilms(context, 'blade', 'en-US');
 
 			expect(result).toMatchObject({ ok: true, value: { films: [{ id: 78, directors: [] }] } });
+		});
+	});
+
+	describe('charts', () => {
+		const body = {
+			page: 2,
+			total_pages: 900,
+			results: [
+				{ id: 1, title: 'No backdrop', release_date: '1999-01-01', poster_path: '/a.jpg' },
+				{ id: 2, title: 'Backdrop', backdrop_path: '/b.jpg' }
+			]
+		};
+
+		beforeEach(() => {
+			respond = () => Response.json(body);
+		});
+
+		it('asks TMDB for the page of the chart and caps the number of pages', async () => {
+			const result = await getChart(context, 'top-rated', 'en-US', 2);
+
+			expect(requests[0]?.pathname).toBe('/3/movie/top_rated');
+			expect(requests[0]?.searchParams.get('page')).toBe('2');
+			expect(result).toMatchObject({
+				ok: true,
+				value: { page: 2, totalPages: 25, films: [{ id: 1, year: 1999 }, { id: 2 }] }
+			});
+		});
+
+		it('gives the backdrop of the first film that has one', async () => {
+			const result = await getChart(context, 'popular', 'en-US');
+
+			expect(result.ok && result.value.backdropPath).toBe('/b.jpg');
+		});
+
+		it('caches each chart separately', async () => {
+			await getChart(context, 'popular', 'en-US');
+			await getChart(context, 'popular', 'en-US');
+			await getChart(context, 'upcoming', 'en-US');
+
+			expect(requests.map((url) => url.pathname)).toEqual([
+				'/3/movie/popular',
+				'/3/movie/upcoming'
+			]);
 		});
 	});
 });

@@ -6,7 +6,7 @@ function browseBar(page: Page) {
 }
 
 async function choose(page: Page, menu: string, entry: string) {
-	await browseBar(page).getByText(menu, { exact: true }).click();
+	await browseBar(page).getByRole('button', { name: menu, exact: true }).hover();
 	await browseBar(page).getByRole('link', { name: entry, exact: true }).click();
 }
 
@@ -57,15 +57,15 @@ test.describe('film catalogue', () => {
 		await expect(page).toHaveURL('/films/browse?sort=rating_lowest&genre=878');
 	});
 
-	test('opens one menu at a time and closes it on a click outside', async ({ page }) => {
-		await browseBar(page).getByText('Year', { exact: true }).click();
+	test('opens one menu at a time and closes it when the pointer leaves', async ({ page }) => {
+		await browseBar(page).getByRole('button', { name: 'Year', exact: true }).hover();
 		await expect(browseBar(page).getByRole('link', { name: '1980s' })).toBeVisible();
 
-		await browseBar(page).getByText('Genre', { exact: true }).click();
+		await browseBar(page).getByRole('button', { name: 'Genre', exact: true }).hover();
 		await expect(browseBar(page).getByRole('link', { name: '1980s' })).toBeHidden();
 		await expect(browseBar(page).getByRole('link', { name: 'Drama' })).toBeVisible();
 
-		await page.getByRole('heading', { name: 'Highest rated' }).click();
+		await page.getByRole('heading', { name: 'Highest rated' }).hover();
 		await expect(browseBar(page).getByRole('link', { name: 'Drama' })).toBeHidden();
 	});
 

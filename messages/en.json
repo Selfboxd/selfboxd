@@ -304,8 +304,6 @@
 	"catalogue_lists_hero": "Collect, curate, and share. Lists are the perfect way to group films.",
 	"catalogue_lists_start": "Start your own list",
 	"catalogue_lists_popular": "Popular lists",
-	"catalogue_lists_matches": "Lists matching “{query}”",
-	"catalogue_lists_find": "Find a list",
 	"catalogue_lists_empty": "No list matches.",
 	"catalogue_lists_unavailable": "MDBList could not be reached. Try again later.",
 	"catalogue_lists_credit": "List data from MDBList. This product is not endorsed or certified by MDBList.",
@@ -320,5 +318,16 @@
 	"instance_mdblist_configured": "An MDBList key is configured.",
 	"instance_mdblist_missing": "No MDBList key is configured.",
 	"instance_mdblist_remove": "Remove MDBList key",
-	"error_mdblist_key_invalid": "MDBList did not accept this key."
+	"error_mdblist_key_invalid": "MDBList did not accept this key.",
+	"list_by": "List by",
+	"list_progress": "You’ve watched",
+	"list_progress_count": "{watched} of {total}",
+	"catalogue_lists_featured": "Featured lists",
+	"catalogue_lists_official": "Official selection",
+	"chart_popular": "Popular films",
+	"chart_top_rated": "Top rated films",
+	"chart_now_playing": "In cinemas now",
+	"chart_upcoming": "Upcoming films",
+	"chart_empty": "This chart has no film on this page.",
+	"search_section_lists": "Lists"
 }

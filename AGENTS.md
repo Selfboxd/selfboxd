@@ -151,6 +151,11 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   opens are mounted once by the application layout.
 - The log dialog always posts to the actions of the film page, whichever page opened it, and
   reports errors itself.
+- Every page showing one list, personal, public or chart, renders `ListView.svelte`: the
+  backdrop of its first film as banner, who made it, numbered posters and the watched progress.
+- Menus opening on hover are a single block holding the trigger and its entries, like the
+  account menu of the header. The trigger never moves when the menu opens.
+- The catalogue has no search of its own. Everything is found from the search of the header.
 
 ### External APIs
 
@@ -160,6 +165,8 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Public lists come from MDBList through `src/lib/server/mdblist/service.ts`, with the optional
   key stored in the instance settings. Without the key the catalogue explains what is missing
   and list pages answer 404. Posters of listed films are loaded from TMDB.
+- The official selection of the lists catalogue is made of the TMDB charts declared in
+  `src/lib/catalog/charts.ts`.
 - The Journal page reads the RSS feed set by `JOURNAL_FEED_URL` through
   `src/lib/server/journal/service.ts`. Only article links and pictures from the expected hosts
   are kept, and teasers are reduced to text runs.

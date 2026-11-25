@@ -25,6 +25,7 @@
 	let { genres, filter }: Props = $props();
 
 	let root: HTMLElement | undefined = $state();
+	let suppressed = $state(false);
 
 	const base: Partial<BrowseFilter> = $derived(
 		filter
@@ -104,34 +105,25 @@
 		}
 	]);
 
-	function closeAll(except?: EventTarget | null) {
-		for (const menu of root?.querySelectorAll('details') ?? []) {
-			if (menu !== except) menu.open = false;
-		}
-	}
-
-	function closeOnOutsideClick(event: MouseEvent) {
-		if (root && event.target instanceof Node && !root.contains(event.target)) closeAll();
-	}
-
 	afterNavigate(() => {
-		closeAll();
+		suppressed = root?.matches(':hover') ?? false;
+		if (document.activeElement instanceof HTMLElement && root?.contains(document.activeElement)) {
+			document.activeElement.blur();
+		}
 	});
 </script>
 
-<svelte:window onclick={closeOnOutsideClick} />
-
-<nav aria-label={m.browse_by()} bind:this={root}>
+<nav aria-label={m.browse_by()}>
 	<span class="heading">{m.browse_by()}</span>
-	<ul class="menus">
+	<ul class="menus" class:suppressed bind:this={root} onmouseleave={() => (suppressed = false)}>
 		{#each menus as menu (menu.label)}
 			<li>
-				<details
-					ontoggle={(event) => {
-						if (event.currentTarget.open) closeAll(event.currentTarget);
-					}}
-				>
-					<summary>{menu.label} <Icon name="chevron" /></summary>
+				<span class="sizer" aria-hidden="true">{menu.label} <Icon name="chevron" /></span>
+				<div class="menu" role="group">
+					<button class="trigger" type="button" aria-haspopup="true">
+						{menu.label}
+						<Icon name="chevron" />
+					</button>
 					<ul class="entries">
 						{#each menu.entries as entry (entry.label)}
 							<li>
@@ -144,7 +136,7 @@
 							</li>
 						{/each}
 					</ul>
-				</details>
+				</div>
 			</li>
 		{/each}
 	</ul>
@@ -182,53 +174,71 @@
 		border: 0;
 	}
 
-	summary {
+	.sizer,
+	.trigger {
 		display: flex;
 		gap: var(--space-1);
 		align-items: center;
 		padding: var(--space-1) var(--space-2);
-		color: var(--color-text);
 		font-size: var(--font-size-small);
 		letter-spacing: var(--letter-spacing-caps);
-		list-style: none;
 		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.sizer {
+		visibility: hidden;
+	}
+
+	.menu {
+		position: absolute;
+		z-index: 15;
+		top: 0;
+		left: 0;
+		overflow: hidden;
+		min-width: 100%;
+		border-radius: var(--radius-small);
+	}
+
+	.trigger {
+		width: 100%;
+		border: 0;
+		background: none;
+		color: var(--color-text);
+		font-family: inherit;
 		cursor: pointer;
 	}
 
-	summary::-webkit-details-marker {
-		display: none;
-	}
-
-	summary:hover,
-	details[open] summary {
-		color: var(--color-heading);
-	}
-
-	details[open] summary {
-		border-radius: var(--radius-small) var(--radius-small) 0 0;
-		background: var(--color-menu);
-		color: var(--color-menu-text);
-	}
-
 	.entries {
-		position: absolute;
-		z-index: 15;
-		top: 100%;
-		left: 0;
+		display: none;
 		overflow-y: auto;
-		min-width: 100%;
 		max-height: 22rem;
 		margin: 0;
 		padding: var(--space-1) 0;
-		border-radius: 0 var(--radius-small) var(--radius-small) var(--radius-small);
-		background: var(--color-menu);
-		box-shadow: var(--shadow-menu);
+		border-top: 1px solid var(--color-menu-divider);
 		list-style: none;
+	}
+
+	.menus:not(.suppressed) .menu:hover,
+	.menus:not(.suppressed) .menu:focus-within {
+		z-index: 16;
+		background: var(--color-menu);
+		box-shadow: var(--shadow-button), var(--shadow-menu);
+	}
+
+	.menus:not(.suppressed) .menu:hover .trigger,
+	.menus:not(.suppressed) .menu:focus-within .trigger {
+		color: var(--color-heading);
+	}
+
+	.menus:not(.suppressed) .menu:hover .entries,
+	.menus:not(.suppressed) .menu:focus-within .entries {
+		display: block;
 	}
 
 	.entries a {
 		display: block;
-		padding: var(--space-1) var(--space-3);
+		padding: var(--space-1) var(--space-2);
 		color: var(--color-menu-text);
 		font-size: var(--font-size-control);
 		white-space: nowrap;

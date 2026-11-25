@@ -304,8 +304,6 @@
 	"catalogue_lists_hero": "集めて、選んで、共有する。リストは映画をまとめる最適な方法です。",
 	"catalogue_lists_start": "自分のリストを作成",
 	"catalogue_lists_popular": "人気のリスト",
-	"catalogue_lists_matches": "「{query}」に一致するリスト",
-	"catalogue_lists_find": "リストを探す",
 	"catalogue_lists_empty": "一致するリストはありません。",
 	"catalogue_lists_unavailable": "MDBList に接続できませんでした。後でもう一度お試しください。",
 	"catalogue_lists_credit": "リストのデータは MDBList 提供です。本製品は MDBList による承認・認定を受けていません。",
@@ -320,5 +318,16 @@
 	"instance_mdblist_configured": "MDBList キーが設定されています。",
 	"instance_mdblist_missing": "MDBList キーは設定されていません。",
 	"instance_mdblist_remove": "MDBList キーを削除",
-	"error_mdblist_key_invalid": "MDBList はこのキーを受け付けませんでした。"
+	"error_mdblist_key_invalid": "MDBList はこのキーを受け付けませんでした。",
+	"list_by": "リスト作成者",
+	"list_progress": "鑑賞済み",
+	"list_progress_count": "{total} 本中 {watched} 本",
+	"catalogue_lists_featured": "注目のリスト",
+	"catalogue_lists_official": "公式セレクション",
+	"chart_popular": "人気の映画",
+	"chart_top_rated": "高評価の映画",
+	"chart_now_playing": "上映中の映画",
+	"chart_upcoming": "公開予定の映画",
+	"chart_empty": "このページには映画がありません。",
+	"search_section_lists": "リスト"
 }

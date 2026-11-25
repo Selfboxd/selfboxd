@@ -3,6 +3,7 @@ import type { FilmSummary } from '../../catalog/film';
 import {
 	publicListPageSize,
 	publicListPreviewSize,
+	publicListProgressMax,
 	type PublicList,
 	type PublicListFilms,
 	type PublicListPreview
@@ -33,7 +34,7 @@ const lifetimes = { lists: 6 * hour, items: 24 * hour, search: hour };
 export const listSearchMaxLength = 100;
 
 /** Number of lists shown by the catalogue. */
-export const topListCount = 9;
+export const topListCount = 12;
 
 /** Fetches an MDBList resource through the local cache and validates its shape. */
 async function load<TSchema extends v.GenericSchema>(
@@ -91,30 +92,53 @@ export async function getListFilms(
 	if (!result.ok) return result;
 
 	const { tmdb } = context;
-	const films = await Promise.all(
-		result.value.body.movies.map(async (movie): Promise<FilmSummary> => {
-			const id = movie.ids?.tmdb ?? movie.id;
-			const fallback = {
-				id,
-				title: movie.title,
-				year: movie.release_year ?? null,
-				posterPath: null
-			};
-			if (!tmdb) return fallback;
-			const details = await getFilm(tmdb, id, context.language, '');
-			if (!details.ok) return fallback;
-			const { title, year, posterPath } = details.value;
-			return { id, title, year, posterPath };
-		})
+	const loaded = await Promise.all(
+		result.value.body.movies.map(
+			async (movie): Promise<{ film: FilmSummary; backdropPath: string | null }> => {
+				const id = movie.ids?.tmdb ?? movie.id;
+				const fallback = {
+					film: { id, title: movie.title, year: movie.release_year ?? null, posterPath: null },
+					backdropPath: null
+				};
+				if (!tmdb) return fallback;
+				const details = await getFilm(tmdb, id, context.language, '');
+				if (!details.ok) return fallback;
+				const { title, year, posterPath, backdropPath } = details.value;
+				return { film: { id, title, year, posterPath }, backdropPath };
+			}
+		)
 	);
 	return {
 		ok: true,
 		value: {
-			films,
+			films: loaded.map((entry) => entry.film),
+			backdropPath: loaded.find((entry) => entry.backdropPath)?.backdropPath ?? null,
 			page,
 			hasMore: result.value.hasMore || result.value.body.movies.length === pageSize
 		}
 	};
+}
+
+/**
+ * Returns the TMDB identifiers of every film of a public list,
+ * or `null` when the list holds more films than can be checked at once.
+ */
+export async function getListFilmIds(
+	context: MdblistContext,
+	listId: number
+): Promise<Listed<number[] | null>> {
+	const result = await load(
+		context,
+		`mdblist:ids:${String(listId)}`,
+		lifetimes.items,
+		listItemsSchema,
+		`/lists/${String(listId)}/items`,
+		{ mediatype: 'movie', limit: String(publicListProgressMax), offset: '0' }
+	);
+	if (!result.ok) return result;
+	const { movies } = result.value.body;
+	const complete = !result.value.hasMore && movies.length < publicListProgressMax;
+	return { ok: true, value: complete ? movies.map((movie) => movie.ids?.tmdb ?? movie.id) : null };
 }
 
 async function withPreview(

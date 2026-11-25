@@ -66,6 +66,30 @@ test.describe('lists', () => {
 		await expect(page.getByText('Films: 2')).toBeVisible();
 	});
 
+	test('shows the backdrop of the first film, its author and the watched progress', async ({
+		page
+	}) => {
+		const path = await createList(page, 'Progress');
+		await addFilm(page, 78, 'Progress');
+		await addFilm(page, 335984, 'Progress');
+		const actions = page.getByRole('region', { name: 'Your actions' });
+		await actions.getByRole('button', { name: 'Watch', exact: true }).click();
+		await expect(actions.getByRole('button', { name: 'Watched', exact: true })).toBeVisible();
+
+		await page.goto(path);
+
+		await expect(page.locator('.backdrop img')).toHaveAttribute(
+			'src',
+			/blade-runner-backdrop\.jpg$/
+		);
+		await expect(page.getByRole('main').getByText('List by')).toBeVisible();
+		const side = page.getByRole('complementary');
+		await expect(side).toContainText('1 of 2');
+		await expect(side).toContainText('50%');
+		await side.getByRole('link', { name: 'Edit list' }).click();
+		await expect(page).toHaveURL(`${path}/edit`);
+	});
+
 	test('remembers the lists of a film and removes it when unchecked', async ({ page }) => {
 		const path = await createList(page, 'Keepers');
 		await addFilm(page, 78, 'Keepers');

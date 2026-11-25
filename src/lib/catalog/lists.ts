@@ -19,6 +19,8 @@ export interface PublicListPreview extends PublicList {
 /** One page of the films of a public list. */
 export interface PublicListFilms {
 	films: FilmSummary[];
+	/** Path of the TMDB backdrop of the first film of the page that has one. */
+	backdropPath: string | null;
 	page: number;
 	hasMore: boolean;
 }
@@ -31,3 +33,15 @@ export const publicListPageSize = 40;
 
 /** Largest page offered for a public list. */
 export const publicListPageMax = 250;
+
+/** Largest number of films of a public list checked against what an account has watched. */
+export const publicListProgressMax = 1000;
+
+/** How much of a list an account has watched. */
+export interface ListProgress {
+	watched: number;
+	total: number;
+}
+
+/** Number of popular public lists the catalogue shows first, as featured lists. */
+export const featuredListCount = 3;
