@@ -1,0 +1,5 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app_tagline": "Acompanhe os seus filmes, séries e livros numa instância que você mesmo hospeda.",
+	"footer_not_affiliated": "Selfboxd não é afiliado ao Letterboxd."
+}

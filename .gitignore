@@ -1,0 +1,28 @@
+node_modules
+
+# Build output
+/.svelte-kit
+/build
+
+# Instance data
+/data
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Generated translation runtime
+/src/lib/paraglide
+/project.inlang/cache
+
+# Test output
+/test-results
+/playwright-report
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vite
+vite.config.ts.timestamp-*

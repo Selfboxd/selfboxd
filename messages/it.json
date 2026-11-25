@@ -1,0 +1,5 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app_tagline": "Tieni traccia di film, serie e libri su un'istanza che ospiti tu stesso.",
+	"footer_not_affiliated": "Selfboxd non è affiliato a Letterboxd."
+}

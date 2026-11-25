@@ -1,0 +1,5 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app_tagline": "在你自己托管的实例上记录你的电影、剧集和书籍。",
+	"footer_not_affiliated": "Selfboxd 与 Letterboxd 没有任何关联。"
+}
