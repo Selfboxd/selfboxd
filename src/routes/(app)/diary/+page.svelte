@@ -35,7 +35,13 @@
 	<title>{m.diary_title()} - Selfboxd</title>
 </svelte:head>
 
-<h1 class="section-title">{m.diary_title()}</h1>
+<h1 class="section-title">
+	{m.diary_title()}
+	{#if data.tag}
+		<span class="tag">{data.tag}</span>
+		<a href={resolve('/(app)/diary')}>{m.watchlist_filter_all()}</a>
+	{/if}
+</h1>
 
 {#if rows.length === 0}
 	<p>{m.diary_empty()}</p>
@@ -98,6 +104,15 @@
 <LogDialog bind:target={logTarget} {scale} />
 
 <style>
+	.tag {
+		margin-inline: var(--space-2);
+		padding: 0 var(--space-2);
+		border-radius: var(--radius-small);
+		background: var(--color-chip);
+		color: var(--color-text-strong);
+		text-transform: none;
+	}
+
 	table {
 		width: 100%;
 		border-collapse: collapse;

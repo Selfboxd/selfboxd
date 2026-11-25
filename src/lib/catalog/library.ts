@@ -40,6 +40,8 @@ export interface DiaryEntry {
 	rewatch: boolean;
 	review: string;
 	containsSpoilers: boolean;
+	/** Whether the review is shown on the profile of the account. */
+	pinned: boolean;
 	tags: string[];
 }
 
@@ -106,3 +108,29 @@ export const listDescriptionMaxLength = 2000;
 export const listNoteMaxLength = 500;
 /** Number of works shown for a list among the other lists. */
 export const listPreviewSize = 5;
+
+/** What an account tells about itself on its profile. */
+export interface Profile {
+	bio: string;
+	location: string;
+	/** Path of the TMDB backdrop used as banner, or `null` without banner. */
+	bannerPath: string | null;
+}
+
+export interface ProfileStats {
+	/** Number of works marked as watched. */
+	watched: number;
+	/** Number of diary entries dated in the current year. */
+	thisYear: number;
+	lists: number;
+}
+
+export interface TagCount {
+	name: string;
+	count: number;
+}
+
+export const bioMaxLength = 1000;
+export const locationMaxLength = 100;
+export const favouriteSlots = 4;
+export const pinnedReviewLimit = 2;

@@ -1,6 +1,8 @@
 import {
+	bioMaxLength,
 	listDescriptionMaxLength,
 	listNameMaxLength,
+	locationMaxLength,
 	reviewMaxLength,
 	watchlistNoteMaxLength
 } from '../../catalog/library';
@@ -17,7 +19,9 @@ export type LibraryFormError =
 	| 'note_too_long'
 	| 'list_name_required'
 	| 'list_name_too_long'
-	| 'list_description_too_long';
+	| 'list_description_too_long'
+	| 'bio_too_long'
+	| 'location_too_long';
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; error: LibraryFormError };
 
@@ -75,4 +79,13 @@ export function parseListForm(form: FormData): Parsed<ListInput> {
 /** Reads a positive identifier from a form field or a route parameter. */
 export function parseId(value: string): number | undefined {
 	return /^[1-9]\d{0,11}$/.test(value) ? Number(value) : undefined;
+}
+
+/** Reads and validates the fields of the profile form. */
+export function parseProfileForm(form: FormData): Parsed<{ bio: string; location: string }> {
+	const bio = formText(form, 'bio').trim();
+	if (bio.length > bioMaxLength) return { ok: false, error: 'bio_too_long' };
+	const location = formText(form, 'location').trim();
+	if (location.length > locationMaxLength) return { ok: false, error: 'location_too_long' };
+	return { ok: true, value: { bio, location } };
 }

@@ -52,6 +52,14 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_list_description_too_long();
 		case 'list_not_found':
 			return m.error_list_not_found();
+		case 'bio_too_long':
+			return m.error_bio_too_long();
+		case 'location_too_long':
+			return m.error_location_too_long();
+		case 'banner_unavailable':
+			return m.error_banner_unavailable();
+		case 'pin_limit_reached':
+			return m.error_pin_limit_reached();
 		default:
 			return m.error_generic();
 	}

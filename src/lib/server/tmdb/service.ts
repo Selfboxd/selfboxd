@@ -2,9 +2,9 @@ import * as v from 'valibot';
 import type { AppDatabase } from '../db/connection';
 import { readCache, writeCache } from './cache';
 import { tmdbGet, type TmdbConfig, type TmdbError } from './client';
-import type { Film, FilmCollection, FilmSearchResult } from '../../catalog/film';
+import type { Film, FilmCollection, FilmSearchResult, FilmSummary } from '../../catalog/film';
 import { toCollection, toFilm, toFilmSummary } from './film';
-import { collectionSchema, filmDetailsSchema, filmSearchSchema } from './schemas';
+import { collectionSchema, filmDetailsSchema, filmListSchema, filmSearchSchema } from './schemas';
 
 export interface TmdbContext {
 	db: AppDatabase;
@@ -21,7 +21,8 @@ const hour = 60 * 60 * 1000;
 const lifetimes = {
 	film: 24 * hour,
 	collection: 7 * 24 * hour,
-	search: hour
+	search: hour,
+	popular: 6 * hour
 };
 
 const filmAppendix = 'credits,videos,release_dates,watch/providers';
@@ -140,4 +141,21 @@ export async function searchFilms(
 			totalPages: Math.min(result.value.total_pages, searchPageMax)
 		}
 	};
+}
+
+/** Returns the films that are the most popular this week. */
+export async function getPopularFilms(
+	context: TmdbContext,
+	language: string
+): Promise<Loaded<FilmSummary[]>> {
+	const result = await load(
+		context,
+		`popular:film:${language}`,
+		lifetimes.popular,
+		filmListSchema,
+		'/trending/movie/week',
+		{ language }
+	);
+	if (!result.ok) return result;
+	return { ok: true, value: result.value.results.map(toFilmSummary) };
 }

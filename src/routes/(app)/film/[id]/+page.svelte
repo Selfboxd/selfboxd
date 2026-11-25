@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DiaryEntry } from '#lib/catalog/library.js';
+	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
 	import FilmDetails from '#lib/components/film/FilmDetails.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
@@ -12,7 +13,6 @@
 	import WatchlistDialog from '#lib/components/library/WatchlistDialog.svelte';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
-	import { tmdbImage } from '#lib/images.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { PageProps } from './$types';
@@ -44,9 +44,7 @@
 {:else}
 	{@const film = data.film}
 	{#if film.backdropPath}
-		<div class="backdrop">
-			<img src={tmdbImage(film.backdropPath, 'w1280')} alt="" />
-		</div>
+		<Backdrop path={film.backdropPath} />
 	{/if}
 
 	<div class="film" class:with-backdrop={film.backdropPath}>
@@ -181,45 +179,6 @@
 {/if}
 
 <style>
-	.backdrop {
-		position: absolute;
-		z-index: -1;
-		top: calc(-1 * var(--header-height));
-		left: 50%;
-		overflow: hidden;
-		width: min(100%, var(--backdrop-width));
-		height: var(--backdrop-height);
-		transform: translateX(-50%);
-	}
-
-	.backdrop img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center top;
-	}
-
-	.backdrop::after {
-		position: absolute;
-		background:
-			var(--texture-grain),
-			linear-gradient(
-				to right,
-				var(--color-background),
-				var(--color-background-clear) 22%,
-				var(--color-background-clear) 78%,
-				var(--color-background)
-			),
-			linear-gradient(
-				to bottom,
-				var(--color-background-clear) 45%,
-				var(--color-background-veil) 75%,
-				var(--color-background)
-			);
-		content: '';
-		inset: 0;
-	}
-
 	.film {
 		display: grid;
 		grid-template-columns: var(--poster-large) minmax(0, 1fr);

@@ -17,7 +17,7 @@ test.describe('header', () => {
 	test('links to every main page, with the account menu after them', async ({ page }) => {
 		const targets = [
 			['Activity', '/activity'],
-			['Watched', '/watched'],
+			['Films', '/films'],
 			['Lists', '/lists'],
 			['Diary', '/diary'],
 			['Journal', '/journal']

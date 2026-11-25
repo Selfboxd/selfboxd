@@ -99,3 +99,5 @@ export const filmSearchSchema = v.object({
 export type RawFilmDetails = v.InferOutput<typeof filmDetailsSchema>;
 export type RawFilmSummary = v.InferOutput<typeof filmSummarySchema>;
 export type RawCollection = v.InferOutput<typeof collectionSchema>;
+
+export const filmListSchema = v.object({ results: v.array(filmSummarySchema) });
