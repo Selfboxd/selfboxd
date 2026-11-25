@@ -51,5 +51,16 @@
 	"accounts_password_title": "Imposta una nuova password",
 	"accounts_password_submit": "Imposta password",
 	"accounts_password_set": "La password di {username} è stata cambiata.",
-	"accounts_field_account": "Account"
+	"accounts_field_account": "Account",
+	"nav_home": "Home",
+	"settings_tab_avatar": "Avatar",
+	"avatar_title": "Avatar",
+	"avatar_intro": "L'immagine viene ritagliata a quadrato, ridimensionata e privata dei metadati prima di essere salvata.",
+	"avatar_field": "Immagine",
+	"avatar_submit": "Carica",
+	"avatar_remove": "Rimuovi avatar",
+	"avatar_updated": "Il tuo avatar è stato aggiornato.",
+	"avatar_removed": "Il tuo avatar è stato rimosso.",
+	"error_image_invalid": "Questo file non è un'immagine supportata.",
+	"error_image_too_large": "Questa immagine è troppo grande. Il limite è di 10 MB."
 }

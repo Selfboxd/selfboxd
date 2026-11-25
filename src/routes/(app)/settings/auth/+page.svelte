@@ -17,34 +17,36 @@
 
 <div class="split">
 	<section class="split-main">
-		<h2 class="section-title">{m.auth_password_title()}</h2>
-		<form method="POST" action="?/password" class="form" use:enhance>
-			{#if form?.action === 'password' && 'error' in form}
-				<FormError message={errorMessage(form.error, form.seconds)} />
-			{:else if form?.action === 'password'}
-				<FormNotice message={m.auth_password_changed()} />
-			{/if}
-			<TextField
-				name="current"
-				type="password"
-				label={m.field_current_password()}
-				autocomplete="current-password"
-			/>
-			<TextField
-				name="password"
-				type="password"
-				label={m.field_new_password()}
-				hint={m.hint_password()}
-				autocomplete="new-password"
-			/>
-			<TextField
-				name="confirmation"
-				type="password"
-				label={m.field_password_confirm()}
-				autocomplete="new-password"
-			/>
-			<button class="button button-primary">{m.auth_password_submit()}</button>
-		</form>
+		<div>
+			<h2 class="section-title">{m.auth_password_title()}</h2>
+			<form method="POST" action="?/password" class="form" use:enhance>
+				{#if form?.action === 'password' && 'error' in form}
+					<FormError message={errorMessage(form.error, form.seconds)} />
+				{:else if form?.action === 'password'}
+					<FormNotice message={m.auth_password_changed()} />
+				{/if}
+				<TextField
+					name="current"
+					type="password"
+					label={m.field_current_password()}
+					autocomplete="current-password"
+				/>
+				<TextField
+					name="password"
+					type="password"
+					label={m.field_new_password()}
+					hint={m.hint_password()}
+					autocomplete="new-password"
+				/>
+				<TextField
+					name="confirmation"
+					type="password"
+					label={m.field_password_confirm()}
+					autocomplete="new-password"
+				/>
+				<button class="button button-primary">{m.auth_password_submit()}</button>
+			</form>
+		</div>
 	</section>
 
 	<section>
@@ -89,9 +91,9 @@
 
 	.sessions li {
 		display: flex;
-		gap: var(--space-4);
-		align-items: center;
-		justify-content: space-between;
+		flex-direction: column;
+		gap: var(--space-2);
+		align-items: flex-start;
 		padding: var(--space-3) 0;
 		border-bottom: 1px solid var(--color-border);
 	}
@@ -104,8 +106,12 @@
 	}
 
 	.session-kind {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		align-items: center;
 		color: var(--color-heading);
-		font-weight: 600;
+		font-weight: 700;
 	}
 
 	.session-label {
@@ -122,8 +128,8 @@
 	}
 
 	.badge {
-		margin-inline-start: var(--space-2);
 		padding: 0 var(--space-2);
+		white-space: nowrap;
 		border-radius: var(--radius-small);
 		background: var(--color-accent);
 		color: var(--color-accent-contrast);

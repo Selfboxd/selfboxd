@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PublicUser } from '#lib/server/auth/users.js';
+	import Avatar from './Avatar.svelte';
 	import SiteLogo from './SiteLogo.svelte';
 
 	interface Props {
@@ -33,12 +34,14 @@
 		<nav aria-label={m.nav_label()}>
 			<details class="account" bind:this={menu}>
 				<summary>
-					<span>{user.username}</span>
+					<Avatar {user} />
+					<span class="username">{user.username}</span>
 					<svg class="chevron" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
 						<path d="M1 1l4 4 4-4" />
 					</svg>
 				</summary>
 				<div class="menu">
+					<a href={resolve('/(app)')}>{m.nav_home()}</a>
 					<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
 					<form method="POST" action={resolve('/(app)/logout')}>
 						<button>{m.nav_sign_out()}</button>
@@ -77,6 +80,7 @@
 
 	.account {
 		position: relative;
+		width: var(--menu-width);
 	}
 
 	summary {
@@ -102,18 +106,26 @@
 		color: var(--color-heading);
 	}
 
+	.username {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
 	.chevron {
+		flex-shrink: 0;
 		fill: none;
 		stroke: currentcolor;
 		stroke-linecap: round;
 		stroke-linejoin: round;
-		stroke-width: 1.5;
+		stroke-width: 2;
 	}
 
 	.account[open] summary {
 		border-radius: var(--radius-small) var(--radius-small) 0 0;
 		background: var(--color-menu);
-		color: var(--color-menu-text);
+		box-shadow: var(--shadow-button);
+		color: var(--color-heading);
 	}
 
 	.menu {
@@ -121,20 +133,27 @@
 		z-index: 10;
 		top: 100%;
 		right: 0;
+		left: 0;
 		display: flex;
-		min-width: 100%;
 		flex-direction: column;
 		padding: var(--space-1) 0;
-		border-radius: var(--radius-small) 0 var(--radius-small) var(--radius-small);
+		border-top: 1px solid var(--color-menu-divider);
+		border-radius: 0 0 var(--radius-small) var(--radius-small);
 		background: var(--color-menu);
 		box-shadow: var(--shadow-menu);
+	}
+
+	.menu form {
+		margin-top: var(--space-1);
+		padding-top: var(--space-1);
+		border-top: 1px solid var(--color-menu-divider);
 	}
 
 	.menu a,
 	.menu button {
 		display: block;
 		width: 100%;
-		padding: var(--space-2) var(--space-3);
+		padding: var(--space-1) var(--space-3);
 		border: 0;
 		background: none;
 		color: var(--color-menu-text);

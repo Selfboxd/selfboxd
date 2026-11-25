@@ -19,6 +19,10 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_password_mismatch();
 		case 'current_password_invalid':
 			return m.error_current_password_invalid();
+		case 'image_invalid':
+			return m.error_image_invalid();
+		case 'image_too_large':
+			return m.error_image_too_large();
 		default:
 			return m.error_generic();
 	}

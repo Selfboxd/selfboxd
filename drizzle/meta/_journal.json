@@ -15,6 +15,13 @@
       "when": 1795599257604,
       "tag": "0001_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795602669304,
+      "tag": "0002_avatar",
+      "breakpoints": true
     }
   ]
 }

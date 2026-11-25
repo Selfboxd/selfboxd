@@ -51,5 +51,16 @@
 	"accounts_password_title": "设置新密码",
 	"accounts_password_submit": "设置密码",
 	"accounts_password_set": "{username} 的密码已修改。",
-	"accounts_field_account": "账户"
+	"accounts_field_account": "账户",
+	"nav_home": "首页",
+	"settings_tab_avatar": "头像",
+	"avatar_title": "头像",
+	"avatar_intro": "图片在保存前会被裁剪为正方形、调整大小并移除元数据。",
+	"avatar_field": "图片",
+	"avatar_submit": "上传",
+	"avatar_remove": "移除头像",
+	"avatar_updated": "头像已更新。",
+	"avatar_removed": "头像已移除。",
+	"error_image_invalid": "该文件不是受支持的图片。",
+	"error_image_too_large": "图片过大。上限为 10 MB。"
 }

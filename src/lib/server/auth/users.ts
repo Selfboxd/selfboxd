@@ -10,10 +10,17 @@ export interface PublicUser {
 	id: number;
 	username: string;
 	isAdmin: boolean;
+	/** Changes each time the profile picture is replaced; `null` without a picture. */
+	avatarVersion: number | null;
 }
 
 export function toPublicUser(user: User): PublicUser {
-	return { id: user.id, username: user.username, isAdmin: user.isAdmin };
+	return {
+		id: user.id,
+		username: user.username,
+		isAdmin: user.isAdmin,
+		avatarVersion: user.avatarVersion
+	};
 }
 
 export function countUsers(db: AppDatabase): number {
@@ -67,6 +74,11 @@ export async function createFirstUser(
 			.returning()
 			.get();
 	});
+}
+
+/** Records that the profile picture changed, or was removed when `version` is `null`. */
+export function setAvatarVersion(db: AppDatabase, userId: number, version: number | null) {
+	db.update(users).set({ avatarVersion: version }).where(eq(users.id, userId)).run();
 }
 
 export async function setPassword(db: AppDatabase, userId: number, password: string) {
