@@ -13,8 +13,8 @@ holds the whole self-hosted application and its Docker image.
 - No secrets and no information about any deployment environment in this repository.
 - No telemetry. The instance never sends statistics anywhere.
 - No social features: no friends, no followers, no activity feed.
-- The only logo is the Selfboxd logo in `src/lib/assets`. Never use a Letterboxd logo, icon or
-  button.
+- The only logos are the Selfboxd logo and the TMDB attribution logo in `src/lib/assets`. Never
+  use a Letterboxd logo, icon or button.
 - Every change ships with tests. End-to-end tests are the most important part of the project.
 
 ## Stack
@@ -28,22 +28,26 @@ holds the whole self-hosted application and its Docker image.
 
 ## Layout
 
-| Path                      | Content                                                |
-| ------------------------- | ------------------------------------------------------ |
-| `src/routes`              | Pages and endpoints                                    |
-| `src/routes/api/v1`       | JSON API, also consumed by the mobile application      |
-| `src/lib/components`      | Svelte components                                      |
-| `src/lib/styles`          | Global styles; `theme.css` holds every design token    |
-| `src/lib/server`          | Server-only code                                       |
-| `src/lib/server/auth`     | Accounts, passwords, sessions, sign-in throttling      |
-| `src/lib/server/api`      | Helpers shared by the JSON endpoints                   |
-| `src/lib/i18n`            | Helpers that turn codes and dates into translated text |
-| `src/lib/server/db`       | Database connection, schema and migration runner       |
-| `src/lib/server/security` | Security helpers                                       |
-| `src/env.ts`              | Declaration of every environment variable              |
-| `messages`                | Translations, one JSON file per locale                 |
-| `drizzle`                 | Generated SQL migrations                               |
-| `e2e`                     | Playwright tests                                       |
+| Path                      | Content                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| `src/routes`              | Pages and endpoints                                        |
+| `src/routes/api/v1`       | JSON API, also consumed by the mobile application          |
+| `src/lib/components`      | Svelte components                                          |
+| `src/lib/styles`          | Global styles; `theme.css` holds every design token        |
+| `src/lib/server`          | Server-only code                                           |
+| `src/lib/server/auth`     | Accounts, passwords, sessions, sign-in throttling          |
+| `src/lib/server/api`      | Helpers shared by the JSON endpoints                       |
+| `src/lib/catalog`         | Types of films and other works, shared by server and pages |
+| `src/lib/server/tmdb`     | TMDB client, local cache and conversion to catalog types   |
+| `src/lib/server/media`    | Image processing and storage                               |
+| `src/lib/server/settings` | Settings shared by every account of the instance           |
+| `src/lib/i18n`            | Helpers that turn codes and dates into translated text     |
+| `src/lib/server/db`       | Database connection, schema and migration runner           |
+| `src/lib/server/security` | Security helpers                                           |
+| `src/env.ts`              | Declaration of every environment variable                  |
+| `messages`                | Translations, one JSON file per locale                     |
+| `drizzle`                 | Generated SQL migrations                                   |
+| `e2e`                     | Playwright tests                                           |
 
 Keep this structure clean: one responsibility per file, no catch-all file, no needless
 fragmentation.
@@ -123,6 +127,14 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Custom posters imported by the user never leave the instance. For those works the public
   profile shows the default official poster.
 - No other image is sent to the platform or stored by it.
+
+### External APIs
+
+- Every call to TMDB goes through `src/lib/server/tmdb/service.ts`, which caches responses and
+  validates their shape. Never call an external API from a page or a component.
+- Text coming from an external API is rendered as text. Never use `{@html}` on it.
+- End-to-end tests never reach a real external API: they run against the fake TMDB server of
+  `e2e/support/tmdb`.
 
 ### Tests
 

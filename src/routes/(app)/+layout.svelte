@@ -17,8 +17,14 @@
 
 <style>
 	.body {
+		position: relative;
+		z-index: 0;
 		flex: 1;
 		background: linear-gradient(var(--color-background-raised), transparent 16rem);
+	}
+
+	.body:has(:global(.backdrop)) {
+		background: none;
 	}
 
 	main {

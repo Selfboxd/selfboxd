@@ -23,6 +23,15 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_image_invalid();
 		case 'image_too_large':
 			return m.error_image_too_large();
+		case 'tmdb_key_invalid':
+			return m.error_tmdb_key_invalid();
+		case 'unauthorized':
+			return m.error_tmdb_unauthorized();
+		case 'rate_limited':
+			return m.error_tmdb_rate_limited();
+		case 'unavailable':
+		case 'invalid_response':
+			return m.error_tmdb_unavailable();
 		default:
 			return m.error_generic();
 	}

@@ -1,0 +1,76 @@
+{
+	"id": 78,
+	"title": "Blade Runner",
+	"original_title": "Blade Runner",
+	"original_language": "en",
+	"release_date": "1982-06-25",
+	"tagline": "Man has made his match... now it's his problem.",
+	"overview": "In the smog-choked dystopian Los Angeles of 2019, blade runner Rick Deckard is called out of retirement to terminate a quartet of replicants who have escaped to Earth.",
+	"runtime": 118,
+	"poster_path": "/blade-runner-poster.jpg",
+	"backdrop_path": "/blade-runner-backdrop.jpg",
+	"vote_average": 7.9,
+	"vote_count": 14500,
+	"genres": [
+		{ "id": 878, "name": "Science Fiction" },
+		{ "id": 18, "name": "Drama" },
+		{ "id": 53, "name": "Thriller" }
+	],
+	"production_companies": [
+		{ "id": 5798, "name": "Shaw Brothers" },
+		{ "id": 174, "name": "Warner Bros. Pictures" },
+		{ "id": 7965, "name": "The Ladd Company" }
+	],
+	"production_countries": [{ "iso_3166_1": "US", "name": "United States of America" }],
+	"spoken_languages": [
+		{ "iso_639_1": "en", "english_name": "English", "name": "English" },
+		{ "iso_639_1": "ja", "english_name": "Japanese", "name": "日本語" }
+	],
+	"belongs_to_collection": { "id": 422837, "name": "Blade Runner Collection" },
+	"credits": {
+		"cast": [
+			{ "id": 3, "name": "Harrison Ford", "character": "Rick Deckard", "profile_path": null },
+			{ "id": 585, "name": "Rutger Hauer", "character": "Roy Batty", "profile_path": null },
+			{ "id": 586, "name": "Sean Young", "character": "Rachael", "profile_path": null }
+		],
+		"crew": [
+			{ "id": 578, "name": "Ridley Scott", "job": "Director", "department": "Directing" },
+			{ "id": 583, "name": "Hampton Fancher", "job": "Screenplay", "department": "Writing" },
+			{ "id": 584, "name": "David Webb Peoples", "job": "Screenplay", "department": "Writing" },
+			{ "id": 581, "name": "Philip K. Dick", "job": "Novel", "department": "Writing" },
+			{ "id": 594, "name": "Vangelis", "job": "Original Music Composer", "department": "Sound" }
+		]
+	},
+	"videos": {
+		"results": [
+			{ "site": "YouTube", "type": "Featurette", "key": "featurette-key", "official": true },
+			{ "site": "YouTube", "type": "Trailer", "key": "fan-trailer-key", "official": false },
+			{ "site": "YouTube", "type": "Trailer", "key": "official-trailer-key", "official": true }
+		]
+	},
+	"release_dates": {
+		"results": [
+			{
+				"iso_3166_1": "US",
+				"release_dates": [
+					{ "release_date": "1982-06-25T00:00:00.000Z", "type": 3, "certification": "R" }
+				]
+			},
+			{
+				"iso_3166_1": "FR",
+				"release_dates": [
+					{ "release_date": "1982-09-15T00:00:00.000Z", "type": 3, "certification": "" }
+				]
+			}
+		]
+	},
+	"watch/providers": {
+		"results": {
+			"US": {
+				"link": "https://www.themoviedb.org/movie/78-blade-runner/watch?locale=US",
+				"flatrate": [{ "provider_id": 8, "provider_name": "Netflix", "logo_path": "/netflix.jpg" }],
+				"rent": [{ "provider_id": 2, "provider_name": "Apple TV", "logo_path": "/apple.jpg" }]
+			}
+		}
+	}
+}
