@@ -7,6 +7,12 @@ import * as schema from './schema';
 
 export type AppDatabase = BetterSQLite3Database<typeof schema>;
 
+/** A transaction opened on the database. */
+export type DatabaseTransaction = Parameters<Parameters<AppDatabase['transaction']>[0]>[0];
+
+/** Anything queries can run on: the database itself or a transaction. */
+export type DatabaseExecutor = AppDatabase | DatabaseTransaction;
+
 /** Opens the SQLite database at `file`, creating the file and its directory when missing. */
 export function openDatabase(file: string): AppDatabase {
 	mkdirSync(dirname(file), { recursive: true });

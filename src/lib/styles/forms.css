@@ -130,3 +130,21 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+.button-danger {
+	background: var(--color-danger-button);
+	color: var(--color-heading);
+}
+
+.button-danger:hover {
+	background: var(--color-danger-button-hover);
+}
+
+.sr-only {
+	position: absolute;
+	overflow: hidden;
+	width: 1px;
+	height: 1px;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

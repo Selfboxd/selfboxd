@@ -32,6 +32,15 @@
 	--color-link: #ddeeff;
 	--color-link-hover: #40bcf4;
 	--color-like: #ff9010;
+	--color-like-empty: #667788;
+	--color-rating-empty: #334455;
+	--color-action-idle: #bbccdd;
+	--color-text-panel: #bbccdd;
+	--color-dialog: #445566;
+	--color-dialog-divider: rgb(0 0 0 / 25%);
+	--color-scrim: rgb(10 12 14 / 75%);
+	--color-danger-button: #994444;
+	--color-danger-button-hover: #b04e4e;
 	--color-rating: #00c030;
 	--color-danger: #ff6666;
 	--color-danger-surface: #3a2228;
@@ -48,6 +57,7 @@
 	--shadow-button: inset 0 1px 0 rgb(255 255 255 / 30%);
 	--shadow-input: inset 0 -1px 0 #445566;
 	--shadow-menu: 0 2px 8px rgb(0 0 0 / 40%);
+	--shadow-dialog: 0 8px 32px rgb(0 0 0 / 60%);
 	--shadow-chip: inset 0 1px 0 rgb(255 255 255 / 5%);
 	--shadow-poster: 0 1px 3px rgb(0 0 0 / 35%);
 	--shadow-poster-frame: inset 0 0 0 1px rgb(221 238 255 / 35%);
@@ -70,6 +80,8 @@
 	--font-size-wordmark: 1.625rem;
 	--font-size-film-title: 2.25rem;
 	--font-size-display: 3.5rem;
+	--font-size-rating-input: 1.75rem;
+	--font-size-action-icon: 2rem;
 	--line-height-body: 1.5;
 	--line-height-heading: 1.2;
 	--letter-spacing-caps: 0.075em;
@@ -91,6 +103,7 @@
 	--search-width: 11rem;
 	--search-height: 1.875rem;
 	--menu-row-height: 2.5rem;
+	--poster-tiny: 2.1875rem;
 	--poster-small: 4.375rem;
 	--poster-medium: 9.375rem;
 	--poster-large: 14.375rem;
@@ -100,5 +113,6 @@
 	--header-height: 4.5rem;
 	--content-width: 59.375rem;
 	--narrow-width: 22rem;
+	--dialog-width: 36rem;
 	--sidebar-width: 15rem;
 }

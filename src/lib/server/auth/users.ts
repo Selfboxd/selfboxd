@@ -1,6 +1,7 @@
 import { count, eq } from 'drizzle-orm';
 import type { AppDatabase } from '../db/connection';
 import { users } from '../db/schema';
+import type { RatingScale } from '../../catalog/library';
 import { hashPassword } from './password';
 
 export type User = typeof users.$inferSelect;
@@ -12,6 +13,7 @@ export interface PublicUser {
 	isAdmin: boolean;
 	/** Changes each time the profile picture is replaced; `null` without a picture. */
 	avatarVersion: number | null;
+	ratingScale: RatingScale;
 }
 
 export function toPublicUser(user: User): PublicUser {
@@ -19,7 +21,8 @@ export function toPublicUser(user: User): PublicUser {
 		id: user.id,
 		username: user.username,
 		isAdmin: user.isAdmin,
-		avatarVersion: user.avatarVersion
+		avatarVersion: user.avatarVersion,
+		ratingScale: user.ratingScale
 	};
 }
 
@@ -79,6 +82,10 @@ export async function createFirstUser(
 /** Records that the profile picture changed, or was removed when `version` is `null`. */
 export function setAvatarVersion(db: AppDatabase, userId: number, version: number | null) {
 	db.update(users).set({ avatarVersion: version }).where(eq(users.id, userId)).run();
+}
+
+export function setRatingScale(db: AppDatabase, userId: number, ratingScale: RatingScale) {
+	db.update(users).set({ ratingScale }).where(eq(users.id, userId)).run();
 }
 
 export async function setPassword(db: AppDatabase, userId: number, password: string) {

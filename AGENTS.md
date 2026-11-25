@@ -38,6 +38,7 @@ holds the whole self-hosted application and its Docker image.
 | `src/lib/server/auth`     | Accounts, passwords, sessions, sign-in throttling          |
 | `src/lib/server/api`      | Helpers shared by the JSON endpoints                       |
 | `src/lib/catalog`         | Types of films and other works, shared by server and pages |
+| `src/lib/server/library`  | Watched, liked and rated works, diary, watchlist and tags  |
 | `src/lib/server/tmdb`     | TMDB client, local cache and conversion to catalog types   |
 | `src/lib/server/media`    | Image processing and storage                               |
 | `src/lib/server/settings` | Settings shared by every account of the instance           |
@@ -127,6 +128,14 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Custom posters imported by the user never leave the instance. For those works the public
   profile shows the default official poster.
 - No other image is sent to the platform or stored by it.
+
+### Library
+
+- A work is watched or logged. A logged work is always watched and never on the watchlist.
+- Ratings are stored as whole numbers from 1 to 10, whatever scale the account displays.
+- Every query on diary entries, watchlist items and work states is filtered by the account.
+- Text typed by an account, such as reviews, notes and tags, is rendered as text.
+- Dialogs are opened through bound properties, not through methods of component instances.
 
 ### External APIs
 

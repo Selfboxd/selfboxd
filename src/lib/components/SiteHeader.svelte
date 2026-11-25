@@ -52,7 +52,9 @@
 					</summary>
 					<div class="menu">
 						<a href={resolve('/(app)')}>{m.nav_home()}</a>
-						<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
+						<a href={resolve('/(app)/diary')}>{m.nav_diary()}</a>
+						<a href={resolve('/(app)/watchlist')}>{m.nav_watchlist()}</a>
+						<a class="divided" href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
 						<form method="POST" action={resolve('/(app)/logout')}>
 							<button>{m.nav_sign_out()}</button>
 						</form>
@@ -210,10 +212,14 @@
 		border-top: 1px solid var(--color-menu-divider);
 	}
 
-	.menu form {
+	.menu form,
+	.menu .divided {
 		margin-top: var(--space-1);
-		padding-top: var(--space-1);
 		border-top: 1px solid var(--color-menu-divider);
+	}
+
+	.menu form {
+		padding-top: var(--space-1);
 	}
 
 	.menu a,

@@ -9,6 +9,7 @@
 	const tabs = $derived([
 		{ href: resolve('/(app)/settings/auth'), label: m.settings_tab_auth() },
 		{ href: resolve('/(app)/settings/avatar'), label: m.settings_tab_avatar() },
+		{ href: resolve('/(app)/settings/preferences'), label: m.settings_tab_preferences() },
 		...(data.user?.isAdmin
 			? [
 					{ href: resolve('/(app)/settings/accounts'), label: m.settings_tab_accounts() },
