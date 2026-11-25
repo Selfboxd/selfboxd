@@ -35,16 +35,16 @@ test.describe('journal', () => {
 
 	test('filters by section and lists every article in the archive', async ({ page }) => {
 		await page.goto('/journal');
-		await page
-			.getByRole('navigation', { name: 'Journal sections' })
-			.getByRole('link', { name: 'Community' })
-			.click();
+		const sections = page.getByRole('navigation', { name: 'Sections' });
+		await sections.getByText('Sections', { exact: true }).click();
+		await sections.getByRole('link', { name: 'Community' }).click();
 
 		await expect(page).toHaveURL('/journal?section=Community');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Community');
 		await expect(page.getByRole('article')).toHaveCount(3);
 
-		await page.getByRole('link', { name: 'All sections' }).click();
+		await sections.getByText('Sections', { exact: true }).click();
+		await sections.getByRole('link', { name: 'All sections' }).click();
 		await expect(page.getByRole('article')).toHaveCount(9);
 	});
 

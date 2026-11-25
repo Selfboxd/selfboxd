@@ -14,7 +14,8 @@
 <style>
 	footer {
 		margin-top: var(--space-12);
-		color: var(--color-text-muted);
+		background: var(--color-panel);
+		color: var(--color-text);
 		font-size: var(--font-size-small);
 	}
 
@@ -25,12 +26,10 @@
 		max-width: var(--content-width);
 		margin: 0 auto;
 		padding: var(--space-6) var(--space-4);
-		border-top: 1px solid var(--color-border-subtle);
 	}
 
 	img {
 		height: var(--font-size-body);
-		opacity: 0.7;
 	}
 
 	.affiliation {

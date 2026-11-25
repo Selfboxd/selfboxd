@@ -1,11 +1,23 @@
-import { reviewMaxLength, watchlistNoteMaxLength } from '../../catalog/library';
+import {
+	listDescriptionMaxLength,
+	listNameMaxLength,
+	reviewMaxLength,
+	watchlistNoteMaxLength
+} from '../../catalog/library';
 import { formText } from '../auth/forms';
 import type { DiaryEntryInput } from './diary';
+import type { ListInput } from './lists';
 import { parseRating, parseTags, parseViewingDate } from './input';
 import type { WatchlistInput } from './watchlist';
 
 export type LibraryFormError =
-	'date_invalid' | 'rating_invalid' | 'review_too_long' | 'note_too_long';
+	| 'date_invalid'
+	| 'rating_invalid'
+	| 'review_too_long'
+	| 'note_too_long'
+	| 'list_name_required'
+	| 'list_name_too_long'
+	| 'list_description_too_long';
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; error: LibraryFormError };
 
@@ -45,4 +57,22 @@ export function parseWatchlistForm(form: FormData): Parsed<WatchlistInput> {
 	const note = formText(form, 'note').trim();
 	if (note.length > watchlistNoteMaxLength) return { ok: false, error: 'note_too_long' };
 	return { ok: true, value: { note, tags: parseTags(formText(form, 'tags')) } };
+}
+
+/** Reads and validates the fields of the list form. */
+export function parseListForm(form: FormData): Parsed<ListInput> {
+	const name = formText(form, 'name').trim();
+	if (!name) return { ok: false, error: 'list_name_required' };
+	if (name.length > listNameMaxLength) return { ok: false, error: 'list_name_too_long' };
+
+	const description = formText(form, 'description').trim();
+	if (description.length > listDescriptionMaxLength) {
+		return { ok: false, error: 'list_description_too_long' };
+	}
+	return { ok: true, value: { name, description, ranked: formFlag(form, 'ranked') } };
+}
+
+/** Reads a positive identifier from a form field or a route parameter. */
+export function parseId(value: string): number | undefined {
+	return /^[1-9]\d{0,11}$/.test(value) ? Number(value) : undefined;
 }

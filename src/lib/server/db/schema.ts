@@ -166,3 +166,34 @@ export const watchlistItemTags = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.itemId, table.tagId] })]
 );
+
+export const lists = sqliteTable(
+	'lists',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		description: text('description').notNull().default(''),
+		ranked: integer('ranked', { mode: 'boolean' }).notNull().default(false),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [index('lists_user_index').on(table.userId)]
+);
+
+export const listItems = sqliteTable(
+	'list_items',
+	{
+		listId: integer('list_id')
+			.notNull()
+			.references(() => lists.id, { onDelete: 'cascade' }),
+		workId: integer('work_id')
+			.notNull()
+			.references(() => works.id, { onDelete: 'cascade' }),
+		position: integer('position').notNull(),
+		note: text('note').notNull().default('')
+	},
+	(table) => [primaryKey({ columns: [table.listId, table.workId] })]
+);

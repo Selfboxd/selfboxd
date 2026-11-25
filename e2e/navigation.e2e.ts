@@ -14,10 +14,11 @@ test.describe('header', () => {
 		await signIn(page, await createAccount(request));
 	});
 
-	test('links to the activity, watched films, diary and journal', async ({ page }) => {
+	test('links to every main page, with the account menu after them', async ({ page }) => {
 		const targets = [
 			['Activity', '/activity'],
 			['Watched', '/watched'],
+			['Lists', '/lists'],
 			['Diary', '/diary'],
 			['Journal', '/journal']
 		] as const;
@@ -28,6 +29,33 @@ test.describe('header', () => {
 			await expect(page).toHaveURL(path);
 			await expect(link).toHaveAttribute('aria-current', 'page');
 		}
+		await navigation(page).getByRole('link', { name: 'Home', exact: true }).click();
+		await expect(page).toHaveURL('/');
+	});
+
+	test('opens the account menu on hover and closes it after navigating', async ({ page }) => {
+		const settings = navigation(page).getByRole('link', { name: 'Settings' });
+		await expect(settings).toBeHidden();
+
+		await navigation(page).getByRole('button', { name: /user/ }).hover();
+		await expect(settings).toBeVisible();
+		await settings.click();
+
+		await expect(page).toHaveURL('/settings/auth');
+		await expect(settings).toBeHidden();
+	});
+
+	test('keeps only the search and log controls on the right', async ({ page }) => {
+		const account = await navigation(page).getByRole('button', { name: /user/ }).boundingBox();
+		const journal = await navigation(page).getByRole('link', { name: 'Journal' }).boundingBox();
+		const search = await navigation(page).getByRole('link', { name: 'Search' }).boundingBox();
+		const log = await navigation(page)
+			.getByRole('button', { name: 'Log', exact: true })
+			.boundingBox();
+
+		expect(account?.x).toBeGreaterThan(journal?.x ?? Infinity);
+		expect(search?.x).toBeGreaterThan(account?.x ?? Infinity);
+		expect(log?.x).toBeGreaterThan(search?.x ?? Infinity);
 	});
 
 	test('opens the search field from its icon and closes it with Escape', async ({ page }) => {
@@ -39,11 +67,23 @@ test.describe('header', () => {
 
 		await expect(field).toBeHidden();
 		await expect(navigation(page).getByRole('link', { name: 'Search' })).toBeVisible();
+		await expect(navigation(page).getByRole('button', { name: 'Log', exact: true })).toBeVisible();
+	});
+
+	test('replaces the log button with the search field and closes it with its button', async ({
+		page
+	}) => {
+		await navigation(page).getByRole('link', { name: 'Search' }).click();
+		await expect(navigation(page).getByRole('button', { name: 'Log', exact: true })).toBeHidden();
+
+		await navigation(page).getByRole('button', { name: 'Close' }).click();
+
+		await expect(page.getByRole('searchbox', { name: 'Search' })).toBeHidden();
 	});
 
 	test('logs a film found from the log button, on any page', async ({ page }) => {
 		await page.goto('/diary');
-		await navigation(page).getByRole('button', { name: 'Log' }).click();
+		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
 		const search = page.getByRole('dialog', { name: 'Add to your films…' });
 		await search.getByLabel('Name of film').fill('2049');
 		await search.getByRole('button', { name: /Blade Runner 2049/ }).click();
@@ -61,7 +101,7 @@ test.describe('header', () => {
 	});
 
 	test('reports an invalid entry inside the log dialog', async ({ page }) => {
-		await navigation(page).getByRole('button', { name: 'Log' }).click();
+		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
 		const search = page.getByRole('dialog', { name: 'Add to your films…' });
 		await search.getByLabel('Name of film').fill('2049');
 		await search.getByRole('button', { name: /Blade Runner 2049/ }).click();
@@ -76,7 +116,7 @@ test.describe('header', () => {
 	});
 
 	test('tells when no film matches in the log search', async ({ page }) => {
-		await navigation(page).getByRole('button', { name: 'Log' }).click();
+		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
 		const search = page.getByRole('dialog', { name: 'Add to your films…' });
 
 		await search.getByLabel('Name of film').fill('zzzz');

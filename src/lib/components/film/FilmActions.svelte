@@ -14,9 +14,11 @@
 		onedit: () => void;
 		/** Opens the watchlist dialog. */
 		onwatchlist: () => void;
+		/** Opens the dialog that chooses the lists holding the film. */
+		onlists: () => void;
 	}
 
-	let { state, scale, onlog, onedit, onwatchlist }: Props = $props();
+	let { state, scale, onlog, onedit, onwatchlist, onlists }: Props = $props();
 
 	const logged = $derived(state.logCount > 0);
 	const watchLabel = $derived(
@@ -25,11 +27,11 @@
 </script>
 
 {#snippet watchlistIcon(listed: boolean)}
-	<svg class="glyph" viewBox="0 0 44 36" aria-hidden="true">
-		<circle class="shape" cx="19" cy="17" r="14" />
-		<path class="hands" d="M19 8.500V17l-6.500 3.500" />
-		<circle class="badge" cx="33" cy="27" r="7.500" />
-		<path class="sign" d={listed ? 'M29.500 27h7' : 'M29.500 27h7M33 23.500v7'} />
+	<svg class="glyph" viewBox="0 0 40 34" aria-hidden="true">
+		<circle class="shape" cx="17" cy="16" r="13.5" />
+		<path class="hands" d="M22.5 10.500L17 16h-6.500" />
+		<circle class="badge" cx="30.5" cy="25.500" r="7" />
+		<path class="sign" d={listed ? 'M27 25.500h7' : 'M27 25.500h7M30.500 22v7'} />
 	</svg>
 {/snippet}
 
@@ -38,27 +40,26 @@
 		<form method="POST" action="?/watch" use:enhance>
 			<input type="hidden" name="watched" value={String(!state.watched)} />
 			<button class="toggle watch" class:on={state.watched} aria-pressed={state.watched}>
-				<svg class="glyph" viewBox="0 0 48 36" aria-hidden="true">
-					{#if state.watched}
+				<span class="eye">
+					<svg class="glyph" viewBox="0 0 52 32" aria-hidden="true">
 						<path
 							class="shape"
-							d="M2 18C10 5 38 5 46 18C38 31 10 31 2 18ZM16 18a8 8 0 1 0 16 0a8 8 0 1 0-16 0ZM20 18a4 4 0 1 0 8 0a4 4 0 1 0-8 0Z"
+							d="M2 16C9 5.500 18 2.500 26 2.500S43 5.500 50 16C43 26.500 34 29.500 26 29.500S9 26.500 2 16Z"
 						/>
-					{:else}
-						<path class="shape" d="M2 18C10 5 38 5 46 18C38 31 10 31 2 18Z" />
-						<circle class="shape" cx="24" cy="18" r="6" />
-					{/if}
-				</svg>
+						<circle class="pupil" cx="26" cy="16" r="6.5" />
+					</svg>
+					{#if state.logCount > 1}<span class="count">{state.logCount}</span>{/if}
+				</span>
 				<span>{watchLabel}</span>
 			</button>
 		</form>
 		<form method="POST" action="?/like" use:enhance>
 			<input type="hidden" name="liked" value={String(!state.liked)} />
 			<button class="toggle like" class:on={state.liked} aria-pressed={state.liked}>
-				<svg class="glyph" viewBox="0 0 40 36" aria-hidden="true">
+				<svg class="glyph" viewBox="0 0 40 32" aria-hidden="true">
 					<path
 						class="shape"
-						d="M20 33C7 23 2 17 2 11.500C2 6 6 3 10.500 3C14.500 3 18 5.500 20 9C22 5.500 25.500 3 29.500 3C34 3 38 6 38 11.500C38 17 33 23 20 33Z"
+						d="M20 30S3 20 3 10.500C3 5.500 7 2.500 11 2.500C15 2.500 18.500 5 20 8.500C21.500 5 25 2.500 29 2.500C33 2.500 37 5.500 37 10.500C37 20 20 30 20 30Z"
 					/>
 				</svg>
 				<span>{state.liked ? m.action_liked() : m.action_like()}</span>
@@ -95,6 +96,7 @@
 	{#if state.inWatchlist}
 		<button class="row" type="button" onclick={onwatchlist}>{m.action_watchlist_edit()}</button>
 	{/if}
+	<button class="row" type="button" onclick={onlists}>{m.action_add_to_lists()}</button>
 </section>
 
 <style>
@@ -131,47 +133,84 @@
 	}
 
 	.glyph {
+		display: block;
 		height: var(--action-icon-height);
 		fill: none;
 		stroke: var(--color-action-idle);
 		stroke-linecap: round;
 		stroke-linejoin: round;
-		stroke-width: 2;
+		stroke-width: 1.75;
+		transition:
+			stroke var(--duration-fast),
+			fill var(--duration-fast),
+			transform var(--duration-fast);
 	}
 
 	.toggle:hover .glyph {
 		stroke: var(--color-heading);
+		transform: scale(1.08);
+	}
+
+	.eye {
+		position: relative;
+		display: block;
+	}
+
+	.count {
+		position: absolute;
+		right: -0.25rem;
+		bottom: -0.25rem;
+		min-width: 1.125rem;
+		border: 2px solid var(--color-surface-raised);
+		border-radius: var(--radius-pill);
+		background: var(--color-action-idle);
+		color: var(--color-surface-raised);
+		font-size: var(--font-size-micro);
+		font-weight: 700;
+		line-height: 1.4;
 	}
 
 	.watch.on .shape {
 		fill: var(--color-highlight);
-		fill-rule: evenodd;
-		stroke: none;
+		stroke: var(--color-highlight);
+	}
+
+	.watch.on .pupil,
+	.toggle.watch.on:hover .pupil {
+		stroke: var(--color-surface-raised);
+		stroke-width: 3.5;
 	}
 
 	.like.on .shape {
 		fill: var(--color-like);
-		stroke: none;
+		stroke: var(--color-like);
 	}
 
 	.watchlist .badge {
 		fill: var(--color-action-idle);
 		stroke: var(--color-surface-raised);
+		stroke-width: 2;
 	}
 
-	.watchlist .sign {
+	.watchlist:hover .badge {
+		fill: var(--color-heading);
+	}
+
+	.watchlist .sign,
+	.toggle.watchlist:hover .sign {
 		stroke: var(--color-surface-raised);
-		stroke-width: 2.5;
+		stroke-width: 2;
 	}
 
 	.watchlist.on .shape {
 		fill: var(--color-watchlist);
-		stroke: none;
+		stroke: var(--color-watchlist);
 	}
 
-	.watchlist.on .hands {
+	.watchlist.on .hands,
+	.toggle.watchlist.on:hover .hands {
 		stroke: var(--color-surface-raised);
-		stroke-width: 2.5;
+		stroke-width: 2.25;
 	}
 
 	.rate,

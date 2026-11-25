@@ -1,0 +1,62 @@
+<script lang="ts">
+	import { listDescriptionMaxLength, listNameMaxLength } from '#lib/catalog/library.js';
+	import { m } from '#lib/paraglide/messages.js';
+
+	interface Props {
+		/** Values the fields start with. */
+		initial?: { name: string; description: string; ranked: boolean };
+	}
+
+	let { initial = { name: '', description: '', ranked: false } }: Props = $props();
+
+	const id = $props.id();
+</script>
+
+<div class="field">
+	<label class="field-label" for="{id}-name">{m.list_field_name()}</label>
+	<input
+		class="field-input"
+		id="{id}-name"
+		type="text"
+		name="name"
+		value={initial.name}
+		maxlength={listNameMaxLength}
+		autocomplete="off"
+		required
+	/>
+</div>
+<div class="field">
+	<label class="field-label" for="{id}-description">{m.list_field_description()}</label>
+	<textarea
+		class="field-input"
+		id="{id}-description"
+		name="description"
+		rows="5"
+		maxlength={listDescriptionMaxLength}
+		value={initial.description}></textarea>
+</div>
+<label class="ranked">
+	<input type="checkbox" name="ranked" checked={initial.ranked} />
+	<span>
+		{m.list_field_ranked()}
+		<span class="field-hint">{m.list_ranked_hint()}</span>
+	</span>
+</label>
+
+<style>
+	textarea {
+		resize: vertical;
+	}
+
+	.ranked {
+		display: flex;
+		gap: var(--space-2);
+		align-items: baseline;
+		color: var(--color-heading);
+		font-size: var(--font-size-control);
+	}
+
+	.ranked .field-hint {
+		display: block;
+	}
+</style>

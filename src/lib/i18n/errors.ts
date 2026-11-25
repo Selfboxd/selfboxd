@@ -44,6 +44,14 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_note_too_long();
 		case 'entry_not_found':
 			return m.error_entry_not_found();
+		case 'list_name_required':
+			return m.error_list_name_required();
+		case 'list_name_too_long':
+			return m.error_list_name_too_long();
+		case 'list_description_too_long':
+			return m.error_list_description_too_long();
+		case 'list_not_found':
+			return m.error_list_not_found();
 		default:
 			return m.error_generic();
 	}

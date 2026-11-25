@@ -67,6 +67,9 @@
 		color: var(--color-rating-empty);
 		font-family: inherit;
 		cursor: pointer;
+		transition:
+			color var(--duration-fast),
+			background-color var(--duration-fast);
 	}
 
 	button.on {

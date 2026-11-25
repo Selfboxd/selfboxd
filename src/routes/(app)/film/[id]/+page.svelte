@@ -8,6 +8,7 @@
 	import EntrySummary from '#lib/components/library/EntrySummary.svelte';
 	import LogDialog from '#lib/components/library/LogDialog.svelte';
 	import type { LogTarget } from '#lib/components/library/log-target.js';
+	import ListsDialog from '#lib/components/library/ListsDialog.svelte';
 	import WatchlistDialog from '#lib/components/library/WatchlistDialog.svelte';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
@@ -20,6 +21,7 @@
 
 	let logTarget = $state<LogTarget | null>(null);
 	let watchlistOpen = $state(false);
+	let listsOpen = $state(false);
 
 	const scale = $derived(data.user?.ratingScale ?? 'stars');
 	const watchlistError = $derived(
@@ -122,6 +124,7 @@
 							if (entry) logTarget = { kind: 'edit', entry };
 						}}
 						onwatchlist={() => (watchlistOpen = true)}
+						onlists={() => (listsOpen = true)}
 					/>
 
 					<section class="ratings">
@@ -165,6 +168,11 @@
 	</div>
 
 	<LogDialog bind:target={logTarget} {scale} />
+	<ListsDialog
+		bind:open={listsOpen}
+		lists={data.library.lists}
+		member={data.library.listMembership}
+	/>
 	<WatchlistDialog
 		bind:open={watchlistOpen}
 		current={data.library.watchlist}
@@ -234,23 +242,31 @@
 	h1 {
 		display: inline;
 		margin-inline-end: var(--space-2);
+		font-family: var(--font-display);
 		font-size: var(--font-size-film-title);
-		font-weight: 700;
+		font-weight: 900;
+		line-height: 1.1;
 		letter-spacing: -0.01em;
 	}
 
 	.byline {
 		display: inline;
-		color: var(--color-text-strong);
+		color: var(--color-text);
 		font-size: var(--font-size-large);
+		font-weight: 300;
 	}
 
 	.year {
 		margin-inline-end: var(--space-2);
+		color: var(--color-text-strong);
+	}
+
+	.directed {
+		display: inline-block;
 	}
 
 	.directors {
-		color: var(--color-heading);
+		color: var(--color-text-strong);
 	}
 
 	.original {

@@ -5,8 +5,14 @@ import { requireUser } from '#lib/server/auth/guards.js';
 import { getDatabase } from '#lib/server/db/index.js';
 import { createDiaryEntry, listDiaryEntries } from '#lib/server/library/diary.js';
 import { deleteEntryAction, updateEntryAction } from '#lib/server/library/entry-actions.js';
-import { formFlag, parseEntryForm, parseWatchlistForm } from '#lib/server/library/forms.js';
+import {
+	formFlag,
+	parseEntryForm,
+	parseId,
+	parseWatchlistForm
+} from '#lib/server/library/forms.js';
 import { parseRating } from '#lib/server/library/input.js';
+import { listLists, listMembership, setMembership } from '#lib/server/library/lists.js';
 import {
 	emptyWorkState,
 	getWorkState,
@@ -59,7 +65,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		library: {
 			state: work ? getWorkState(db, user.id, work.id) : emptyWorkState,
 			entries: work ? listDiaryEntries(db, user.id, work.id) : [],
-			watchlist: work ? (findWatchlistItem(db, user.id, work.id) ?? null) : null
+			watchlist: work ? (findWatchlistItem(db, user.id, work.id) ?? null) : null,
+			lists: listLists(db, user.id).map(({ id, name }) => ({ id, name })),
+			listMembership: work ? listMembership(db, user.id, work.id) : []
 		}
 	};
 };
@@ -125,6 +133,18 @@ export const actions: Actions = {
 		if (!parsed.ok) return fail(400, { action: 'watchlist' as const, error: parsed.error });
 		addToWatchlist(getDatabase(), user.id, work.id, parsed.value);
 		return { action: 'watchlist' as const, success: true };
+	},
+
+	lists: async ({ locals, request, params }: FilmEvent) => {
+		const { user } = requireUser(locals);
+		const form = await request.formData();
+		const listIds = form
+			.getAll('listId')
+			.flatMap((value) => (typeof value === 'string' ? [parseId(value)] : []))
+			.filter((id) => id !== undefined);
+		const work = await resolveWork(params);
+		setMembership(getDatabase(), user.id, work.id, listIds);
+		return { action: 'lists' as const, success: true };
 	},
 
 	log: async (event: FilmEvent) => {
