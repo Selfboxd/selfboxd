@@ -32,6 +32,18 @@ export function errorMessage(code: string, seconds = 0): string {
 		case 'unavailable':
 		case 'invalid_response':
 			return m.error_tmdb_unavailable();
+		case 'has_diary_entries':
+			return m.error_has_diary_entries();
+		case 'date_invalid':
+			return m.error_date_invalid();
+		case 'rating_invalid':
+			return m.error_rating_invalid();
+		case 'review_too_long':
+			return m.error_review_too_long();
+		case 'note_too_long':
+			return m.error_note_too_long();
+		case 'entry_not_found':
+			return m.error_entry_not_found();
 		default:
 			return m.error_generic();
 	}

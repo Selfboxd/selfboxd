@@ -5,9 +5,9 @@
 
 	interface Props {
 		/** The film whose poster is shown. */
-		film: FilmSummary;
+		film: Pick<FilmSummary, 'title' | 'year' | 'posterPath'> & { id: number | string };
 		/** Rendered width of the poster. */
-		size?: 'small' | 'medium' | 'large';
+		size?: 'tiny' | 'small' | 'medium' | 'large';
 		/** Whether the poster links to the page of the film. */
 		linked?: boolean;
 	}
@@ -15,6 +15,7 @@
 	let { film, size = 'medium', linked = true }: Props = $props();
 
 	const imageSizes: Record<NonNullable<Props['size']>, TmdbImageSize> = {
+		tiny: 'w92',
 		small: 'w154',
 		medium: 'w342',
 		large: 'w500'
@@ -67,6 +68,11 @@
 	a.poster:hover::after,
 	a.poster:focus-visible::after {
 		box-shadow: var(--shadow-poster-hover);
+	}
+
+	.tiny {
+		width: var(--poster-tiny);
+		border-radius: var(--radius-small);
 	}
 
 	.small {

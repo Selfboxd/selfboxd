@@ -1,8 +1,14 @@
 <script lang="ts">
+	import type { DiaryEntry } from '#lib/catalog/library.js';
+	import FilmActions from '#lib/components/film/FilmActions.svelte';
 	import FilmDetails from '#lib/components/film/FilmDetails.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FilmWatch from '#lib/components/film/FilmWatch.svelte';
 	import FormError from '#lib/components/FormError.svelte';
+	import EntrySummary from '#lib/components/library/EntrySummary.svelte';
+	import LogDialog from '#lib/components/library/LogDialog.svelte';
+	import type { LogTarget } from '#lib/components/library/log-target.js';
+	import WatchlistDialog from '#lib/components/library/WatchlistDialog.svelte';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { tmdbImage } from '#lib/images.js';
@@ -10,7 +16,16 @@
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
+
+	let logTarget = $state<LogTarget | null>(null);
+	let watchlistOpen = $state(false);
+
+	const scale = $derived(data.user?.ratingScale ?? 'stars');
+	const logError = $derived(form?.action === 'log' && 'error' in form ? form.error : undefined);
+	const watchlistError = $derived(
+		form?.action === 'watchlist' && 'error' in form ? form.error : undefined
+	);
 
 	function formatCount(count: number): string {
 		return new Intl.NumberFormat(getLocale()).format(count);
@@ -81,20 +96,62 @@
 					</p>
 				</div>
 
-				<section class="ratings">
-					<header class="ratings-header">
-						<h2>{m.film_ratings()}</h2>
-						{#if film.rating.count > 0}
-							<span>{m.film_rating_count({ count: formatCount(film.rating.count) })}</span>
-						{/if}
-					</header>
-					{#if film.rating.count > 0}
-						<p class="average">{film.rating.average.toFixed(1)}<span>/10</span></p>
+				<div class="sidebar">
+					{#if form?.action === 'watch' && 'error' in form}
+						<FormError message={errorMessage(form.error)} />
 					{/if}
-				</section>
+					<FilmActions
+						state={data.library.state}
+						{scale}
+						onlog={() =>
+							(logTarget = {
+								kind: 'new',
+								defaults: {
+									title: film.title,
+									year: film.year,
+									rating: data.library.state.rating,
+									liked: data.library.state.liked,
+									rewatch: data.library.state.watched
+								}
+							})}
+						onwatchlist={() => (watchlistOpen = true)}
+					/>
+
+					<section class="ratings">
+						<header class="ratings-header">
+							<h2>{m.film_ratings()}</h2>
+							{#if film.rating.count > 0}
+								<span>{m.film_rating_count({ count: formatCount(film.rating.count) })}</span>
+							{/if}
+						</header>
+						{#if film.rating.count > 0}
+							<p class="average">{film.rating.average.toFixed(1)}<span>/10</span></p>
+						{/if}
+					</section>
+				</div>
 			</div>
 		</div>
 	</div>
+
+	{#if data.library.entries.length > 0}
+		<section class="activity">
+			<h2 class="section-title">{m.activity_title()}</h2>
+			{#each data.library.entries as entry (entry.id)}
+				<EntrySummary
+					{entry}
+					{scale}
+					onedit={(selected: DiaryEntry) => (logTarget = { kind: 'edit', entry: selected })}
+				/>
+			{/each}
+		</section>
+	{/if}
+
+	<LogDialog bind:target={logTarget} {scale} error={logError} />
+	<WatchlistDialog
+		bind:open={watchlistOpen}
+		current={data.library.watchlist}
+		error={watchlistError}
+	/>
 
 	{#if data.related && data.related.films.length > 0}
 		<section class="related" aria-label={data.related.name}>
@@ -272,6 +329,13 @@
 		font-size: var(--font-size-body);
 	}
 
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6);
+	}
+
+	.activity,
 	.related {
 		margin-top: var(--space-12);
 	}
