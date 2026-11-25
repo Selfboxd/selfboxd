@@ -5,9 +5,10 @@ test.describe('interface language', () => {
 		test.use({ locale: 'fr-FR' });
 
 		test('renders the interface in French', async ({ page }) => {
-			await page.goto('/');
+			await page.goto('/login');
 
 			await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+			await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
 			await expect(page.getByRole('contentinfo')).toContainText('affilié');
 		});
 	});
@@ -16,7 +17,7 @@ test.describe('interface language', () => {
 		test.use({ locale: 'fi-FI' });
 
 		test('falls back to English', async ({ page }) => {
-			await page.goto('/');
+			await page.goto('/login');
 
 			await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 		});

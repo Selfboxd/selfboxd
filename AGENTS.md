@@ -27,19 +27,22 @@ holds the whole self-hosted application and its Docker image.
 
 ## Layout
 
-| Path                      | Content                                             |
-| ------------------------- | --------------------------------------------------- |
-| `src/routes`              | Pages and endpoints                                 |
-| `src/routes/api/v1`       | JSON API, also consumed by the mobile application   |
-| `src/lib/components`      | Svelte components                                   |
-| `src/lib/styles`          | Global styles; `theme.css` holds every design token |
-| `src/lib/server`          | Server-only code                                    |
-| `src/lib/server/db`       | Database connection, schema and migration runner    |
-| `src/lib/server/security` | Security helpers                                    |
-| `src/env.ts`              | Declaration of every environment variable           |
-| `messages`                | Translations, one JSON file per locale              |
-| `drizzle`                 | Generated SQL migrations                            |
-| `e2e`                     | Playwright tests                                    |
+| Path                      | Content                                                |
+| ------------------------- | ------------------------------------------------------ |
+| `src/routes`              | Pages and endpoints                                    |
+| `src/routes/api/v1`       | JSON API, also consumed by the mobile application      |
+| `src/lib/components`      | Svelte components                                      |
+| `src/lib/styles`          | Global styles; `theme.css` holds every design token    |
+| `src/lib/server`          | Server-only code                                       |
+| `src/lib/server/auth`     | Accounts, passwords, sessions, sign-in throttling      |
+| `src/lib/server/api`      | Helpers shared by the JSON endpoints                   |
+| `src/lib/i18n`            | Helpers that turn codes and dates into translated text |
+| `src/lib/server/db`       | Database connection, schema and migration runner       |
+| `src/lib/server/security` | Security helpers                                       |
+| `src/env.ts`              | Declaration of every environment variable              |
+| `messages`                | Translations, one JSON file per locale                 |
+| `drizzle`                 | Generated SQL migrations                               |
+| `e2e`                     | Playwright tests                                       |
 
 Keep this structure clean: one responsibility per file, no catch-all file, no needless
 fragmentation.
@@ -88,6 +91,13 @@ Everything an instance stores lives in the single directory given by `DATA_DIR`.
 ### API
 
 Endpoints live under `/api/v1` and return JSON. Validate every input on the server.
+
+- Errors are `{ "error": "<code>" }` with a matching HTTP status; build them with
+  `src/lib/server/api/responses.ts`.
+- Clients authenticate with `Authorization: Bearer <token>`; browsers use the session cookie.
+- Requests with a body must be sent as `application/json`.
+- Access rules for every path are decided in `src/lib/server/auth/access.ts`. A new public
+  path must be added there.
 
 ### Security
 
