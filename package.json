@@ -1,7 +1,7 @@
 {
 	"name": "selfboxd",
 	"version": "0.0.0",
-	"description": "Self-hosted, privacy-first tracker for films, series and books.",
+	"description": "Self-hosted, privacy-first tracker for films and series.",
 	"license": "AGPL-3.0-only",
 	"private": true,
 	"type": "module",

@@ -9,12 +9,11 @@
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { PageProps } from './$types';
 
-	let { data, form }: PageProps = $props();
+	let { data }: PageProps = $props();
 
 	let logTarget = $state<LogTarget | null>(null);
 
 	const scale = $derived(data.user?.ratingScale ?? 'stars');
-	const logError = $derived(form && 'error' in form ? form.error : undefined);
 
 	const monthFormat = $derived(
 		new Intl.DateTimeFormat(getLocale(), { month: 'short', year: 'numeric', timeZone: 'UTC' })
@@ -96,7 +95,7 @@
 	</table>
 {/if}
 
-<LogDialog bind:target={logTarget} {scale} error={logError} />
+<LogDialog bind:target={logTarget} {scale} />
 
 <style>
 	table {

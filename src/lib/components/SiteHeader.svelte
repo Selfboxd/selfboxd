@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { tick } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PublicUser } from '#lib/server/auth/users.js';
 	import Avatar from './Avatar.svelte';
-	import SiteLogo from './SiteLogo.svelte';
+	import Icon from './Icon.svelte';
+	import LogButton from './library/LogButton.svelte';
 
 	interface Props {
 		/** The signed-in account. */
@@ -14,6 +17,14 @@
 	let { user }: Props = $props();
 
 	let menu: HTMLDetailsElement | undefined = $state();
+	let searchField: HTMLInputElement | undefined = $state();
+	let searching = $state(false);
+
+	const links = $derived([
+		{ href: resolve('/(app)/watched'), label: m.nav_watched() },
+		{ href: resolve('/(app)/diary'), label: m.nav_diary() },
+		{ href: resolve('/(app)/journal'), label: m.nav_journal() }
+	]);
 
 	function closeMenu() {
 		if (menu) menu.open = false;
@@ -23,46 +34,91 @@
 		if (menu && event.target instanceof Node && !menu.contains(event.target)) closeMenu();
 	}
 
-	afterNavigate(closeMenu);
+	async function openSearch(event: MouseEvent) {
+		event.preventDefault();
+		searching = true;
+		await tick();
+		searchField?.focus();
+	}
+
+	function closeSearch() {
+		if (searchField?.value === '') searching = false;
+	}
+
+	afterNavigate(() => {
+		closeMenu();
+		searching = false;
+	});
 </script>
 
 <svelte:window onclick={closeOnOutsideClick} />
 
 <header>
-	<div class="bar">
-		<a class="brand" href={resolve('/(app)')}><SiteLogo /></a>
-		<nav aria-label={m.nav_label()}>
-			<form class="search" method="GET" action={resolve('/(app)/search')} role="search">
-				<input type="search" name="q" aria-label={m.nav_search()} autocomplete="off" required />
-				<button aria-label={m.nav_search()}>
-					<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-						<circle cx="6.8" cy="6.8" r="5.3" />
-						<path d="M15 15l-4.2-4.2" />
-					</svg>
-				</button>
-			</form>
-			<div class="anchor">
-				<details class="account" bind:this={menu}>
-					<summary>
-						<Avatar {user} />
-						<span class="username">{user.username}</span>
-						<svg class="chevron" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-							<path d="M1 1l4 4 4-4" />
-						</svg>
-					</summary>
-					<div class="menu">
-						<a href={resolve('/(app)')}>{m.nav_home()}</a>
-						<a href={resolve('/(app)/diary')}>{m.nav_diary()}</a>
-						<a href={resolve('/(app)/watchlist')}>{m.nav_watchlist()}</a>
-						<a class="divided" href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
-						<form method="POST" action={resolve('/(app)/logout')}>
-							<button>{m.nav_sign_out()}</button>
-						</form>
-					</div>
-				</details>
-			</div>
-		</nav>
-	</div>
+	<nav class="bar" aria-label={m.nav_label()}>
+		<div class="links">
+			<a
+				class="icon-link"
+				href={resolve('/(app)/activity')}
+				aria-label={m.nav_activity()}
+				title={m.nav_activity()}
+				aria-current={page.url.pathname === resolve('/(app)/activity') ? 'page' : undefined}
+			>
+				<Icon name="bolt" filled />
+			</a>
+			{#each links as link (link.href)}
+				<a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}>
+					{link.label}
+				</a>
+			{/each}
+			{#if searching}
+				<form class="search" method="GET" action={resolve('/(app)/search')} role="search">
+					<input
+						type="search"
+						name="q"
+						aria-label={m.nav_search()}
+						autocomplete="off"
+						required
+						bind:this={searchField}
+						onblur={closeSearch}
+						onkeydown={(event) => {
+							if (event.key === 'Escape') searching = false;
+						}}
+					/>
+					<button aria-label={m.nav_search()}><Icon name="search" /></button>
+				</form>
+			{:else}
+				<a
+					class="icon-link"
+					href={resolve('/(app)/search')}
+					aria-label={m.nav_search()}
+					title={m.nav_search()}
+					onclick={openSearch}
+				>
+					<Icon name="search" />
+				</a>
+			{/if}
+			<LogButton scale={user.ratingScale} />
+		</div>
+
+		<div class="anchor">
+			<details class="account" bind:this={menu}>
+				<summary>
+					<Avatar {user} />
+					<span class="username">{user.username}</span>
+					<Icon name="chevron" />
+				</summary>
+				<div class="menu">
+					<a href={resolve('/(app)')}>{m.nav_home()}</a>
+					<a href={resolve('/(app)/diary')}>{m.nav_diary()}</a>
+					<a href={resolve('/(app)/watchlist')}>{m.nav_watchlist()}</a>
+					<a class="divided" href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
+					<form method="POST" action={resolve('/(app)/logout')}>
+						<button>{m.nav_sign_out()}</button>
+					</form>
+				</div>
+			</details>
+		</div>
+	</nav>
 </header>
 
 <style>
@@ -87,14 +143,28 @@
 		padding: 0 var(--space-4);
 	}
 
-	.brand {
-		display: flex;
-	}
-
-	nav {
+	.links {
 		display: flex;
 		gap: var(--space-4);
 		align-items: center;
+	}
+
+	.links > a {
+		color: var(--color-nav);
+		font-size: var(--font-size-control);
+		font-weight: 700;
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.links > a:hover,
+	.links > a[aria-current] {
+		color: var(--color-heading);
+	}
+
+	.links > .icon-link {
+		display: flex;
+		font-size: var(--font-size-large);
 	}
 
 	.search {
@@ -109,17 +179,10 @@
 		padding: 0 var(--space-8) 0 var(--space-3);
 		border: 0;
 		border-radius: var(--search-height);
-		background: var(--color-input);
-		box-shadow: var(--shadow-input);
-		color: var(--color-input-text);
+		background: var(--color-input-focus);
+		color: var(--color-input-focus-text);
 		font: inherit;
 		font-size: var(--font-size-control);
-	}
-
-	.search input:focus {
-		background: var(--color-input-focus);
-		box-shadow: none;
-		color: var(--color-input-focus-text);
 		outline: none;
 	}
 
@@ -131,18 +194,12 @@
 		border: 0;
 		background: none;
 		color: var(--color-text-muted);
+		font-size: var(--font-size-body);
 		cursor: pointer;
 	}
 
 	.search button:hover {
-		color: var(--color-link-hover);
-	}
-
-	.search svg {
-		fill: none;
-		stroke: currentcolor;
-		stroke-linecap: round;
-		stroke-width: 1.5;
+		color: var(--color-input-focus-text);
 	}
 
 	.anchor {
@@ -170,9 +227,10 @@
 		display: flex;
 		gap: var(--space-2);
 		align-items: center;
+		justify-content: flex-end;
 		height: var(--menu-row-height);
 		padding: 0 var(--space-3);
-		color: var(--color-text-strong);
+		color: var(--color-nav);
 		font-size: var(--font-size-control);
 		font-weight: 700;
 		letter-spacing: var(--letter-spacing-caps);
@@ -190,19 +248,18 @@
 		color: var(--color-heading);
 	}
 
+	.account[open] summary {
+		justify-content: flex-start;
+	}
+
+	summary :global(.icon) {
+		stroke-width: 2.5;
+	}
+
 	.username {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	.chevron {
-		flex-shrink: 0;
-		fill: none;
-		stroke: currentcolor;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-		stroke-width: 2;
 	}
 
 	.menu {
@@ -241,5 +298,16 @@
 	.menu button:hover {
 		background: var(--color-menu-hover);
 		color: var(--color-heading);
+	}
+
+	@media (max-width: 48rem) {
+		.bar {
+			flex-wrap: wrap;
+			padding-block: var(--space-2);
+		}
+
+		.links {
+			flex-wrap: wrap;
+		}
 	}
 </style>

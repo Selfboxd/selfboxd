@@ -76,7 +76,7 @@
 	.stars button {
 		overflow: hidden;
 		width: 0.5em;
-		font-size: var(--font-size-rating-input);
+		font-size: var(--rating-size, var(--font-size-rating-input));
 		line-height: 1;
 	}
 

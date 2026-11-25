@@ -13,7 +13,7 @@ async function openFilm(page: Page, id = 78) {
 /** Opens the log dialog of the current film page and returns it. */
 async function openLog(page: Page) {
 	await actions(page)
-		.getByRole('button', { name: /Review or log/ })
+		.getByRole('button', { name: /Review or log|Log again/ })
 		.click();
 	const dialog = page.getByRole('dialog');
 	await expect(dialog).toBeVisible();
@@ -308,7 +308,7 @@ test.describe('diary', () => {
 		await expect(dialog).toBeHidden();
 
 		await page.goto('/diary');
-		await page.getByRole('button', { name: 'Edit entry' }).click();
+		await page.getByRole('button', { name: 'Edit entry', exact: true }).click();
 		dialog = page.getByRole('dialog');
 		await expect(dialog.getByRole('heading', { name: 'Edit diary entry' })).toBeVisible();
 		await expect(dialog.getByLabel('Review')).toHaveValue('First impression.');
@@ -329,10 +329,10 @@ test.describe('diary', () => {
 		await expect(dialog).toBeHidden();
 
 		page.on('dialog', (confirmation) => void confirmation.accept());
-		await page.getByRole('button', { name: 'Edit entry' }).click();
+		await page.getByRole('button', { name: 'Edit entry', exact: true }).click();
 		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 
-		await expect(page.getByText('Your activity')).toBeHidden();
+		await expect(page.getByRole('heading', { name: 'Your activity' })).toBeHidden();
 		await expect(actions(page).getByRole('button', { name: 'Watched' })).toBeVisible();
 	});
 
@@ -404,18 +404,18 @@ test.describe('library privacy', () => {
 		await dialog.getByLabel('Review').fill('Mine.');
 		await dialog.getByRole('button', { name: 'Save' }).click();
 		await expect(dialog).toBeHidden();
-		await page.getByRole('button', { name: 'Edit entry' }).click();
+		await page.getByRole('button', { name: 'Edit entry', exact: true }).click();
 		const id = await page.locator('dialog[open] input[name="entryId"]').first().inputValue();
 		const cookies = await page.context().cookies();
 
 		await page.context().clearCookies();
 		await signIn(page, await createAccount(request));
 		const headers = { origin: baseURL ?? '' };
-		await page.request.post('/diary?/log', {
+		await page.request.post('/film/78?/log', {
 			headers,
 			form: { entryId: id, watchedOn: '2026-01-01', review: 'Hijacked.' }
 		});
-		await page.request.post('/diary?/deleteEntry', { headers, form: { entryId: id } });
+		await page.request.post('/film/78?/deleteEntry', { headers, form: { entryId: id } });
 
 		await page.context().clearCookies();
 		await page.context().addCookies(cookies);

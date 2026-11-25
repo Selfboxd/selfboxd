@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Selfboxd is a self-hosted, privacy-first tracker for films, series and books. This repository
+Selfboxd is a self-hosted, privacy-first tracker for films and series. This repository
 holds the whole self-hosted application and its Docker image.
 
 ## Non-negotiable rules
@@ -40,6 +40,7 @@ holds the whole self-hosted application and its Docker image.
 | `src/lib/catalog`         | Types of films and other works, shared by server and pages |
 | `src/lib/server/library`  | Watched, liked and rated works, diary, watchlist and tags  |
 | `src/lib/server/tmdb`     | TMDB client, local cache and conversion to catalog types   |
+| `src/lib/server/journal`  | Reader of the Journal RSS feed and its local cache         |
 | `src/lib/server/media`    | Image processing and storage                               |
 | `src/lib/server/settings` | Settings shared by every account of the instance           |
 | `src/lib/i18n`            | Helpers that turn codes and dates into translated text     |
@@ -136,14 +137,20 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Every query on diary entries, watchlist items and work states is filtered by the account.
 - Text typed by an account, such as reviews, notes and tags, is rendered as text.
 - Dialogs are opened through bound properties, not through methods of component instances.
+- The log dialog always posts to the actions of the film page, whichever page opened it, and
+  reports errors itself.
 
 ### External APIs
 
 - Every call to TMDB goes through `src/lib/server/tmdb/service.ts`, which caches responses and
   validates their shape. Never call an external API from a page or a component.
 - Text coming from an external API is rendered as text. Never use `{@html}` on it.
+- The Journal page reads the RSS feed set by `JOURNAL_FEED_URL` through
+  `src/lib/server/journal/service.ts`. Only article links and pictures from the expected hosts
+  are kept, and teasers are reduced to text runs.
 - End-to-end tests never reach a real external API: they run against the fake TMDB server of
-  `e2e/support/tmdb`.
+  `e2e/support/tmdb`, which also serves the feed of `e2e/support/journal`. Tests that show
+  article pictures stub them with `stubJournalImages`.
 
 ### Tests
 

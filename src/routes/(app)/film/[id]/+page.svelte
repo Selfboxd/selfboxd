@@ -22,7 +22,6 @@
 	let watchlistOpen = $state(false);
 
 	const scale = $derived(data.user?.ratingScale ?? 'stars');
-	const logError = $derived(form?.action === 'log' && 'error' in form ? form.error : undefined);
 	const watchlistError = $derived(
 		form?.action === 'watchlist' && 'error' in form ? form.error : undefined
 	);
@@ -106,14 +105,22 @@
 						onlog={() =>
 							(logTarget = {
 								kind: 'new',
-								defaults: {
+								film: {
+									id: String(film.id),
 									title: film.title,
 									year: film.year,
+									posterPath: film.posterPath
+								},
+								defaults: {
 									rating: data.library.state.rating,
 									liked: data.library.state.liked,
 									rewatch: data.library.state.watched
 								}
 							})}
+						onedit={() => {
+							const [entry] = data.library.entries;
+							if (entry) logTarget = { kind: 'edit', entry };
+						}}
 						onwatchlist={() => (watchlistOpen = true)}
 					/>
 
@@ -130,39 +137,39 @@
 					</section>
 				</div>
 			</div>
+
+			{#if data.library.entries.length > 0}
+				<section class="activity" id="activity">
+					<h2 class="section-title">{m.activity_title()}</h2>
+					{#each data.library.entries as entry (entry.id)}
+						<EntrySummary
+							{entry}
+							{scale}
+							onedit={(selected: DiaryEntry) => (logTarget = { kind: 'edit', entry: selected })}
+						/>
+					{/each}
+				</section>
+			{/if}
+
+			{#if data.related && data.related.films.length > 0}
+				<section class="related" aria-label={data.related.name}>
+					<h2 class="section-title">{m.film_related()}</h2>
+					<ul>
+						{#each data.related.films as other (other.id)}
+							<li><FilmPoster film={other} size="medium" /></li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
 		</div>
 	</div>
 
-	{#if data.library.entries.length > 0}
-		<section class="activity">
-			<h2 class="section-title">{m.activity_title()}</h2>
-			{#each data.library.entries as entry (entry.id)}
-				<EntrySummary
-					{entry}
-					{scale}
-					onedit={(selected: DiaryEntry) => (logTarget = { kind: 'edit', entry: selected })}
-				/>
-			{/each}
-		</section>
-	{/if}
-
-	<LogDialog bind:target={logTarget} {scale} error={logError} />
+	<LogDialog bind:target={logTarget} {scale} />
 	<WatchlistDialog
 		bind:open={watchlistOpen}
 		current={data.library.watchlist}
 		error={watchlistError}
 	/>
-
-	{#if data.related && data.related.films.length > 0}
-		<section class="related" aria-label={data.related.name}>
-			<h2 class="section-title">{m.film_related()}</h2>
-			<ul>
-				{#each data.related.films as other (other.id)}
-					<li><FilmPoster film={other} size="medium" /></li>
-				{/each}
-			</ul>
-		</section>
-	{/if}
 {/if}
 
 <style>
@@ -217,6 +224,8 @@
 	}
 
 	.side {
+		position: sticky;
+		top: var(--space-4);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-6);
@@ -356,6 +365,7 @@
 		}
 
 		.side {
+			position: static;
 			max-width: var(--poster-large);
 		}
 	}

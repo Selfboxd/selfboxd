@@ -1,28 +1,33 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { enhance, type ActionResult } from '$app/forms';
+	import { refreshAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import FormError from '#lib/components/FormError.svelte';
 	import type { DiaryEntry, RatingScale } from '#lib/catalog/library.js';
 	import { reviewMaxLength } from '#lib/catalog/library.js';
 	import { errorMessage } from '#lib/i18n/errors.js';
+	import { ratingLabel } from '#lib/i18n/ratings.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import type { LogTarget } from './log-target.js';
+	import type { LogFilm, LogTarget } from './log-target.js';
 	import RatingInput from './RatingInput.svelte';
 
 	interface Props {
 		/** Set to open the dialog; reset to `null` when the dialog closes. */
 		target: LogTarget | null;
 		scale: RatingScale;
-		/** Error code returned by the last submission of the form, if any. */
-		error?: string | undefined;
 	}
 
-	let { target = $bindable(), scale, error }: Props = $props();
+	let { target = $bindable(), scale }: Props = $props();
+
+	type ActionData = Record<string, unknown> | undefined;
+
+	const noFilm: LogFilm = { id: '0', title: '', year: null, posterPath: null };
 
 	let dialog: HTMLDialogElement | undefined = $state();
 	let entryId = $state<number | null>(null);
-	let title = $state('');
-	let year = $state<number | null>(null);
+	let film = $state(noFilm);
 	let watchedOn = $state('');
 	let rating = $state<number | null>(null);
 	let liked = $state(false);
@@ -30,8 +35,10 @@
 	let review = $state('');
 	let containsSpoilers = $state(false);
 	let tags = $state('');
+	let error = $state<string | undefined>();
 
 	const id = $props.id();
+	const filmPath = $derived(resolve('/(app)/film/[id]', { id: film.id }));
 
 	function today(): string {
 		const now = new Date();
@@ -41,18 +48,20 @@
 
 	function load(entry: DiaryEntry) {
 		entryId = entry.id;
-		({ title, year } = entry.work);
+		film = { ...entry.work, id: entry.work.externalId };
 		({ watchedOn, rating, liked, rewatch, review, containsSpoilers } = entry);
 		tags = entry.tags.join(', ');
 	}
 
 	$effect(() => {
 		if (!target || !dialog || dialog.open) return;
+		error = undefined;
 		if (target.kind === 'edit') {
 			load(target.entry);
 		} else {
 			entryId = null;
-			({ title, year, rating, liked, rewatch } = target.defaults);
+			film = target.film;
+			({ rating, liked, rewatch } = target.defaults);
 			watchedOn = today();
 			review = '';
 			containsSpoilers = false;
@@ -60,6 +69,17 @@
 		}
 		dialog.showModal();
 	});
+
+	/** Reloads the page data and closes the dialog after a success, or shows the error. */
+	async function finish(result: ActionResult<ActionData, ActionData>) {
+		if (result.type === 'success') {
+			await refreshAll();
+			dialog?.close();
+		} else {
+			const code = result.type === 'failure' ? result.data?.error : undefined;
+			error = typeof code === 'string' ? code : 'generic';
+		}
+	}
 
 	function confirmDeletion(event: SubmitEvent) {
 		if (!confirm(m.log_delete_confirm())) event.preventDefault();
@@ -82,78 +102,84 @@
 	<form
 		id="{id}-form"
 		method="POST"
-		action="?/log"
+		action="{filmPath}?/log"
 		use:enhance={() =>
-			async ({ result, update }) => {
-				await update({ reset: false });
-				if (result.type === 'success') dialog?.close();
+			async ({ result }) => {
+				await finish(result);
 			}}
 	>
 		{#if entryId !== null}
 			<input type="hidden" name="entryId" value={entryId} />
 		{/if}
 
-		<p class="film">
-			<span class="film-title">{title}</span>
-			{#if year}<span class="film-year">{year}</span>{/if}
-		</p>
+		<div class="poster"><FilmPoster {film} size="medium" linked={false} /></div>
 
-		{#if error}
-			<FormError message={errorMessage(error)} />
-		{/if}
+		<div class="fields">
+			<p class="film">
+				<span class="film-title">{film.title}</span>
+				{#if film.year}<span class="film-year">{film.year}</span>{/if}
+			</p>
 
-		<div class="row">
-			<label class="inline" for="{id}-date">{m.log_date()}</label>
-			<input
-				class="field-input date"
-				id="{id}-date"
-				type="date"
-				name="watchedOn"
-				bind:value={watchedOn}
-				required
-			/>
-			<label class="check">
-				<input type="checkbox" name="rewatch" bind:checked={rewatch} />
-				{m.log_rewatch()}
-			</label>
-		</div>
+			{#if error}
+				<FormError message={errorMessage(error)} />
+			{/if}
 
-		<label class="sr-only" for="{id}-review">{m.log_review()}</label>
-		<textarea
-			class="field-input review"
-			id="{id}-review"
-			name="review"
-			rows="6"
-			maxlength={reviewMaxLength}
-			placeholder={m.log_review_placeholder()}
-			bind:value={review}></textarea>
-		<label class="check">
-			<input type="checkbox" name="containsSpoilers" bind:checked={containsSpoilers} />
-			{m.log_spoilers()}
-		</label>
-
-		<div class="row bottom">
-			<div class="field tags">
-				<label class="field-label" for="{id}-tags">{m.log_tags()}</label>
-				<input
-					class="field-input"
-					id="{id}-tags"
-					type="text"
-					name="tags"
-					bind:value={tags}
-					autocomplete="off"
-				/>
-				<span class="field-hint">{m.log_tags_hint()}</span>
+			<div class="when">
+				<label class="date-label">
+					{m.log_date()}
+					<input class="date" type="date" name="watchedOn" bind:value={watchedOn} required />
+				</label>
+				<label class="check">
+					<input type="checkbox" name="rewatch" bind:checked={rewatch} />
+					{m.log_rewatch()}
+				</label>
 			</div>
-			<div class="field rating">
-				<span class="field-label">{m.log_rating()}</span>
-				<RatingInput bind:value={rating} {scale} mode="field" />
+
+			<div class="review-box">
+				<label class="sr-only" for="{id}-review">{m.log_review()}</label>
+				<textarea
+					class="light review"
+					id="{id}-review"
+					name="review"
+					rows="7"
+					maxlength={reviewMaxLength}
+					placeholder={m.log_review_placeholder()}
+					bind:value={review}></textarea>
+				<label class="check spoilers" class:shown={review.trim() !== '' || containsSpoilers}>
+					<input type="checkbox" name="containsSpoilers" bind:checked={containsSpoilers} />
+					{m.log_spoilers()}
+				</label>
 			</div>
-			<label class="like" class:liked>
-				<input class="sr-only" type="checkbox" name="liked" bind:checked={liked} />
-				<Icon name="heart" filled />
-				<span>{m.log_like()}</span>
-			</label>
+
+			<div class="bottom">
+				<div class="group tags">
+					<p class="group-head">
+						<label for="{id}-tags">{m.log_tags()}</label>
+						<span class="note">{m.log_tags_hint()}</span>
+					</p>
+					<input
+						class="light"
+						id="{id}-tags"
+						type="text"
+						name="tags"
+						placeholder={m.log_tags_placeholder()}
+						bind:value={tags}
+						autocomplete="off"
+					/>
+				</div>
+				<div class="group rating">
+					<p class="group-head">
+						<span>{m.log_rating()}</span>
+						<span class="note">{rating === null ? '' : ratingLabel(rating, scale)}</span>
+					</p>
+					<RatingInput bind:value={rating} {scale} mode="field" />
+				</div>
+				<label class="group like" class:liked>
+					<span>{m.log_like()}</span>
+					<input class="sr-only" type="checkbox" name="liked" bind:checked={liked} />
+					<Icon name="heart" filled />
+				</label>
+			</div>
 		</div>
 	</form>
 
@@ -161,25 +187,24 @@
 		{#if entryId !== null}
 			<form
 				method="POST"
-				action="?/deleteEntry"
+				action="{filmPath}?/deleteEntry"
 				use:enhance={() =>
-					async ({ result, update }) => {
-						await update();
-						if (result.type === 'success') dialog?.close();
+					async ({ result }) => {
+						await finish(result);
 					}}
 				onsubmit={confirmDeletion}
 			>
 				<input type="hidden" name="entryId" value={entryId} />
-				<button class="button button-danger">{m.log_delete()}</button>
+				<button class="pill delete">{m.log_delete()}</button>
 			</form>
 		{/if}
-		<button class="button button-primary save" form="{id}-form">{m.log_save()}</button>
+		<button class="pill save" form="{id}-form">{m.log_save()}</button>
 	</footer>
 </dialog>
 
 <style>
 	dialog {
-		width: min(100% - var(--space-8), var(--dialog-width));
+		width: min(100% - var(--space-8), var(--dialog-wide-width));
 		padding: 0;
 		border: 0;
 		border-radius: var(--radius-medium);
@@ -198,7 +223,7 @@
 		gap: var(--space-3);
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--space-3) var(--space-4);
+		padding: var(--space-4) var(--space-6);
 	}
 
 	header {
@@ -206,23 +231,23 @@
 	}
 
 	footer {
-		border-top: 1px solid var(--color-dialog-divider);
+		background: var(--color-dialog-footer);
 	}
 
 	h2 {
-		color: var(--color-text-strong);
+		color: var(--color-heading);
 		font-family: var(--font-body);
 		font-size: var(--font-size-large);
-		font-weight: 400;
+		font-weight: 700;
 	}
 
 	.close {
 		display: flex;
-		padding: var(--space-1);
+		padding: 0;
 		border: 0;
 		background: none;
-		color: var(--color-text-strong);
-		font-size: var(--font-size-large);
+		color: var(--color-text-panel);
+		font-size: var(--font-size-heading);
 		cursor: pointer;
 	}
 
@@ -231,10 +256,17 @@
 	}
 
 	form[id] {
+		display: grid;
+		grid-template-columns: var(--poster-medium) minmax(0, 1fr);
+		gap: var(--space-12);
+		align-items: start;
+		padding: var(--space-8) var(--space-12);
+	}
+
+	.fields {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
-		padding: var(--space-4);
+		gap: var(--space-4);
 	}
 
 	.film-title {
@@ -246,62 +278,150 @@
 
 	.film-year {
 		margin-inline-start: var(--space-1);
+		color: var(--color-text-panel);
 		font-size: var(--font-size-large);
 		font-weight: 300;
 	}
 
-	.row {
+	.when {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--space-3);
+		gap: var(--space-3) var(--space-8);
 		align-items: center;
+		justify-content: space-between;
 	}
 
-	.bottom {
-		align-items: flex-start;
-	}
-
-	.date {
-		width: auto;
-	}
-
+	.date-label,
 	.check {
 		display: flex;
 		gap: var(--space-2);
 		align-items: center;
-		font-size: var(--font-size-control);
+		color: var(--color-text-strong);
+	}
+
+	.date {
+		padding: var(--space-1) var(--space-2);
+		border: 0;
+		border-radius: var(--radius-small);
+		background: var(--color-well);
+		color: var(--color-heading);
+		font: inherit;
+	}
+
+	.check input {
+		display: grid;
+		width: 1.25rem;
+		height: 1.25rem;
+		margin: 0;
+		border-radius: var(--radius-small);
+		appearance: none;
+		background: var(--color-field-light);
+		cursor: pointer;
+		place-content: center;
+	}
+
+	.check input:checked::before {
+		width: 0.7rem;
+		height: 0.4rem;
+		border-bottom: 2px solid var(--color-secondary);
+		border-left: 2px solid var(--color-secondary);
+		content: '';
+		transform: translateY(-1px) rotate(-45deg);
+	}
+
+	.light {
+		width: 100%;
+		padding: var(--space-2) var(--space-3);
+		border: 0;
+		border-radius: var(--radius-small);
+		background: var(--color-field-light);
+		color: var(--color-field-light-text);
+		font: inherit;
+	}
+
+	.light::placeholder {
+		color: var(--color-field-light-placeholder);
+	}
+
+	.light:focus {
+		background: var(--color-input-focus);
+		outline: none;
+	}
+
+	.review-box {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
 	}
 
 	.review {
+		display: block;
 		resize: vertical;
-		font-family: var(--font-heading);
-		font-size: var(--font-size-prose);
+		font-size: var(--font-size-body);
+		line-height: var(--line-height-body);
+	}
+
+	.spoilers {
+		display: none;
+	}
+
+	.spoilers.shown {
+		display: flex;
+	}
+
+	.bottom {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-4) var(--space-8);
+		align-items: flex-start;
+	}
+
+	.group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.group-head {
+		display: flex;
+		gap: var(--space-3);
+		align-items: baseline;
+		justify-content: space-between;
+		min-height: 1.5em;
+		color: var(--color-heading);
+	}
+
+	.note {
+		color: var(--color-text-panel);
+		font-size: var(--font-size-control);
 	}
 
 	.tags {
 		flex: 1;
-		min-width: 12rem;
+		min-width: 14rem;
 	}
 
-	.rating {
-		width: auto;
+	.rating :global(.input button) {
+		color: var(--color-well);
+	}
+
+	.rating :global(.input button.on) {
+		color: var(--color-highlight);
 	}
 
 	.like {
-		display: flex;
-		flex-direction: column;
 		align-items: center;
-		color: var(--color-like-empty);
-		font-size: var(--font-size-control);
+		color: var(--color-well);
 		cursor: pointer;
+	}
+
+	.like span {
+		min-height: 1.5em;
+		color: var(--color-heading);
 	}
 
 	.like :global(svg) {
 		font-size: var(--font-size-rating-input);
-	}
-
-	.like span {
-		color: var(--color-text-strong);
 	}
 
 	.like.liked {
@@ -313,7 +433,44 @@
 		outline-offset: 2px;
 	}
 
+	.pill {
+		padding: var(--space-2) var(--space-4);
+		border: 0;
+		border-radius: var(--radius-pill);
+		box-shadow: var(--shadow-button);
+		color: var(--color-accent-contrast);
+		font-family: inherit;
+		font-size: var(--font-size-body);
+		font-weight: 700;
+		cursor: pointer;
+	}
+
 	.save {
 		margin-inline-start: auto;
+		background: var(--color-accent);
+	}
+
+	.save:hover {
+		background: var(--color-accent-hover);
+	}
+
+	.delete {
+		background: var(--color-danger-button);
+	}
+
+	.delete:hover {
+		background: var(--color-danger-button-hover);
+	}
+
+	@media (max-width: 40rem) {
+		form[id] {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-4);
+			padding: var(--space-4);
+		}
+
+		.poster {
+			display: none;
+		}
 	}
 </style>

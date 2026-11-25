@@ -54,3 +54,23 @@ export const reviewMaxLength = 20_000;
 export const watchlistNoteMaxLength = 500;
 export const tagMaxLength = 50;
 export const tagMaxCount = 20;
+
+/** A work an account has watched, with what the account thought of it. */
+export interface WatchedWork {
+	work: Work;
+	rating: number | null;
+	liked: boolean;
+}
+
+export type ActivityKind = 'logged' | 'watched' | 'liked' | 'watchlisted';
+
+/** Something an account did with a work, as listed on the activity page. */
+export interface ActivityEvent {
+	kind: ActivityKind;
+	work: Work;
+	at: Date;
+	rating: number | null;
+	liked: boolean;
+	rewatch: boolean;
+	reviewed: boolean;
+}

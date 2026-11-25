@@ -9,6 +9,8 @@ const bladeRunner = JSON.parse(
 	readFileSync(join(import.meta.dirname, 'film-78.json'), 'utf8')
 ) as Record<string, unknown>;
 
+const journalFeed = readFileSync(join(import.meta.dirname, '../journal/feed.xml'), 'utf8');
+
 const sequel = {
 	...bladeRunner,
 	id: 335984,
@@ -64,6 +66,11 @@ const server = createServer((request, response) => {
 
 	if (url.pathname === '/__requests') {
 		send(response, 200, { count: requestCounts.get(url.searchParams.get('path') ?? '') ?? 0 });
+		return;
+	}
+	if (url.pathname === '/journal/rss/') {
+		response.writeHead(200, { 'content-type': 'application/rss+xml' });
+		response.end(journalFeed);
 		return;
 	}
 	if (request.headers.authorization !== `Bearer ${validKey}`) {

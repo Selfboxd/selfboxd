@@ -27,6 +27,14 @@
 		background: none;
 	}
 
+	.body:has(:global(.journal)) {
+		background: var(--color-paper);
+	}
+
+	.body:has(:global(.journal)) main {
+		max-width: var(--journal-width);
+	}
+
 	main {
 		width: 100%;
 		max-width: var(--content-width);
