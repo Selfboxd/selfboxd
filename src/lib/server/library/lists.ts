@@ -111,6 +111,7 @@ export function getList(
 		name: list.name,
 		description: list.description,
 		ranked: list.ranked,
+		updatedAt: list.updatedAt.toISOString(),
 		items
 	};
 }
@@ -242,5 +243,29 @@ export function setListItemNote(
 			.where(and(eq(listItems.listId, listId), eq(listItems.workId, workId)))
 			.run();
 		return result.changes > 0;
+	});
+}
+
+/**
+ * Creates a list of an account holding the given works in order, each once,
+ * and returns its identifier.
+ */
+export function createListWithWorks(
+	db: AppDatabase,
+	userId: number,
+	input: ListInput,
+	workIds: number[],
+	now = new Date()
+): number {
+	return db.transaction((transaction) => {
+		const listId = createList(transaction, userId, input, now);
+		const unique = [...new Set(workIds)];
+		if (unique.length > 0) {
+			transaction
+				.insert(listItems)
+				.values(unique.map((workId, index) => ({ listId, workId, position: index + 1 })))
+				.run();
+		}
+		return listId;
 	});
 }

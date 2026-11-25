@@ -1,6 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
 
+/** The films shown by the list page, as a grid or as rows. */
+function listEntries(page: Page) {
+	return page.locator('main ul.grid > li, main ol.rows > li');
+}
+
 async function createList(page: Page, name: string, ranked = false): Promise<string> {
 	await page.goto('/profile/lists/new');
 	await page.getByLabel('Name', { exact: true }).fill(name);
@@ -58,7 +63,7 @@ test.describe('lists', () => {
 
 		await page.goto(path);
 
-		const items = page.getByRole('main').getByRole('listitem');
+		const items = listEntries(page);
 		await expect(items).toHaveCount(2);
 		await expect(items.nth(0).getByRole('link')).toHaveAttribute('href', '/film/78');
 		await expect(items.nth(0)).toContainText('1');
@@ -86,7 +91,7 @@ test.describe('lists', () => {
 		const side = page.getByRole('complementary');
 		await expect(side).toContainText('1 of 2');
 		await expect(side).toContainText('50%');
-		await side.getByRole('link', { name: 'Edit list' }).click();
+		await side.getByRole('link', { name: 'Edit or delete this list…' }).click();
 		await expect(page).toHaveURL(`${path}/edit`);
 	});
 
@@ -119,7 +124,7 @@ test.describe('lists', () => {
 
 		await expect(rows.nth(0)).toContainText('Blade Runner 2049');
 		await page.goto(path);
-		const items = page.getByRole('main').getByRole('listitem');
+		const items = listEntries(page);
 		await expect(items.nth(0).getByRole('link')).toHaveAttribute('href', '/film/335984');
 		await expect(items.nth(1).getByRole('link')).toHaveAttribute('href', '/film/78');
 	});
@@ -175,7 +180,7 @@ test.describe('lists', () => {
 			expect(await response.text()).toContain('list_not_found');
 		}
 		await page.goto(path);
-		await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(1);
+		await expect(listEntries(page)).toHaveCount(1);
 	});
 
 	test('renames a list and deletes it', async ({ page }) => {
@@ -240,7 +245,7 @@ test.describe('list privacy', () => {
 		await page.context().addCookies(cookies);
 		await page.goto(path);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Private');
-		await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(1);
+		await expect(listEntries(page)).toHaveCount(1);
 	});
 
 	test('answers 404 for an identifier that is not a number', async ({ page, request }) => {

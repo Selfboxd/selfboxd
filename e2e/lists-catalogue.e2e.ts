@@ -1,5 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
+
+/** The films shown by the list page, as a grid or as rows. */
+function listEntries(page: Page) {
+	return page.locator('main ul.grid > li, main ol.rows > li');
+}
 
 test.describe('lists catalogue', () => {
 	test.beforeEach(async ({ page, request }) => {
@@ -56,7 +61,7 @@ test.describe('lists catalogue', () => {
 			'src',
 			/blade-runner-backdrop\.jpg$/
 		);
-		const films = page.getByRole('main').getByRole('listitem');
+		const films = listEntries(page);
 		await expect(films).toHaveCount(2);
 		await expect(films.first().getByRole('link')).toHaveAttribute('href', '/film/78');
 		await page.getByRole('link', { name: 'Next page' }).click();
@@ -101,7 +106,7 @@ test.describe('lists catalogue', () => {
 
 		await expect(page).toHaveURL('/lists/101');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Neon Noir');
-		const films = page.getByRole('main').getByRole('listitem');
+		const films = listEntries(page);
 		await expect(films).toHaveCount(3);
 		await expect(films.nth(1).getByRole('link')).toHaveAttribute('href', '/film/335984');
 		await expect(films.nth(2)).toContainText('Unknown at TMDB');
@@ -127,14 +132,14 @@ test.describe('lists catalogue', () => {
 		await expect(main.getByText('List by')).toBeVisible();
 		await expect(main.getByText('curator')).toBeVisible();
 		await expect(main.getByText('Films: 45')).toBeVisible();
-		await expect(main.getByRole('listitem').nth(2)).toContainText('3');
+		await expect(listEntries(page).nth(2)).toContainText('3');
 
 		await page.goto('/lists/101?page=2');
 		await expect(page.locator('.backdrop img')).toHaveAttribute(
 			'src',
 			/blade-runner-backdrop\.jpg$/
 		);
-		await expect(main.getByRole('listitem').first()).toContainText('41');
+		await expect(listEntries(page).first()).toContainText('41');
 	});
 
 	test('tells how much of a public list has been watched', async ({ page }) => {
@@ -143,7 +148,7 @@ test.describe('lists catalogue', () => {
 		await expect(progress).toContainText('0 of 1');
 		await expect(progress).toContainText('0%');
 
-		const poster = page.getByRole('main').getByRole('listitem').first().locator('.poster');
+		const poster = listEntries(page).first().locator('.poster');
 		await poster.hover();
 		await poster.getByRole('button', { name: 'Watch', exact: true }).click();
 		await expect(poster.getByRole('button', { name: 'Watched' })).toBeVisible();
@@ -156,13 +161,13 @@ test.describe('lists catalogue', () => {
 	test('hides the progress of a list too long to check', async ({ page }) => {
 		await page.goto('/lists/101');
 
-		await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(3);
+		await expect(listEntries(page)).toHaveCount(3);
 		await expect(page.getByText('You’ve watched')).toHaveCount(0);
 	});
 
 	test('offers the quick actions on the films of a public list', async ({ page }) => {
 		await page.goto('/lists/101');
-		const poster = page.getByRole('main').getByRole('listitem').first().locator('.poster');
+		const poster = listEntries(page).first().locator('.poster');
 		await poster.hover();
 
 		await poster.getByRole('button', { name: 'Like', exact: true }).click();
@@ -179,7 +184,106 @@ test.describe('lists catalogue', () => {
 	test('ignores an invalid page number', async ({ page }) => {
 		await page.goto('/lists/101?page=-4');
 
-		await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(3);
+		await expect(listEntries(page)).toHaveCount(3);
+	});
+});
+
+test.describe('list page', () => {
+	test.beforeEach(async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/lists/101');
+	});
+
+	function bar(page: Page) {
+		return page.getByRole('navigation', { name: 'List options' });
+	}
+
+	async function choose(page: Page, menu: string | RegExp, entry: string) {
+		await bar(page).getByRole('button', { name: menu }).hover();
+		await bar(page).getByRole('link', { name: entry, exact: true }).click();
+	}
+
+	function titles(page: Page) {
+		return listEntries(page).locator('a[title]');
+	}
+
+	test('orders the films from the bar of the list', async ({ page }) => {
+		await choose(page, /^Sort by/, 'Name');
+
+		await expect(page).toHaveURL('/lists/101?sort=name');
+		await expect(titles(page)).toHaveCount(3);
+		await expect(titles(page).nth(0)).toHaveAttribute('title', 'Blade Runner (1982)');
+		await expect(titles(page).nth(2)).toHaveAttribute('title', 'Unknown at TMDB (1999)');
+		await expect(bar(page).getByRole('button', { name: 'Sort by Name' })).toBeVisible();
+
+		await choose(page, /^Sort by/, 'Reverse order');
+		await expect(titles(page).nth(0)).toHaveAttribute('title', 'Unknown at TMDB (1999)');
+	});
+
+	test('narrows the films by decade and genre', async ({ page }) => {
+		await choose(page, 'Decade', '1980s');
+		await expect(page).toHaveURL('/lists/101?decade=1980');
+		await expect(listEntries(page)).toHaveCount(1);
+
+		await page.goto('/lists/101?genre=Drama');
+		await expect(listEntries(page)).toHaveCount(2);
+		await choose(page, 'Genre', 'Any genre');
+		await expect(listEntries(page)).toHaveCount(3);
+	});
+
+	test('hides or keeps only the films already watched', async ({ page }) => {
+		await listEntries(page).first().locator('.poster').hover();
+		await listEntries(page).first().getByRole('button', { name: 'Watch', exact: true }).click();
+		await expect(listEntries(page).first().getByRole('button', { name: 'Watched' })).toBeVisible();
+
+		await choose(page, 'Watched films', 'Hide watched films');
+		await expect(listEntries(page)).toHaveCount(2);
+		await choose(page, 'Watched films', 'Show only watched films');
+		await expect(listEntries(page)).toHaveCount(1);
+	});
+
+	test('switches between the grid and the rows', async ({ page }) => {
+		await bar(page).getByRole('link', { name: 'List view' }).click();
+
+		await expect(page).toHaveURL('/lists/101?view=detail');
+		await expect(page.locator('main ol.rows > li')).toHaveCount(3);
+		await expect(page.getByRole('link', { name: 'Blade Runner 2049', exact: true })).toBeVisible();
+		await page.getByRole('link', { name: 'Next page' }).click();
+		await expect(page).toHaveURL('/lists/101?view=detail&page=2');
+
+		await bar(page).getByRole('link', { name: 'Grid view' }).click();
+		await expect(page).toHaveURL('/lists/101');
+		await expect(page.locator('main ul.grid > li')).toHaveCount(3);
+	});
+
+	test('clones a public list into the lists of the account', async ({ page }) => {
+		await page.getByRole('complementary').getByRole('button', { name: 'Clone this list' }).click();
+
+		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Neon Noir');
+		await expect(listEntries(page)).toHaveCount(3);
+		await expect(
+			page.getByRole('complementary').getByRole('link', { name: 'Edit or delete this list…' })
+		).toBeVisible();
+	});
+
+	test('adds every film of a list to the watchlist', async ({ page }) => {
+		const side = page.getByRole('complementary');
+		await side.getByRole('button', { name: 'Add all films to watchlist' }).click();
+		await expect(side.getByRole('status')).toHaveText('The films are on your watchlist.');
+
+		await page.goto('/watchlist');
+		await expect(page.locator('main a[href="/film/78"]').first()).toBeVisible();
+		await expect(page.locator('main a[href="/film/335984"]').first()).toBeVisible();
+	});
+
+	test('offers the same panel on an official chart', async ({ page }) => {
+		await page.goto('/lists/official/popular');
+		await page.getByRole('complementary').getByRole('button', { name: 'Clone this list' }).click();
+
+		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Popular films');
+		await expect(listEntries(page)).toHaveCount(2);
 	});
 });
 

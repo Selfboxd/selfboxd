@@ -152,7 +152,10 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - The log dialog always posts to the actions of the film page, whichever page opened it, and
   reports errors itself.
 - Every page showing one list, personal, public or chart, renders `ListView.svelte`: the
-  backdrop of its first film as banner, who made it, numbered posters and the watched progress.
+  backdrop of its first work as banner, who made it, the bar of options (decade, genre, order,
+  watched films, grid or rows), the panel of actions (clone, add all to the watchlist) and the
+  watched progress. Options live in the query string (`src/lib/catalog/list-view.ts`). A refined
+  public list or chart works on its first `listActionMax` films instead of one page.
 - Menus opening on hover are a single block holding the trigger and its entries, like the
   account menu of the header. The trigger never moves when the menu opens.
 - The catalogue has no search of its own. Everything is found from the search of the header.
