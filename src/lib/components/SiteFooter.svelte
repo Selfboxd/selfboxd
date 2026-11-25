@@ -3,6 +3,7 @@
 </script>
 
 <footer>
+	<p>{m.footer_tmdb()}</p>
 	<p>{m.footer_not_affiliated()}</p>
 </footer>
 

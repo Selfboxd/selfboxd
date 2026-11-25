@@ -32,6 +32,15 @@
 	<div class="bar">
 		<a class="brand" href={resolve('/(app)')}><SiteLogo /></a>
 		<nav aria-label={m.nav_label()}>
+			<form class="search" method="GET" action={resolve('/(app)/search')} role="search">
+				<input type="search" name="q" aria-label={m.nav_search()} autocomplete="off" required />
+				<button aria-label={m.nav_search()}>
+					<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+						<circle cx="6.8" cy="6.8" r="5.3" />
+						<path d="M15 15l-4.2-4.2" />
+					</svg>
+				</button>
+			</form>
 			<div class="anchor">
 				<details class="account" bind:this={menu}>
 					<summary>
@@ -78,6 +87,54 @@
 		display: flex;
 		gap: var(--space-4);
 		align-items: center;
+	}
+
+	.search {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.search input {
+		width: var(--search-width);
+		height: var(--search-height);
+		padding: 0 var(--space-8) 0 var(--space-3);
+		border: 0;
+		border-radius: var(--search-height);
+		background: var(--color-input);
+		box-shadow: var(--shadow-input);
+		color: var(--color-input-text);
+		font: inherit;
+		font-size: var(--font-size-control);
+	}
+
+	.search input:focus {
+		background: var(--color-input-focus);
+		box-shadow: none;
+		color: var(--color-input-focus-text);
+		outline: none;
+	}
+
+	.search button {
+		position: absolute;
+		right: var(--space-2);
+		display: flex;
+		padding: var(--space-1);
+		border: 0;
+		background: none;
+		color: var(--color-text-muted);
+		cursor: pointer;
+	}
+
+	.search button:hover {
+		color: var(--color-link-hover);
+	}
+
+	.search svg {
+		fill: none;
+		stroke: currentcolor;
+		stroke-linecap: round;
+		stroke-width: 1.5;
 	}
 
 	.anchor {

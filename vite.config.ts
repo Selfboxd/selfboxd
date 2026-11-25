@@ -21,7 +21,7 @@ export default defineConfig({
 					'script-src': ['self'],
 					'style-src': ['self'],
 					'style-src-attr': ['unsafe-hashes', routeAnnouncerStyleHash],
-					'img-src': ['self', 'data:'],
+					'img-src': ['self', 'data:', 'https://image.tmdb.org'],
 					'font-src': ['self'],
 					'connect-src': ['self'],
 					'object-src': ['none'],

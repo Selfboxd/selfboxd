@@ -35,3 +35,18 @@ export const loginThrottles = sqliteTable('login_throttles', {
 	lastFailureAt: integer('last_failure_at', { mode: 'timestamp' }).notNull(),
 	lockedUntil: integer('locked_until', { mode: 'timestamp' }).notNull()
 });
+
+export const instanceSettings = sqliteTable('instance_settings', {
+	key: text('key').primaryKey(),
+	value: text('value').notNull()
+});
+
+export const apiCache = sqliteTable(
+	'api_cache',
+	{
+		key: text('key').primaryKey(),
+		body: text('body').notNull(),
+		expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+	},
+	(table) => [index('api_cache_expires_at_index').on(table.expiresAt)]
+);

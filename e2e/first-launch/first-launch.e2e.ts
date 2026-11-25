@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { admin } from '../support/accounts';
+import { admin, apiSignIn, bearer, createAccount, signIn } from '../support/accounts';
 
 test.describe('first launch', () => {
 	for (const path of ['/', '/login', '/settings/auth']) {
@@ -89,5 +89,60 @@ test.describe('first launch', () => {
 			data: { ...intruder, deviceName: 'Test device' }
 		});
 		expect(response.status()).toBe(401);
+	});
+
+	test('asks the administrator for a TMDB key before showing films', async ({ page }) => {
+		await signIn(page, admin);
+
+		await page.goto('/film/78');
+
+		await expect(page.getByRole('status')).toContainText('Add a TMDB API key in the settings');
+		await page.getByRole('link', { name: 'Open the settings' }).click();
+		await expect(page).toHaveURL('/settings/instance');
+		await expect(page.getByText('No key is configured.')).toBeVisible();
+	});
+
+	test('tells a regular account to wait for the administrator', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+
+		await page.goto('/search?q=blade');
+
+		await expect(page.getByRole('status')).toContainText(
+			'The administrator of this instance has not added a TMDB API key yet.'
+		);
+		await expect(page.getByRole('link', { name: 'Open the settings' })).toBeHidden();
+	});
+
+	test('reports the missing TMDB key through the API', async ({ request }) => {
+		const token = await apiSignIn(request, admin);
+
+		const response = await request.get('/api/v1/films/78', { headers: bearer(token) });
+
+		expect(response.status()).toBe(503);
+		expect(await response.json()).toEqual({ error: 'tmdb_not_configured' });
+	});
+
+	test('rejects a TMDB key that TMDB does not accept', async ({ page }) => {
+		await signIn(page, admin);
+
+		await page.goto('/settings/instance');
+		await page.getByLabel('TMDB API key').fill('wrong-key');
+		await page.getByRole('button', { name: 'Save key' }).click();
+
+		await expect(page.getByRole('alert')).toHaveText('TMDB did not accept this key.');
+		await expect(page.getByText('No key is configured.')).toBeVisible();
+	});
+
+	test('saves a valid TMDB key without ever showing it again', async ({ page }) => {
+		await signIn(page, admin);
+
+		await page.goto('/settings/instance');
+		await page.getByLabel('TMDB API key').fill('valid-test-key');
+		await page.getByRole('button', { name: 'Save key' }).click();
+
+		await expect(page.getByRole('status')).toHaveText('The TMDB key has been saved.');
+		await page.reload();
+		await expect(page.getByText('A key is configured.')).toBeVisible();
+		expect(await page.content()).not.toContain('valid-test-key');
 	});
 });
