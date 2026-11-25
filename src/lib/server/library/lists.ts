@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, inArray, max } from 'drizzle-orm';
 import { listPreviewSize, type ListSummary, type WorkList } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
 import { listItems, lists, works } from '../db/schema';
+import { forgetListLikes } from './list-likes';
 
 export interface ListInput {
 	name: string;
@@ -55,6 +56,7 @@ export function deleteList(db: DatabaseExecutor, userId: number, listId: number)
 		.delete(lists)
 		.where(and(eq(lists.id, listId), eq(lists.userId, userId)))
 		.run();
+	if (result.changes > 0) forgetListLikes(db, listId);
 	return result.changes > 0;
 }
 

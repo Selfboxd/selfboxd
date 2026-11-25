@@ -109,7 +109,7 @@ export async function getListFilms(
 ): Promise<Listed<PublicListFilms>> {
 	const result = await load(
 		context,
-		`mdblist:items:${String(listId)}:${String(pageSize)}:${String(page)}`,
+		`mdblist:works:${String(listId)}:${String(pageSize)}:${String(page)}`,
 		lifetimes.items,
 		listItemsSchema,
 		`/lists/${String(listId)}/items`,
@@ -157,7 +157,7 @@ export async function getListFilmIds(
 ): Promise<Listed<{ kind: WorkKind; id: number }[] | null>> {
 	const result = await load(
 		context,
-		`mdblist:ids:${String(listId)}`,
+		`mdblist:work-ids:${String(listId)}`,
 		lifetimes.items,
 		listItemsSchema,
 		`/lists/${String(listId)}/items`,

@@ -290,6 +290,28 @@ test.describe('list page', () => {
 		await expect(listEntries(page).nth(1).locator('a[title]')).toHaveAttribute('href', '/film/78');
 	});
 
+	test('likes a list, which then shows among the likes of the account', async ({ page }) => {
+		const side = page.getByRole('complementary');
+		await side.getByRole('button', { name: 'Like this list' }).click();
+		await expect(side.getByRole('button', { name: 'You liked this list' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+
+		await page.goto('/likes');
+		const lists = page.getByRole('region', { name: 'Lists' });
+		await expect(lists.getByRole('link', { name: 'Neon Noir' })).toHaveAttribute(
+			'href',
+			'/lists/101'
+		);
+
+		await page.goto('/lists/101');
+		await side.getByRole('button', { name: 'You liked this list' }).click();
+		await expect(side.getByRole('button', { name: 'Like this list' })).toBeVisible();
+		await page.goto('/likes');
+		await expect(page.getByText('You have not liked a list yet.')).toBeVisible();
+	});
+
 	test('offers the same panel on an official chart', async ({ page }) => {
 		await page.goto('/lists/official/popular');
 		await page.getByRole('complementary').getByRole('button', { name: 'Clone this list' }).click();

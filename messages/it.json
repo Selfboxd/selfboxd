@@ -394,5 +394,10 @@
 	"browse_sort_highest": "Più votati",
 	"browse_sort_lowest": "Meno votati",
 	"search_section_all": "Tutto",
-	"search_alternative_titles": "Titoli alternativi:"
+	"search_alternative_titles": "Titoli alternativi:",
+	"list_like": "Mi piace questa lista",
+	"list_liked": "Ti piace questa lista",
+	"likes_films": "Film",
+	"likes_lists": "Liste",
+	"likes_lists_empty": "Non hai ancora messo mi piace a nessuna lista."
 }

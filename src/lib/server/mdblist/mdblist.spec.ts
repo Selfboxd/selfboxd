@@ -163,6 +163,21 @@ describe('MDBList service', () => {
 		]);
 	});
 
+	it('reads the items of a list given as one array, each telling its kind', async () => {
+		context.config.fetch = () =>
+			Promise.resolve(
+				json([
+					{ id: 2, title: 'Show', rank: 1, mediatype: 'show', ids: { tmdb: 1400 } },
+					{ id: 1, title: 'Film', rank: 2, mediatype: 'movie', ids: { tmdb: 78 } }
+				])
+			);
+		context.tmdb = undefined;
+
+		const films = await getListFilms(context, 101);
+
+		expect(films.ok && films.value.films.map((film) => film.kind)).toEqual(['series', 'film']);
+	});
+
 	it('gives the backdrop of the first film that has one', async () => {
 		const films = await getListFilms(context, 101);
 

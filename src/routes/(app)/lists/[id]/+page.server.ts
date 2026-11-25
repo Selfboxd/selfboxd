@@ -2,6 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import {
 	applyListOptions,
 	isRefined,
+	likedListPreviewSize,
 	listActionMax,
 	listDecades,
 	parseListOptions
@@ -12,6 +13,8 @@ import { parseId } from '#lib/server/library/forms.js';
 import {
 	cloneWorks,
 	genreChoices,
+	likeList,
+	likesList,
 	toEntries,
 	watchlistWorks,
 	withGenres,
@@ -77,7 +80,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		decades: listDecades(all),
 		genres,
 		backdropPath,
-		progress
+		progress,
+		liked: likesList(user.id, { public: id })
 	};
 };
 
@@ -92,6 +96,23 @@ async function listWorks(rawId: string) {
 }
 
 export const actions: Actions = {
+	like: async ({ locals, params, request }) => {
+		const { user } = requireUser(locals);
+		const { id, context } = listContext(params.id);
+		const [list, films] = await Promise.all([
+			getListInfo(context, id),
+			getListFilms(context, id, 1, likedListPreviewSize)
+		]);
+		if (!list.ok || !films.ok) error(502);
+		return likeList(user.id, await request.formData(), {
+			target: { public: id },
+			name: list.value.name,
+			owner: list.value.owner,
+			itemCount: list.value.itemCount,
+			preview: films.value.films
+		});
+	},
+
 	clone: async ({ locals, params }) => {
 		const { user } = requireUser(locals);
 		const { list, works } = await listWorks(params.id);

@@ -394,5 +394,10 @@
 	"browse_sort_highest": "评分最高",
 	"browse_sort_lowest": "评分最低",
 	"search_section_all": "全部",
-	"search_alternative_titles": "其他片名："
+	"search_alternative_titles": "其他片名：",
+	"list_like": "喜欢此列表",
+	"list_liked": "你喜欢此列表",
+	"likes_films": "作品",
+	"likes_lists": "列表",
+	"likes_lists_empty": "你还没有喜欢任何列表。"
 }

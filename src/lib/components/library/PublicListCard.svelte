@@ -18,7 +18,7 @@
 			preview: FilmSummary[];
 		};
 		/** The page the card opens: a public list or a TMDB chart. */
-		target: { list: number } | { chart: Chart };
+		target: { list: number } | { chart: Chart } | { personal: number };
 		/** Whether the posters sit beside the name instead of above it. */
 		row?: boolean;
 	}
@@ -28,7 +28,9 @@
 	const href = $derived(
 		'chart' in target
 			? resolve('/(app)/lists/official/[chart]', { chart: target.chart })
-			: resolve('/(app)/lists/[id]', { id: String(target.list) })
+			: 'personal' in target
+				? resolve('/(app)/profile/lists/[id]', { id: String(target.personal) })
+				: resolve('/(app)/lists/[id]', { id: String(target.list) })
 	);
 
 	const empty = $derived(

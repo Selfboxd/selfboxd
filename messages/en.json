@@ -394,5 +394,10 @@
 	"browse_sort_highest": "Highest rated",
 	"browse_sort_lowest": "Lowest rated",
 	"search_section_all": "All",
-	"search_alternative_titles": "Alternative titles:"
+	"search_alternative_titles": "Alternative titles:",
+	"list_like": "Like this list",
+	"list_liked": "You liked this list",
+	"likes_films": "Films",
+	"likes_lists": "Lists",
+	"likes_lists_empty": "You have not liked a list yet."
 }

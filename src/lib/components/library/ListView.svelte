@@ -47,6 +47,8 @@
 		genres: string[];
 		/** Whether the place of each film is shown. */
 		ranked?: boolean;
+		/** Whether the account likes the list. */
+		liked: boolean;
 		/** Last change of the list, as an ISO timestamp, when it is known. */
 		updatedAt?: string | null;
 		/** Content shown under the films. */
@@ -68,6 +70,7 @@
 		decades,
 		genres,
 		ranked = true,
+		liked,
 		updatedAt = null,
 		children
 	}: Props = $props();
@@ -227,6 +230,13 @@
 
 	<aside>
 		<div class="panel">
+			<form method="POST" action="{path}?/like" use:enhance>
+				<input type="hidden" name="liked" value={liked ? '' : 'on'} />
+				<button class="like" class:liked aria-pressed={liked}>
+					<Icon name="heart" filled />
+					{liked ? m.list_liked() : m.list_like()}
+				</button>
+			</form>
 			{#if 'personal' in target}
 				<a href={resolve('/(app)/profile/lists/[id]/edit', { id: String(target.personal) })}>
 					{m.list_edit_or_delete()}
@@ -496,6 +506,21 @@
 	.panel > a:hover,
 	.panel button:hover {
 		color: var(--color-heading);
+	}
+
+	.like {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+		justify-content: center;
+	}
+
+	.like :global(.icon) {
+		color: var(--color-text-muted);
+	}
+
+	.like.liked :global(.icon) {
+		color: var(--color-like);
 	}
 
 	.done {

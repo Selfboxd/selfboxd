@@ -393,10 +393,7 @@
 
 	.slot {
 		display: block;
-		border-radius: var(--radius-medium);
 		aspect-ratio: 2 / 3;
-		background: var(--color-chip);
-		box-shadow: var(--shadow-poster-frame);
 	}
 
 	.meta {

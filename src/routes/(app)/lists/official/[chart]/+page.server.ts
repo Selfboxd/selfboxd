@@ -13,6 +13,8 @@ import { parseId } from '#lib/server/library/forms.js';
 import {
 	cloneWorks,
 	genreChoices,
+	likeList,
+	likesList,
 	toEntries,
 	watchlistWorks,
 	withGenres,
@@ -76,11 +78,26 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		options,
 		decades: listDecades(all),
 		genres,
-		backdropPath
+		backdropPath,
+		liked: likesList(user.id, { chart })
 	};
 };
 
 export const actions: Actions = {
+	like: async ({ locals, params, request }) => {
+		const { user } = requireUser(locals);
+		const { chart, context } = chartContext(params.chart);
+		const first = await getChart(context, chart, requestLanguage());
+		if (!first.ok) error(502);
+		return likeList(user.id, await request.formData(), {
+			target: { chart },
+			name: chartName(chart),
+			owner: 'TMDB',
+			itemCount: null,
+			preview: first.value.films.map((film) => ({ ...film, kind: 'film' as const }))
+		});
+	},
+
 	clone: async ({ locals, params }) => {
 		const { user } = requireUser(locals);
 		const { chart, context } = chartContext(params.chart);

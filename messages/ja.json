@@ -394,5 +394,10 @@
 	"browse_sort_highest": "高評価順",
 	"browse_sort_lowest": "低評価順",
 	"search_section_all": "すべて",
-	"search_alternative_titles": "別題:"
+	"search_alternative_titles": "別題:",
+	"list_like": "このリストにいいね",
+	"list_liked": "いいね済み",
+	"likes_films": "作品",
+	"likes_lists": "リスト",
+	"likes_lists_empty": "いいねしたリストはまだありません。"
 }
