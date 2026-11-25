@@ -1,11 +1,11 @@
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci --ignore-scripts
 COPY . .
 RUN npm run i18n && npm run build && npm prune --omit=dev
 
-FROM node:24-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production \
     DATA_DIR=/data \
     PORT=3000
