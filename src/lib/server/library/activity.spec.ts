@@ -10,6 +10,8 @@ import { saveWork } from './works';
 
 const entry: DiaryEntryInput = {
 	watchedOn: '2026-06-15',
+	season: null,
+	status: null,
 	rating: 8,
 	liked: true,
 	rewatch: false,

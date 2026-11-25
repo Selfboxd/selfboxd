@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { WorkState } from '#lib/catalog/library.js';
+	import type { WorkKind, WorkState } from '#lib/catalog/library.js';
+	import { stateRoute, workRoute } from '#lib/paths.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import RatingInput from '#lib/components/library/RatingInput.svelte';
 	import type { PublicUser } from '#lib/server/auth/users.js';
@@ -9,8 +10,14 @@
 	import { m } from '#lib/paraglide/messages.js';
 
 	interface Props {
-		/** The film the poster shows; `id` is its TMDB identifier. */
-		film: { id: number | string; title: string; year: number | null; posterPath: string | null };
+		/** The film or series the poster shows; `id` is its TMDB identifier. */
+		film: {
+			id: number | string;
+			kind?: WorkKind;
+			title: string;
+			year: number | null;
+			posterPath: string | null;
+		};
 	}
 
 	interface FilmStatus {
@@ -31,8 +38,9 @@
 	let root: HTMLElement | undefined = $state();
 
 	const filmId = $derived(String(film.id));
-	const address = $derived(resolve('/api/v1/films/[id]/state', { id: filmId }));
-	const filmPath = $derived(resolve('/(app)/film/[id]', { id: filmId }));
+	const kind = $derived(film.kind ?? 'film');
+	const address = $derived(resolve(stateRoute(kind), { id: filmId }));
+	const filmPath = $derived(resolve(workRoute(kind), { id: filmId }));
 	const scale = $derived((page.data.user as PublicUser | null | undefined)?.ratingScale ?? 'stars');
 
 	async function load() {
@@ -90,7 +98,7 @@
 		menuOpen = false;
 		sharedDialogs.log = {
 			kind: 'new',
-			film: { id: filmId, title: film.title, year: film.year, posterPath: film.posterPath },
+			film: { id: filmId, kind, title: film.title, year: film.year, posterPath: film.posterPath },
 			defaults: {
 				rating: status.state.rating,
 				liked: status.state.liked,
@@ -102,7 +110,7 @@
 	function openLists() {
 		if (!status) return;
 		menuOpen = false;
-		sharedDialogs.lists = { filmId, lists: status.lists, member: status.listMembership };
+		sharedDialogs.lists = { filmId, kind, lists: status.lists, member: status.listMembership };
 	}
 </script>
 

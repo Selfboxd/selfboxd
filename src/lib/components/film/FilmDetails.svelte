@@ -5,21 +5,26 @@
 	import { releaseTypes, type Film, type ReleaseType } from '#lib/catalog/film.js';
 
 	interface Props {
-		/** The film whose details are shown. */
-		film: Film;
+		/** The film or series whose details are shown; a series has networks and no releases. */
+		film: Pick<
+			Film,
+			'cast' | 'crew' | 'genres' | 'studios' | 'countries' | 'originalLanguage' | 'spokenLanguages'
+		> & { releases?: Film['releases']; networks?: string[] };
 	}
 
 	let { film }: Props = $props();
 
 	type TabId = 'cast' | 'crew' | 'details' | 'genres' | 'releases';
 
-	const tabs: { id: TabId; label: () => string }[] = [
-		{ id: 'cast', label: m.film_tab_cast },
-		{ id: 'crew', label: m.film_tab_crew },
-		{ id: 'details', label: m.film_tab_details },
-		{ id: 'genres', label: m.film_tab_genres },
-		{ id: 'releases', label: m.film_tab_releases }
-	];
+	const tabs = $derived(
+		[
+			{ id: 'cast' as const, label: m.film_tab_cast },
+			{ id: 'crew' as const, label: m.film_tab_crew },
+			{ id: 'details' as const, label: m.film_tab_details },
+			{ id: 'genres' as const, label: m.film_tab_genres },
+			{ id: 'releases' as const, label: m.film_tab_releases }
+		].filter((tab) => tab.id !== 'releases' || (film.releases ?? []).length > 0)
+	);
 
 	const releaseLabels: Record<ReleaseType, () => string> = {
 		premiere: m.release_premiere,
@@ -42,6 +47,7 @@
 
 	const details = $derived(
 		[
+			{ label: m.series_networks(), values: film.networks ?? [] },
 			{ label: m.film_studios(), values: film.studios },
 			{ label: m.film_countries(), values: film.countries.map(countryName) },
 			{ label: m.film_original_language(), values: [languageName(film.originalLanguage)] },
@@ -51,7 +57,10 @@
 
 	const releases = $derived(
 		releaseTypes
-			.map((type) => ({ type, entries: film.releases.filter((release) => release.type === type) }))
+			.map((type) => ({
+				type,
+				entries: (film.releases ?? []).filter((release) => release.type === type)
+			}))
 			.filter((group) => group.entries.length > 0)
 	);
 </script>

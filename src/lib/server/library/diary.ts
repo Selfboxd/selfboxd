@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
-import type { DiaryEntry } from '../../catalog/library';
+import type { DiaryEntry, SeriesStatus } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
 import { diaryEntries, diaryEntryTags, tags, works } from '../db/schema';
 import { removeFromWatchlist, writeState } from './states';
@@ -7,6 +7,10 @@ import { deleteUnusedTags, resolveTagIds } from './tags';
 
 export interface DiaryEntryInput {
 	watchedOn: string;
+	/** Season of a series, or `null` for a film or a whole series. */
+	season: number | null;
+	/** Where the account stands with a series after this viewing; `null` keeps it unchanged. */
+	status: SeriesStatus | null;
 	rating: number | null;
 	liked: boolean;
 	rewatch: boolean;
@@ -36,7 +40,8 @@ function applyEntryToState(
 	writeState(db, userId, workId, {
 		watched: true,
 		liked: input.liked,
-		...(input.rating === null ? {} : { rating: input.rating })
+		...(input.rating === null ? {} : { rating: input.rating }),
+		...(input.status === null ? {} : { status: input.status })
 	});
 	removeFromWatchlist(db, userId, workId);
 }
@@ -44,6 +49,7 @@ function applyEntryToState(
 function entryValues(input: DiaryEntryInput) {
 	return {
 		watchedOn: input.watchedOn,
+		season: input.season,
 		rating: input.rating,
 		liked: input.liked,
 		rewatch: input.rewatch,
@@ -141,6 +147,7 @@ export function listDiaryEntries(
 		id: entry.id,
 		work,
 		watchedOn: entry.watchedOn,
+		season: entry.season,
 		rating: entry.rating,
 		liked: entry.liked,
 		rewatch: entry.rewatch,

@@ -2,21 +2,24 @@
 	import { enhance } from '$app/forms';
 	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import type { WorkKind } from '#lib/catalog/library.js';
 	import Icon from '#lib/components/Icon.svelte';
+	import { workRoute } from '#lib/paths.js';
 	import { m } from '#lib/paraglide/messages.js';
 
 	interface Props {
 		/** Set to `true` to open the dialog; reset when the dialog closes. */
 		open: boolean;
-		/** Identifier of the film at TMDB. */
+		/** Identifier of the film or series at TMDB. */
 		filmId: string;
+		kind?: WorkKind;
 		/** Every list of the account. */
 		lists: { id: number; name: string }[];
 		/** Identifiers of the lists that hold the film. */
 		member: number[];
 	}
 
-	let { open = $bindable(), filmId, lists, member }: Props = $props();
+	let { open = $bindable(), filmId, kind = 'film', lists, member }: Props = $props();
 
 	let dialog: HTMLDialogElement | undefined = $state();
 
@@ -42,7 +45,7 @@
 
 	<form
 		method="POST"
-		action="{resolve('/(app)/film/[id]', { id: filmId })}?/lists"
+		action="{resolve(workRoute(kind), { id: filmId })}?/lists"
 		use:enhance={() =>
 			async ({ result }) => {
 				if (result.type !== 'success') return;

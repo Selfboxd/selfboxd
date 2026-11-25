@@ -1,8 +1,10 @@
+import type { WorkKind } from '#lib/catalog/library.js';
 import type { LogTarget } from './log-target.js';
 
-/** The film and lists the shared lists dialog works on. */
+/** The work and lists the shared lists dialog works on. */
 export interface ListsTarget {
 	filmId: string;
+	kind: WorkKind;
 	lists: { id: number; name: string }[];
 	member: number[];
 }

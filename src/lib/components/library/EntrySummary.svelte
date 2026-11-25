@@ -2,6 +2,7 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import type { DiaryEntry, RatingScale } from '#lib/catalog/library.js';
 	import { formatDate } from '#lib/i18n/dates.js';
+	import { seasonName } from '#lib/i18n/series.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import RatingDisplay from './RatingDisplay.svelte';
 
@@ -26,6 +27,7 @@
 		{#if entry.liked}<span class="liked">
 				<Icon name="heart" filled label={m.action_liked()} />
 			</span>{/if}
+		{#if entry.season !== null}<span class="season">{seasonName(entry.season)}</span>{/if}
 		<span>
 			{entry.rewatch ? m.activity_rewatched_on({ date }) : m.activity_watched_on({ date })}
 		</span>
@@ -63,6 +65,11 @@
 </article>
 
 <style>
+	.season {
+		color: var(--color-text-strong);
+		font-weight: 700;
+	}
+
 	article {
 		display: flex;
 		flex-direction: column;

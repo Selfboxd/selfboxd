@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { workRoute } from '#lib/paths.js';
 	import type { Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import type { DiaryEntry, RatingScale } from '#lib/catalog/library.js';
@@ -27,7 +28,9 @@
 	<FilmPoster film={{ ...entry.work, id: entry.work.externalId }} size="small" />
 	<div class="body">
 		<h3>
-			<a href={resolve('/(app)/film/[id]', { id: entry.work.externalId })}>{entry.work.title}</a>
+			<a href={resolve(workRoute(entry.work.kind), { id: entry.work.externalId })}>
+				{entry.work.title}
+			</a>
 			{#if entry.work.year}<span class="year">{entry.work.year}</span>{/if}
 		</h3>
 		<p class="meta">

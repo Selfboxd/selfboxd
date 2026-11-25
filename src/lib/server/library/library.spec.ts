@@ -17,6 +17,8 @@ import { saveWork } from './works';
 function entry(overrides: Partial<DiaryEntryInput> = {}): DiaryEntryInput {
 	return {
 		watchedOn: '2026-06-15',
+		season: null,
+		status: null,
 		rating: null,
 		liked: false,
 		rewatch: false,
@@ -87,7 +89,8 @@ describe('library', () => {
 				liked: false,
 				rating: null,
 				inWatchlist: false,
-				logCount: 0
+				logCount: 0,
+				status: null
 			});
 		});
 
@@ -229,6 +232,27 @@ describe('library', () => {
 				{ work: { title: 'Blade Runner 2049' }, tags: ['cinema', 'imax'], review: 'Stunning.' },
 				{ work: { title: 'Blade Runner' }, watchedOn: '2026-01-10' }
 			]);
+		});
+
+		it('logs a season of a series and sets the status of the series', () => {
+			const series = saveWork(database.db, {
+				kind: 'series',
+				externalId: '1400',
+				title: 'Neon Precinct',
+				year: 2019,
+				posterPath: null
+			}).id;
+
+			createDiaryEntry(database.db, ada.id, series, entry({ season: 2, status: 'watching' }));
+			createDiaryEntry(database.db, ada.id, series, entry({ season: 3 }));
+
+			expect(listDiaryEntries(database.db, ada.id, series).map((item) => item.season)).toEqual([
+				3, 2
+			]);
+			expect(state(ada, series)).toMatchObject({ watched: true, status: 'watching' });
+
+			createDiaryEntry(database.db, ada.id, series, entry({ status: 'abandoned' }));
+			expect(state(ada, series).status).toBe('abandoned');
 		});
 
 		it('lists the entries of one work', () => {

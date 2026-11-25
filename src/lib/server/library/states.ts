@@ -3,7 +3,9 @@ import type { WorkState } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
 import { diaryEntries, watchlistItems, workStates } from '../db/schema';
 
-type StateChange = Partial<Pick<typeof workStates.$inferInsert, 'watched' | 'liked' | 'rating'>>;
+type StateChange = Partial<
+	Pick<typeof workStates.$inferInsert, 'watched' | 'liked' | 'rating' | 'status'>
+>;
 
 function countEntries(db: DatabaseExecutor, userId: number, workId: number): number {
 	return (
@@ -54,7 +56,8 @@ export function getWorkState(db: DatabaseExecutor, userId: number, workId: numbe
 		liked: state?.liked ?? false,
 		rating: state?.rating ?? null,
 		inWatchlist: listed !== undefined,
-		logCount: countEntries(db, userId, workId)
+		logCount: countEntries(db, userId, workId),
+		status: state?.status ?? null
 	};
 }
 
@@ -64,7 +67,8 @@ export const emptyWorkState: WorkState = {
 	liked: false,
 	rating: null,
 	inWatchlist: false,
-	logCount: 0
+	logCount: 0,
+	status: null
 };
 
 /**

@@ -7,7 +7,8 @@ import {
 	type FilmCollection,
 	type FilmSummary,
 	type Person,
-	type Release
+	type Release,
+	type WatchProviders
 } from '../../catalog/film';
 
 const directorJob = 'Director';
@@ -15,7 +16,7 @@ const directorJob = 'Director';
 /** Only links to this site are accepted from TMDB responses. */
 const tmdbSite = 'https://www.themoviedb.org/';
 
-function yearOf(date: string | null | undefined): number | null {
+export function yearOf(date: string | null | undefined): number | null {
 	const year = Number(date?.slice(0, 4));
 	return Number.isInteger(year) && year > 0 ? year : null;
 }
@@ -29,11 +30,14 @@ export function toFilmSummary(raw: RawFilmSummary): FilmSummary {
 	};
 }
 
-/** Groups the crew by job, in order of first appearance, without the directors. */
-function groupCrew(crew: RawFilmDetails['credits']['crew']): CrewGroup[] {
+/** Groups the crew by job, in order of first appearance, leaving out one job. */
+export function groupCrew(
+	crew: RawFilmDetails['credits']['crew'],
+	excluded: string | null = directorJob
+): CrewGroup[] {
 	const groups = new Map<string, Person[]>();
 	for (const member of crew) {
-		if (member.job === directorJob) continue;
+		if (member.job === excluded) continue;
 		const people = groups.get(member.job) ?? [];
 		if (!people.some((person) => person.id === member.id)) {
 			people.push({ id: member.id, name: member.name });
@@ -43,7 +47,7 @@ function groupCrew(crew: RawFilmDetails['credits']['crew']): CrewGroup[] {
 	return [...groups].map(([job, people]) => ({ job, people }));
 }
 
-function findTrailer(videos: RawFilmDetails['videos']['results']): string | null {
+export function findTrailer(videos: RawFilmDetails['videos']['results']): string | null {
 	const trailers = videos.filter((video) => video.site === 'YouTube' && video.type === 'Trailer');
 	return (trailers.find((video) => video.official) ?? trailers[0])?.key ?? null;
 }
@@ -67,7 +71,7 @@ function toReleases(raw: RawFilmDetails['release_dates']['results']): Release[] 
 	);
 }
 
-function toProviders(raw: RawFilmDetails['watch/providers']['results'][string]['flatrate']) {
+export function toProviders(raw: RawFilmDetails['watch/providers']['results'][string]['flatrate']) {
 	return raw.map((provider) => ({
 		id: provider.provider_id,
 		name: provider.provider_name,
@@ -75,9 +79,24 @@ function toProviders(raw: RawFilmDetails['watch/providers']['results'][string]['
 	}));
 }
 
+/** Offers of a film or a series in the given country, or `null` when TMDB knows none. */
+export function toWatch(
+	raw: RawFilmDetails['watch/providers'],
+	region: string
+): WatchProviders | null {
+	const offers = raw.results[region];
+	return offers
+		? {
+				link: offers.link.startsWith(tmdbSite) ? offers.link : tmdbSite,
+				stream: toProviders(offers.flatrate),
+				rent: toProviders(offers.rent),
+				buy: toProviders(offers.buy)
+			}
+		: null;
+}
+
 /** Converts a TMDB film into the film shown by the interface, for the given country. */
 export function toFilm(raw: RawFilmDetails, region: string): Film {
-	const offers = raw['watch/providers'].results[region];
 	return {
 		...toFilmSummary(raw),
 		originalTitle: raw.original_title,
@@ -102,14 +121,7 @@ export function toFilm(raw: RawFilmDetails, region: string): Film {
 		spokenLanguages: raw.spoken_languages.map((language) => language.iso_639_1),
 		trailerKey: findTrailer(raw.videos.results),
 		releases: toReleases(raw.release_dates.results),
-		watch: offers
-			? {
-					link: offers.link.startsWith(tmdbSite) ? offers.link : tmdbSite,
-					stream: toProviders(offers.flatrate),
-					rent: toProviders(offers.rent),
-					buy: toProviders(offers.buy)
-				}
-			: null,
+		watch: toWatch(raw['watch/providers'], region),
 		collection: raw.belongs_to_collection ?? null
 	};
 }

@@ -28,6 +28,8 @@ import { saveWork } from './works';
 function entry(overrides: Partial<DiaryEntryInput> = {}): DiaryEntryInput {
 	return {
 		watchedOn: '2026-06-15',
+		season: null,
+		status: null,
 		rating: null,
 		liked: false,
 		rewatch: false,

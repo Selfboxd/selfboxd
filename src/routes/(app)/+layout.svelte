@@ -28,6 +28,7 @@
 			}
 		}
 		filmId={sharedDialogs.lists?.filmId ?? '0'}
+		kind={sharedDialogs.lists?.kind ?? 'film'}
 		lists={sharedDialogs.lists?.lists ?? []}
 		member={sharedDialogs.lists?.member ?? []}
 	/>

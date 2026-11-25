@@ -39,6 +39,7 @@
 			kind: 'new',
 			film: {
 				id: String(film.id),
+				kind: 'film',
 				title: film.title,
 				year: film.year,
 				posterPath: film.posterPath

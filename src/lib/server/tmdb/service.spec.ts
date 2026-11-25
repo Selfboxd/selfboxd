@@ -1,9 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
-import { getChart, getFilm, searchFilms, type TmdbContext } from './service';
+import {
+	browseSeries,
+	getChart,
+	getFilm,
+	getSeries,
+	searchFilms,
+	searchSeries,
+	type TmdbContext
+} from './service';
 
 const filmBody = readFileSync('e2e/support/tmdb/film-78.json', 'utf8');
+const seriesBody = readFileSync('e2e/support/tmdb/series-1400.json', 'utf8');
 
 describe('TMDB service', () => {
 	let database: TestDatabase;
@@ -189,6 +198,66 @@ describe('TMDB service', () => {
 				'/3/movie/popular',
 				'/3/movie/upcoming'
 			]);
+		});
+	});
+
+	describe('series', () => {
+		it('loads a series with its credits, videos and offers', async () => {
+			respond = () => new Response(seriesBody);
+
+			const result = await getSeries(context, 1400, 'en-US', 'US');
+
+			expect(result).toMatchObject({ ok: true, value: { title: 'Neon Precinct' } });
+			expect(requests[0]?.pathname).toBe('/3/tv/1400');
+			expect(requests[0]?.searchParams.get('append_to_response')).toBe(
+				'credits,videos,watch/providers'
+			);
+		});
+
+		it('caches a series apart from a film with the same identifier', async () => {
+			respond = (url) => new Response(url.pathname.includes('/tv/') ? seriesBody : filmBody);
+
+			await getSeries(context, 78, 'en-US', 'US');
+			await getFilm(context, 78, 'en-US', 'US');
+
+			expect(requests.map((url) => url.pathname)).toEqual(['/3/tv/78', '/3/movie/78']);
+		});
+
+		it('searches series and skips the request for an empty query', async () => {
+			respond = () =>
+				Response.json({
+					page: 1,
+					total_pages: 1,
+					total_results: 1,
+					results: [{ id: 1400, name: 'Neon Precinct', original_name: 'Neon Precinct' }]
+				});
+
+			expect(await searchSeries(context, '  ', 'en-US')).toMatchObject({
+				ok: true,
+				value: { series: [] }
+			});
+			expect(requests).toHaveLength(0);
+
+			const found = await searchSeries(context, 'neon', 'en-US');
+			expect(requests[0]?.pathname).toBe('/3/search/tv');
+			expect(found).toMatchObject({
+				ok: true,
+				value: { series: [{ id: 1400, title: 'Neon Precinct', originalTitle: 'Neon Precinct' }] }
+			});
+		});
+
+		it('browses series with the discover endpoint of series', async () => {
+			respond = () => Response.json({ page: 1, total_pages: 900, results: [] });
+
+			const result = await browseSeries(
+				context,
+				{ sort: 'popular', decade: null, year: null, genre: 80, page: 1 },
+				'en-US'
+			);
+
+			expect(requests[0]?.pathname).toBe('/3/discover/tv');
+			expect(requests[0]?.searchParams.get('with_genres')).toBe('80');
+			expect(result).toMatchObject({ ok: true, value: { totalPages: 500 } });
 		});
 	});
 });

@@ -2,11 +2,16 @@
 	import { resolve } from '$app/paths';
 	import { tmdbImage, type TmdbImageSize } from '#lib/images.js';
 	import type { FilmSummary } from '#lib/catalog/film.js';
+	import type { WorkKind } from '#lib/catalog/library.js';
+	import { workRoute } from '#lib/paths.js';
 	import PosterActions from './PosterActions.svelte';
 
 	interface Props {
-		/** The film whose poster is shown. */
-		film: Pick<FilmSummary, 'title' | 'year' | 'posterPath'> & { id: number | string };
+		/** The film or series whose poster is shown; a film unless `kind` says otherwise. */
+		film: Pick<FilmSummary, 'title' | 'year' | 'posterPath'> & {
+			id: number | string;
+			kind?: WorkKind;
+		};
 		/** Rendered width of the poster. */
 		size?: 'tiny' | 'small' | 'medium' | 'large';
 		/** Whether the poster links to the page of the film. */
@@ -37,7 +42,7 @@
 
 <div class="poster {size}" class:interactive={linked || actions}>
 	{#if linked}
-		<a href={resolve('/(app)/film/[id]', { id: String(film.id) })} title={label}>
+		<a href={resolve(workRoute(film.kind ?? 'film'), { id: String(film.id) })} title={label}>
 			{@render picture()}
 		</a>
 	{:else}

@@ -24,6 +24,7 @@
 	const home = resolve('/(app)');
 	const links = $derived([
 		{ href: resolve('/(app)/films'), label: m.nav_films() },
+		{ href: resolve('/(app)/series'), label: m.nav_series() },
 		{ href: resolve('/(app)/lists'), label: m.nav_lists() },
 		{ href: resolve('/(app)/diary'), label: m.nav_diary() },
 		{ href: resolve('/(app)/journal'), label: m.nav_journal() }

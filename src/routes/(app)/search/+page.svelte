@@ -3,6 +3,7 @@
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FormError from '#lib/components/FormError.svelte';
 	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
+	import { workRoute } from '#lib/paths.js';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -10,11 +11,15 @@
 
 	let { data }: PageProps = $props();
 
+	const kind = $derived(data.state === 'ready' ? data.kind : 'film');
+
 	function pageQuery(page: number): string {
-		return new URLSearchParams({ q: data.query, page: String(page) }).toString();
+		const type = kind === 'series' ? { type: 'series' } : {};
+		return new URLSearchParams({ q: data.query, ...type, page: String(page) }).toString();
 	}
 
 	const filmsQuery = $derived(new URLSearchParams({ q: data.query }).toString());
+	const seriesQuery = $derived(new URLSearchParams({ q: data.query, type: 'series' }).toString());
 	const listsQuery = $derived(new URLSearchParams({ q: data.query, type: 'lists' }).toString());
 	const showsLists = $derived(data.state === 'lists' || data.state === 'lists_error');
 </script>
@@ -51,10 +56,10 @@
 				<ul class="results">
 					{#each data.films as film (film.id)}
 						<li>
-							<FilmPoster {film} size="small" />
+							<FilmPoster film={{ ...film, kind }} size="small" />
 							<div class="details">
 								<h2>
-									<a href={resolve('/(app)/film/[id]', { id: String(film.id) })}>{film.title}</a>
+									<a href={resolve(workRoute(kind), { id: String(film.id) })}>{film.title}</a>
 									{#if film.year}<span class="year">{film.year}</span>{/if}
 								</h2>
 								{#if film.originalTitle !== film.title}
@@ -101,9 +106,17 @@
 				<li>
 					<a
 						href="{resolve('/(app)/search')}?{filmsQuery}"
-						aria-current={showsLists ? undefined : 'true'}
+						aria-current={showsLists || kind === 'series' ? undefined : 'true'}
 					>
 						{m.search_section_films()}
+					</a>
+				</li>
+				<li>
+					<a
+						href="{resolve('/(app)/search')}?{seriesQuery}"
+						aria-current={!showsLists && kind === 'series' ? 'true' : undefined}
+					>
+						{m.search_section_series()}
 					</a>
 				</li>
 				{#if data.hasLists}

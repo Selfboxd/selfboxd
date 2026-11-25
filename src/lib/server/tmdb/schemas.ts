@@ -112,3 +112,70 @@ export const filmPageSchema = v.object({
 export const genreListSchema = v.object({
 	genres: v.array(v.object({ id: v.number(), name: v.string() }))
 });
+
+export const seriesSummarySchema = v.object({
+	id: v.number(),
+	name: v.string(),
+	first_air_date: optionalText,
+	poster_path: optionalText,
+	backdrop_path: optionalText
+});
+
+export type RawSeriesSummary = v.InferOutput<typeof seriesSummarySchema>;
+
+export const seriesListSchema = v.object({ results: v.array(seriesSummarySchema) });
+
+export const seriesPageSchema = v.object({
+	page: v.number(),
+	total_pages: v.number(),
+	results: v.array(seriesSummarySchema)
+});
+
+export const seriesSearchSchema = v.object({
+	page: v.number(),
+	total_pages: v.number(),
+	total_results: v.number(),
+	results: v.array(v.object({ ...seriesSummarySchema.entries, original_name: v.string() }))
+});
+
+export const seriesDetailsSchema = v.object({
+	id: v.number(),
+	name: v.string(),
+	original_name: v.string(),
+	original_language: v.string(),
+	first_air_date: optionalText,
+	last_air_date: optionalText,
+	tagline: optionalText,
+	overview: optionalText,
+	poster_path: optionalText,
+	backdrop_path: optionalText,
+	vote_average: v.number(),
+	vote_count: v.number(),
+	status: optionalText,
+	number_of_seasons: v.optional(v.number(), 0),
+	number_of_episodes: v.optional(v.number(), 0),
+	episode_run_time: v.optional(v.array(v.number()), []),
+	genres: v.array(v.object({ id: v.number(), name: v.string() })),
+	created_by: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
+	networks: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
+	production_companies: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
+	origin_country: v.optional(v.array(v.string()), []),
+	spoken_languages: v.optional(v.array(v.object({ iso_639_1: v.string() })), []),
+	seasons: v.optional(
+		v.array(
+			v.object({
+				season_number: v.number(),
+				name: v.string(),
+				air_date: optionalText,
+				poster_path: optionalText,
+				episode_count: v.optional(v.number(), 0)
+			})
+		),
+		[]
+	),
+	credits: filmDetailsSchema.entries.credits,
+	videos: filmDetailsSchema.entries.videos,
+	'watch/providers': filmDetailsSchema.entries['watch/providers']
+});
+
+export type RawSeriesDetails = v.InferOutput<typeof seriesDetailsSchema>;

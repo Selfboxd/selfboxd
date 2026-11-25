@@ -68,7 +68,7 @@ export const works = sqliteTable(
 	'works',
 	{
 		id: integer('id').primaryKey({ autoIncrement: true }),
-		kind: text('kind', { enum: ['film'] }).notNull(),
+		kind: text('kind', { enum: ['film', 'series'] }).notNull(),
 		externalId: text('external_id').notNull(),
 		title: text('title').notNull(),
 		year: integer('year'),
@@ -89,6 +89,7 @@ export const workStates = sqliteTable(
 		watched: integer('watched', { mode: 'boolean' }).notNull().default(false),
 		liked: integer('liked', { mode: 'boolean' }).notNull().default(false),
 		rating: integer('rating'),
+		status: text('status', { enum: ['watching', 'finished', 'abandoned'] }),
 		updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
 	},
 	(table) => [primaryKey({ columns: [table.userId, table.workId] })]
@@ -105,6 +106,7 @@ export const diaryEntries = sqliteTable(
 			.notNull()
 			.references(() => works.id, { onDelete: 'cascade' }),
 		watchedOn: text('watched_on').notNull(),
+		season: integer('season'),
 		rating: integer('rating'),
 		liked: integer('liked', { mode: 'boolean' }).notNull().default(false),
 		rewatch: integer('rewatch', { mode: 'boolean' }).notNull().default(false),

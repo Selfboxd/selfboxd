@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { workRoute } from '#lib/paths.js';
 	import { resolve } from '$app/paths';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import Backdrop from '#lib/components/Backdrop.svelte';
@@ -177,7 +178,7 @@
 								{#if month}<span>{month}</span>{/if}
 							</span>
 							<span class="day">{day}</span>
-							<a href={resolve('/(app)/film/[id]', { id: entry.work.externalId })}>
+							<a href={resolve(workRoute(entry.work.kind), { id: entry.work.externalId })}>
 								{entry.work.title}
 							</a>
 						</li>
@@ -236,7 +237,7 @@
 				<ul class="timeline">
 					{#each activity as { event, before, after }, index (index)}
 						<li>
-							{before}<a href={resolve('/(app)/film/[id]', { id: event.work.externalId })}>
+							{before}<a href={resolve(workRoute(event.work.kind), { id: event.work.externalId })}>
 								{event.work.title}
 							</a>{after}
 							{#if event.rating !== null}<RatingDisplay rating={event.rating} {scale} />{/if}

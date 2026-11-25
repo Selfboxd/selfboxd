@@ -4,7 +4,10 @@ import {
 	listNameMaxLength,
 	locationMaxLength,
 	reviewMaxLength,
-	watchlistNoteMaxLength
+	seasonMax,
+	seriesStatuses,
+	watchlistNoteMaxLength,
+	type SeriesStatus
 } from '../../catalog/library';
 import { formText } from '../auth/forms';
 import type { DiaryEntryInput } from './diary';
@@ -15,6 +18,8 @@ import type { WatchlistInput } from './watchlist';
 export type LibraryFormError =
 	| 'date_invalid'
 	| 'rating_invalid'
+	| 'season_invalid'
+	| 'status_invalid'
 	| 'review_too_long'
 	| 'note_too_long'
 	| 'list_name_required'
@@ -42,10 +47,18 @@ export function parseEntryForm(form: FormData): Parsed<DiaryEntryInput> {
 	const review = formText(form, 'review').trim();
 	if (review.length > reviewMaxLength) return { ok: false, error: 'review_too_long' };
 
+	const season = parseSeason(formText(form, 'season'));
+	if (season === undefined) return { ok: false, error: 'season_invalid' };
+
+	const status = parseStatus(formText(form, 'status'));
+	if (status === undefined) return { ok: false, error: 'status_invalid' };
+
 	return {
 		ok: true,
 		value: {
 			watchedOn,
+			season,
+			status,
 			rating,
 			review,
 			liked: formFlag(form, 'liked'),
@@ -54,6 +67,20 @@ export function parseEntryForm(form: FormData): Parsed<DiaryEntryInput> {
 			tags: parseTags(formText(form, 'tags'))
 		}
 	};
+}
+
+/** Reads a season number; an empty value means no season, anything invalid gives `undefined`. */
+export function parseSeason(value: string): number | null | undefined {
+	if (value === '') return null;
+	if (!/^\d{1,3}$/.test(value)) return undefined;
+	const season = Number(value);
+	return season <= seasonMax ? season : undefined;
+}
+
+/** Reads a series status; an empty value keeps the status, anything unknown gives `undefined`. */
+export function parseStatus(value: string): SeriesStatus | null | undefined {
+	if (value === '') return null;
+	return seriesStatuses.find((status) => status === value);
 }
 
 /** Reads and validates the fields of the watchlist form. */

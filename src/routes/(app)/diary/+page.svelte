@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { workRoute } from '#lib/paths.js';
+	import { seasonName } from '#lib/i18n/series.js';
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
@@ -75,9 +77,15 @@
 					<td class="film-column">
 						<div class="film">
 							<FilmPoster film={{ ...entry.work, id: entry.work.externalId }} size="tiny" />
-							<a class="title" href={resolve('/(app)/film/[id]', { id: entry.work.externalId })}>
+							<a
+								class="title"
+								href={resolve(workRoute(entry.work.kind), { id: entry.work.externalId })}
+							>
 								{entry.work.title}
 							</a>
+							{#if entry.season !== null}
+								<span class="season">{seasonName(entry.season)}</span>
+							{/if}
 						</div>
 					</td>
 					<td>{entry.work.year ?? ''}</td>
@@ -176,6 +184,11 @@
 
 	.title:hover {
 		color: var(--color-link-hover);
+	}
+
+	.season {
+		color: var(--color-text);
+		font-size: var(--font-size-control);
 	}
 
 	.like {
