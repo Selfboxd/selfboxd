@@ -25,13 +25,12 @@ import {
 	deleteFromWatchlist,
 	findWatchlistItem
 } from '#lib/server/library/watchlist.js';
-import { findWork, saveWork } from '#lib/server/library/works.js';
+import { filmIdPattern, resolveFilm } from '#lib/server/library/resolve.js';
+import { findWork } from '#lib/server/library/works.js';
 import { getTmdbContext } from '#lib/server/tmdb/index.js';
 import { requestLanguage, requestRegion } from '#lib/server/tmdb/page.js';
 import { getCollection, getFilm } from '#lib/server/tmdb/service.js';
 import type { Actions, PageServerLoad } from './$types';
-
-const filmIdPattern = /^\d{1,9}$/;
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!filmIdPattern.test(params.id)) error(404);
@@ -72,20 +71,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	};
 };
 
-/** Stores the film of the page as a work, so that the account can act on it. */
 async function resolveWork(params: { id: string }): Promise<Work> {
-	if (!filmIdPattern.test(params.id)) error(404);
-	const context = getTmdbContext();
-	if (!context) error(503);
-	const film = await getFilm(context, Number(params.id), requestLanguage(), requestRegion());
-	if (!film.ok) error(film.error === 'not_found' ? 404 : 502);
-	return saveWork(getDatabase(), {
-		kind: 'film',
-		externalId: params.id,
-		title: film.value.title,
-		year: film.value.year,
-		posterPath: film.value.posterPath
-	});
+	return (await resolveFilm(params.id)).work;
 }
 
 type FilmEvent = RequestEvent<{ id: string }>;

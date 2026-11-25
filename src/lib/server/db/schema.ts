@@ -17,6 +17,9 @@ export const users = sqliteTable('users', {
 	ratingScale: text('rating_scale', { enum: ['stars', 'ten'] })
 		.notNull()
 		.default('stars'),
+	bio: text('bio').notNull().default(''),
+	location: text('location').notNull().default(''),
+	bannerPath: text('banner_path'),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.default(sql`(unixepoch())`)
@@ -107,6 +110,7 @@ export const diaryEntries = sqliteTable(
 		rewatch: integer('rewatch', { mode: 'boolean' }).notNull().default(false),
 		review: text('review').notNull().default(''),
 		containsSpoilers: integer('contains_spoilers', { mode: 'boolean' }).notNull().default(false),
+		pinned: integer('pinned', { mode: 'boolean' }).notNull().default(false),
 		createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
 	},
 	(table) => [index('diary_entries_user_watched_on_index').on(table.userId, table.watchedOn)]
@@ -196,4 +200,18 @@ export const listItems = sqliteTable(
 		note: text('note').notNull().default('')
 	},
 	(table) => [primaryKey({ columns: [table.listId, table.workId] })]
+);
+
+export const favourites = sqliteTable(
+	'favourites',
+	{
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		slot: integer('slot').notNull(),
+		workId: integer('work_id')
+			.notNull()
+			.references(() => works.id, { onDelete: 'cascade' })
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.slot] })]
 );

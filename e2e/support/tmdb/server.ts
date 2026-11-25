@@ -91,6 +91,8 @@ const server = createServer((request, response) => {
 		send(response, body ? 200 : 404, body ?? { status_code: 34 });
 	} else if (url.pathname === '/3/collection/422837') {
 		send(response, 200, { id: 422837, name: 'Blade Runner Collection', parts: summaries });
+	} else if (url.pathname === '/3/trending/movie/week') {
+		send(response, 200, { page: 1, results: summaries });
 	} else if (url.pathname === '/3/search/movie') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
 		const page = Number(url.searchParams.get('page') ?? '1');

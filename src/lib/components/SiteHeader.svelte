@@ -23,7 +23,7 @@
 
 	const home = resolve('/(app)');
 	const links = $derived([
-		{ href: resolve('/(app)/watched'), label: m.nav_watched() },
+		{ href: resolve('/(app)/films'), label: m.nav_films() },
 		{ href: resolve('/(app)/lists'), label: m.nav_lists() },
 		{ href: resolve('/(app)/diary'), label: m.nav_diary() },
 		{ href: resolve('/(app)/journal'), label: m.nav_journal() }
@@ -85,6 +85,7 @@
 						<Icon name="chevron" />
 					</button>
 					<div class="menu">
+						<a href={resolve('/(app)/profile')}>{m.nav_profile()}</a>
 						<a href={resolve('/(app)/watchlist')}>{m.nav_watchlist()}</a>
 						<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
 						<form method="POST" action={resolve('/(app)/logout')}>

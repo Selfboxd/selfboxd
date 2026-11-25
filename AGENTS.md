@@ -38,7 +38,7 @@ holds the whole self-hosted application and its Docker image.
 | `src/lib/server/auth`     | Accounts, passwords, sessions, sign-in throttling          |
 | `src/lib/server/api`      | Helpers shared by the JSON endpoints                       |
 | `src/lib/catalog`         | Types of films and other works, shared by server and pages |
-| `src/lib/server/library`  | Watched, liked and rated works, diary, watchlist and lists |
+| `src/lib/server/library`  | Works, diary, watchlist, lists and the profile             |
 | `src/lib/server/tmdb`     | TMDB client, local cache and conversion to catalog types   |
 | `src/lib/server/journal`  | Reader of the Journal RSS feed and its local cache         |
 | `src/lib/server/media`    | Image processing and storage                               |
@@ -141,6 +141,10 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   action card have their own drawings. Titles use the bundled Source Serif 4 font. Licences are
   listed in `THIRD-PARTY-NOTICES.md`.
 - Class names in components must not reuse the global classes of `forms.css`.
+- The links of the header lead to the catalogue. Pages about the account itself are reached
+  from the profile and its tabs.
+- A profile banner is the official backdrop of a film, stored as its TMDB path. No banner
+  picture is ever uploaded.
 - The log dialog always posts to the actions of the film page, whichever page opened it, and
   reports errors itself.
 
