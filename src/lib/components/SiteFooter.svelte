@@ -4,36 +4,49 @@
 </script>
 
 <footer>
-	<p class="tmdb">
+	<div class="inner">
 		<img src={tmdbLogo} alt="TMDB" />
-		<span>{m.footer_tmdb()}</span>
-	</p>
-	<p>{m.footer_not_affiliated()}</p>
+		<p>{m.footer_tmdb()}</p>
+		<p class="affiliation">{m.footer_not_affiliated()}</p>
+	</div>
 </footer>
 
 <style>
 	footer {
 		margin-top: var(--space-12);
-		padding: var(--space-8) 0;
-		background: var(--color-panel);
-		color: var(--color-text);
-		font-size: var(--font-size-control);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
 	}
 
-	p {
+	.inner {
+		display: flex;
+		gap: var(--space-4);
+		align-items: center;
 		max-width: var(--content-width);
 		margin: 0 auto;
-		padding: 0 var(--space-4);
+		padding: var(--space-6) var(--space-4);
+		border-top: 1px solid var(--color-border-subtle);
 	}
 
-	.tmdb {
-		display: flex;
-		gap: var(--space-3);
-		align-items: center;
-		margin-bottom: var(--space-2);
+	img {
+		height: var(--font-size-body);
+		opacity: 0.7;
 	}
 
-	.tmdb img {
-		height: var(--font-size-large);
+	.affiliation {
+		margin-inline-start: auto;
+		white-space: nowrap;
+	}
+
+	@media (max-width: 48rem) {
+		.inner {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.affiliation {
+			margin-inline-start: 0;
+			white-space: normal;
+		}
 	}
 </style>

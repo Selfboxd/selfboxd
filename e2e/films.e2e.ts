@@ -6,6 +6,7 @@ test.describe('search', () => {
 	test('finds films from the header and opens their page', async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
 
+		await page.getByRole('banner').getByRole('link', { name: 'Search' }).click();
 		await page.getByRole('searchbox', { name: 'Search' }).fill('blade');
 		await page.getByRole('searchbox', { name: 'Search' }).press('Enter');
 

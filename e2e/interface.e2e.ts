@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
+import { stubJournalImages } from './support/journal/images';
 
 function collectErrors(page: Page): string[] {
 	const errors: string[] = [];
@@ -22,10 +23,10 @@ test.describe('interface', () => {
 		);
 	});
 
-	test('shows the logo in the header and as the favicon', async ({ page, request }) => {
-		await signIn(page, await createAccount(request));
+	test('shows the logo on the sign-in page and as the favicon', async ({ page }) => {
+		await page.goto('/login');
 
-		const logo = page.getByRole('banner').locator('img');
+		const logo = page.getByRole('main').locator('img').first();
 		await expect(logo).toBeVisible();
 		expect(await logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
 		await expect(page.locator('link[rel="icon"]')).toHaveAttribute('type', 'image/svg+xml');
@@ -56,8 +57,9 @@ test.describe('interface', () => {
 	}) => {
 		const errors = collectErrors(page);
 
+		await stubJournalImages(page);
 		await signIn(page, await createAccount(request));
-		for (const path of ['/', '/settings/auth']) {
+		for (const path of ['/', '/settings/auth', '/watched', '/activity', '/diary', '/journal']) {
 			await page.goto(path);
 			await page.waitForLoadState('networkidle');
 		}

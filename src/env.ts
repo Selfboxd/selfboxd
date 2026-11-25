@@ -9,6 +9,10 @@ export const variables = defineEnvVars({
 		description: 'Base URL of the TMDB API.',
 		schema: (value) => value || 'https://api.themoviedb.org/3'
 	},
+	JOURNAL_FEED_URL: {
+		description: 'Address of the RSS feed shown on the Journal page.',
+		schema: (value) => value || 'https://letterboxd.com/journal/rss/'
+	},
 	TMDB_IMAGE_URL: {
 		description: 'Base URL of the TMDB image host.',
 		public: true,

@@ -37,7 +37,18 @@
 	--color-action-idle: #bbccdd;
 	--color-text-panel: #bbccdd;
 	--color-dialog: #445566;
-	--color-dialog-divider: rgb(0 0 0 / 25%);
+	--color-dialog-divider: #2c3440;
+	--color-dialog-footer: rgb(20 24 28 / 25%);
+	--color-well: #2c3440;
+	--color-field-light: #ccddee;
+	--color-field-light-text: #223344;
+	--color-field-light-placeholder: #778899;
+	--color-watchlist: #40bcf4;
+	--color-nav: #99aabb;
+	--color-paper: #ffffff;
+	--color-ink: #111111;
+	--color-ink-soft: #555555;
+	--color-ink-rule: #d8d8d8;
 	--color-scrim: rgb(10 12 14 / 75%);
 	--color-danger-button: #994444;
 	--color-danger-button-hover: #b04e4e;
@@ -81,7 +92,9 @@
 	--font-size-film-title: 2.25rem;
 	--font-size-display: 3.5rem;
 	--font-size-rating-input: 1.75rem;
-	--font-size-action-icon: 2rem;
+	--font-size-rating-card: 2.125rem;
+	--font-size-journal-feature: 3rem;
+	--font-size-journal-title: 1.5rem;
 	--line-height-body: 1.5;
 	--line-height-heading: 1.2;
 	--letter-spacing-caps: 0.075em;
@@ -96,6 +109,7 @@
 
 	--radius-small: 3px;
 	--radius-medium: 4px;
+	--radius-pill: 999px;
 
 	--avatar-small: 1.5rem;
 	--avatar-large: 7rem;
@@ -108,11 +122,14 @@
 	--poster-medium: 9.375rem;
 	--poster-large: 14.375rem;
 	--backdrop-width: 75rem;
-	--backdrop-height: 42.1875rem;
-	--backdrop-offset: 24.5rem;
+	--backdrop-height: 35rem;
+	--backdrop-offset: 26rem;
+	--action-icon-height: 2.25rem;
+	--journal-width: 72rem;
 	--header-height: 4.5rem;
 	--content-width: 59.375rem;
 	--narrow-width: 22rem;
 	--dialog-width: 36rem;
+	--dialog-wide-width: 50rem;
 	--sidebar-width: 15rem;
 }

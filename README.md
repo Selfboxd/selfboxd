@@ -5,7 +5,7 @@
 <h1 align="center">Selfboxd</h1>
 
 <p align="center">
-  A self-hosted, privacy-first tracker for films, series and books.
+  A self-hosted, privacy-first tracker for films and series.
 </p>
 
 Selfboxd is a Letterboxd-style diary that runs on an instance you host yourself, on a NAS or
