@@ -4,6 +4,7 @@ import { createTestDatabase, type TestDatabase } from '../testing/database';
 import { parseId, parseListForm } from './forms';
 import {
 	createList,
+	createListWithWorks,
 	deleteList,
 	getList,
 	listLists,
@@ -63,15 +64,36 @@ describe('lists', () => {
 	}
 
 	it('creates a list and reads it back', () => {
-		const id = createList(database.db, ada.id, { ...input, description: 'Best.', ranked: true });
+		const now = new Date('2026-05-01T10:00:00Z');
+		const id = createList(
+			database.db,
+			ada.id,
+			{ ...input, description: 'Best.', ranked: true },
+			now
+		);
 
 		expect(getList(database.db, ada.id, id)).toEqual({
 			id,
 			name: 'Favourites',
 			description: 'Best.',
 			ranked: true,
+			updatedAt: now.toISOString(),
 			items: []
 		});
+	});
+
+	it('creates a list holding works in order, each once', () => {
+		const id = createListWithWorks(
+			database.db,
+			ada.id,
+			input,
+			[works[2], works[0], works[2]].map(Number)
+		);
+
+		expect(getList(database.db, ada.id, id)?.items.map((item) => item.work.title)).toEqual([
+			'Three',
+			'One'
+		]);
 	});
 
 	it('appends works in the order they are added', () => {

@@ -32,6 +32,7 @@
 	--color-accent-hover: #009d1a;
 	--color-accent-contrast: #ffffff;
 	--color-highlight: #00e054;
+	--color-progress: #40bcf4;
 	--color-secondary: #556677;
 	--color-secondary-hover: #667788;
 	--color-secondary-text: #c8d4e0;
@@ -99,6 +100,7 @@
 	--font-size-wordmark: 1.625rem;
 	--font-size-film-title: 2rem;
 	--font-size-display: 3.5rem;
+	--font-size-progress: 2.75rem;
 	--font-size-rating-input: 1.75rem;
 	--font-size-poster-action: 0.875rem;
 	--font-size-poster-action-small: 0.625rem;
@@ -125,6 +127,7 @@
 	--radius-pill: 999px;
 
 	--avatar-small: 1.5rem;
+	--avatar-medium: 2rem;
 	--avatar-large: 7rem;
 	--profile-offset: 19rem;
 	--histogram-height: 3rem;

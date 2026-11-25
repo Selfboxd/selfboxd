@@ -10,8 +10,8 @@ import {
 } from './diary';
 import { getWorkState, setLiked, setRating, setWatched } from './states';
 import { listTagNames } from './tags';
-import { listWatchedFilmIds } from './watched';
-import { addToWatchlist, deleteFromWatchlist, listWatchlist } from './watchlist';
+import { listMarks, markKey } from './marks';
+import { addAllToWatchlist, addToWatchlist, deleteFromWatchlist, listWatchlist } from './watchlist';
 import { saveWork } from './works';
 
 function entry(overrides: Partial<DiaryEntryInput> = {}): DiaryEntryInput {
@@ -100,12 +100,14 @@ describe('library', () => {
 			expect(state(grace).watched).toBe(false);
 		});
 
-		it('gives the TMDB identifiers of the watched films of one account', () => {
-			setWatched(database.db, ada.id, film, true);
+		it('gives what each account watched and rated, by kind and TMDB identifier', () => {
+			setRating(database.db, ada.id, film, 8);
 			setLiked(database.db, grace.id, film, true);
 
-			expect(listWatchedFilmIds(database.db, ada.id).size).toBe(1);
-			expect(listWatchedFilmIds(database.db, grace.id).size).toBe(0);
+			const key = markKey('film', '78');
+			expect(listMarks(database.db, ada.id).get(key)).toEqual({ watched: true, rating: 8 });
+			expect(listMarks(database.db, grace.id).get(key)).toEqual({ watched: false, rating: null });
+			expect(listMarks(database.db, ada.id).has(markKey('series', '78'))).toBe(false);
 		});
 
 		it('likes a work without marking it as watched', () => {
@@ -138,6 +140,18 @@ describe('library', () => {
 	});
 
 	describe('watchlist', () => {
+		it('adds many works at once and keeps the note of those already in it', () => {
+			addToWatchlist(database.db, ada.id, film, { note: 'Keep me', tags: [] });
+
+			addAllToWatchlist(database.db, ada.id, [film, sequel, sequel]);
+
+			expect(
+				listWatchlist(database.db, ada.id)
+					.map((item) => item.note)
+					.sort()
+			).toEqual(['', 'Keep me']);
+		});
+
 		it('lists the most recently added work first', () => {
 			addToWatchlist(database.db, ada.id, film, { note: '', tags: [] }, new Date(1000));
 			addToWatchlist(database.db, ada.id, sequel, { note: '', tags: [] }, new Date(2000));

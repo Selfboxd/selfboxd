@@ -98,3 +98,18 @@ export function findWatchlistItem(
 	if (!item) return undefined;
 	return { note: item.note, tags: tagsByItem(db, [item.id]).get(item.id) ?? [] };
 }
+
+/** Adds works to the watchlist of an account, leaving those already in it untouched. */
+export function addAllToWatchlist(
+	db: AppDatabase,
+	userId: number,
+	workIds: number[],
+	now = new Date()
+): void {
+	const unique = [...new Set(workIds)];
+	if (unique.length === 0) return;
+	db.insert(watchlistItems)
+		.values(unique.map((workId) => ({ userId, workId, note: '', addedAt: now })))
+		.onConflictDoNothing()
+		.run();
+}

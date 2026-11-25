@@ -13,14 +13,3 @@ export function listWatched(db: DatabaseExecutor, userId: number): WatchedWork[]
 		.orderBy(desc(workStates.updatedAt), desc(works.id))
 		.all();
 }
-
-/** Identifiers at TMDB of the films an account has watched. */
-export function listWatchedFilmIds(db: DatabaseExecutor, userId: number): Set<string> {
-	const rows = db
-		.select({ externalId: works.externalId })
-		.from(workStates)
-		.innerJoin(works, eq(workStates.workId, works.id))
-		.where(and(eq(workStates.userId, userId), eq(workStates.watched, true), eq(works.kind, 'film')))
-		.all();
-	return new Set(rows.map((row) => row.externalId));
-}

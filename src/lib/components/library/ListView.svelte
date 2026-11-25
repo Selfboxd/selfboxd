@@ -1,21 +1,29 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { afterNavigate } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
-	import type { FilmSummary } from '#lib/catalog/film.js';
+	import {
+		listOptionsQuery,
+		type ListEntry,
+		type ListOptions,
+		type ListTarget,
+		type ListSort,
+		type ListVisibility
+	} from '#lib/catalog/list-view.js';
 	import type { ListProgress } from '#lib/catalog/lists.js';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
-	import type { PublicUser } from '#lib/server/auth/users.js';
+	import Icon from '#lib/components/Icon.svelte';
+	import { relativeTime } from '#lib/i18n/dates.js';
 	import { m } from '#lib/paraglide/messages.js';
-
-	interface Entry {
-		film: Pick<FilmSummary, 'title' | 'year' | 'posterPath'> & { id: number | string };
-		/** Position shown under the poster, or `null` for a list without order. */
-		position: number | null;
-		note: string;
-	}
+	import { workRoute } from '#lib/paths.js';
+	import type { PublicUser } from '#lib/server/auth/users.js';
 
 	interface Props {
+		target: ListTarget;
 		name: string;
 		description?: string;
 		/** Name of who made the list, or `null` when it is unknown. */
@@ -26,17 +34,26 @@
 		count: number | null;
 		/** Path of the TMDB backdrop shown as banner. */
 		backdropPath: string | null;
-		entries: Entry[];
+		/** Entries shown, already narrowed and ordered by the options. */
+		entries: ListEntry[];
 		/** Text shown instead of the films when there is none. */
 		empty: string;
 		progress: ListProgress | null;
-		/** Links shown in the panel beside the films. */
-		actions?: Snippet;
+		options: ListOptions;
+		/** Decades the list can be narrowed to, newest first. */
+		decades: number[];
+		/** Genres the list can be narrowed to. */
+		genres: string[];
+		/** Whether the place of each film is shown. */
+		ranked?: boolean;
+		/** Last change of the list, as an ISO timestamp, when it is known. */
+		updatedAt?: string | null;
 		/** Content shown under the films. */
 		children?: Snippet;
 	}
 
 	let {
+		target,
 		name,
 		description = '',
 		owner,
@@ -46,26 +63,161 @@
 		entries,
 		empty,
 		progress,
-		actions,
+		options,
+		decades,
+		genres,
+		ranked = true,
+		updatedAt = null,
 		children
 	}: Props = $props();
 
+	interface Entry {
+		label: string;
+		query: string;
+		current: boolean;
+	}
+
+	let menus: HTMLElement | undefined = $state();
+	let suppressed = $state(false);
+
+	const path = $derived(
+		'personal' in target
+			? resolve('/(app)/profile/lists/[id]', { id: String(target.personal) })
+			: 'public' in target
+				? resolve('/(app)/lists/[id]', { id: String(target.public) })
+				: resolve('/(app)/lists/official/[chart]', { chart: target.chart })
+	);
 	const percent = $derived(progress ? Math.round((progress.watched / progress.total) * 100) : 0);
+	const watchlisted = $derived(
+		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
+	);
+
+	const sortLabels: Record<ListSort, () => string> = {
+		list: m.list_sort_list,
+		reverse: m.list_sort_reverse,
+		name: m.list_sort_name,
+		newest: m.list_sort_newest,
+		oldest: m.list_sort_oldest,
+		rating: m.list_sort_rating
+	};
+
+	const visibilityLabels: Record<ListVisibility, () => string> = {
+		all: m.list_show_all,
+		unwatched: m.list_show_unwatched,
+		watched: m.list_show_watched
+	};
+
+	function entry(label: string, change: Partial<ListOptions>, current: boolean): Entry {
+		return { label, query: listOptionsQuery({ ...options, ...change }), current };
+	}
+
+	const decadeMenu = $derived([
+		entry(m.list_any_decade(), { decade: null }, options.decade === null),
+		...decades.map((decade) =>
+			entry(m.browse_decade({ decade: String(decade) }), { decade }, options.decade === decade)
+		)
+	]);
+	const genreMenu = $derived([
+		entry(m.list_any_genre(), { genre: null }, options.genre === null),
+		...genres.map((genre) => entry(genre, { genre }, options.genre === genre))
+	]);
+	const sortMenu = $derived(
+		(Object.keys(sortLabels) as ListSort[]).map((sort) =>
+			entry(sortLabels[sort](), { sort }, options.sort === sort)
+		)
+	);
+	const visibilityMenu = $derived(
+		(Object.keys(visibilityLabels) as ListVisibility[]).map((visibility) =>
+			entry(visibilityLabels[visibility](), { visibility }, options.visibility === visibility)
+		)
+	);
+
+	afterNavigate(() => {
+		suppressed = menus?.matches(':hover') ?? false;
+		if (document.activeElement instanceof HTMLElement && menus?.contains(document.activeElement)) {
+			document.activeElement.blur();
+		}
+	});
 </script>
+
+{#snippet menu(label: string, items: Entry[], icon: boolean)}
+	<li>
+		<span class="sizer" aria-hidden="true">
+			{#if icon}<Icon name="eye" filled />{:else}{label}{/if}
+			<Icon name="chevron" />
+		</span>
+		<div class="menu" role="group">
+			<button class="trigger" type="button" aria-haspopup="true" aria-label={label}>
+				{#if icon}<Icon name="eye" filled />{:else}{label}{/if}
+				<Icon name="chevron" />
+			</button>
+			<ul class="entries">
+				{#each items as item (item.label)}
+					<li>
+						<a
+							href="{path}{item.query ? `?${item.query}` : ''}"
+							aria-current={item.current ? 'true' : undefined}
+						>
+							{item.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	</li>
+{/snippet}
 
 {#if backdropPath}<Backdrop path={backdropPath} />{/if}
 
-<div class="list" class:with-backdrop={backdropPath} class:wide={!actions && !progress}>
+<div class="list" class:with-backdrop={backdropPath}>
 	<div class="content">
 		<header>
-			{#if owner !== null}
-				<p class="owner">
-					{#if account}<Avatar user={account} />{/if}
-					<span>{m.list_by()}</span>
-					<strong>{owner}</strong>
+			<div class="byline">
+				{#if owner !== null}
+					<p class="owner">
+						{#if account}<Avatar user={account} />{/if}
+						<span>{m.list_by()}</span>
+						<strong>{owner}</strong>
+					</p>
+				{/if}
+				{#if count !== null}<p class="count">{m.list_count({ count })}</p>{/if}
+			</div>
+			<nav class="bar" aria-label={m.list_bar()}>
+				<p class="updated">
+					{#if updatedAt}{m.list_updated({ when: relativeTime(new Date(updatedAt)) })}{/if}
 				</p>
-			{/if}
-			{#if count !== null}<p class="count">{m.list_count({ count })}</p>{/if}
+				<ul
+					class="menus"
+					class:suppressed
+					bind:this={menus}
+					onmouseleave={() => (suppressed = false)}
+				>
+					{@render menu(m.list_decade(), decadeMenu, false)}
+					{#if genres.length > 0}{@render menu(m.list_genre(), genreMenu, false)}{/if}
+					{@render menu(`${m.list_sort_by()} ${sortLabels[options.sort]()}`, sortMenu, false)}
+					{@render menu(m.list_visibility(), visibilityMenu, true)}
+				</ul>
+				<div class="modes">
+					<a
+						href="{path}{listOptionsQuery({ ...options, mode: 'grid' })
+							? `?${listOptionsQuery({ ...options, mode: 'grid' })}`
+							: ''}"
+						aria-label={m.list_view_grid()}
+						title={m.list_view_grid()}
+						aria-current={options.mode === 'grid' ? 'true' : undefined}
+					>
+						<Icon name="grid" />
+					</a>
+					<a
+						href="{path}?{listOptionsQuery({ ...options, mode: 'detail' })}"
+						aria-label={m.list_view_detail()}
+						title={m.list_view_detail()}
+						aria-current={options.mode === 'detail' ? 'true' : undefined}
+					>
+						<Icon name="list" />
+					</a>
+				</div>
+			</nav>
 		</header>
 
 		<h1>{name}</h1>
@@ -73,12 +225,33 @@
 
 		{#if entries.length === 0}
 			<p class="empty">{empty}</p>
+		{:else if options.mode === 'detail'}
+			<ol class="rows">
+				{#each entries as { film, position, note, watched } (film.id)}
+					<li>
+						<span class="number">{ranked ? position : ''}</span>
+						<FilmPoster {film} size="small" />
+						<div class="row-text">
+							<h2>
+								<a href={resolve(workRoute(film.kind ?? 'film'), { id: String(film.id) })}>
+									{film.title}
+								</a>
+								{#if film.year}<span class="year">{film.year}</span>{/if}
+								{#if watched}<span class="seen">
+										<Icon name="eye" label={m.action_watched()} />
+									</span>{/if}
+							</h2>
+							{#if note}<p class="note">{note}</p>{/if}
+						</div>
+					</li>
+				{/each}
+			</ol>
 		{:else}
 			<ul class="grid">
-				{#each entries as { film, position, note } (film.id)}
-					<li>
+				{#each entries as { film, position, note, watched } (film.id)}
+					<li class:watched>
 						<FilmPoster {film} size="medium" />
-						{#if position !== null}<p class="position">{position}</p>{/if}
+						{#if ranked}<p class="position">{position}</p>{/if}
 						{#if note}<p class="note">{note}</p>{/if}
 					</li>
 				{/each}
@@ -88,28 +261,39 @@
 		{@render children?.()}
 	</div>
 
-	{#if actions || progress}
-		<aside>
-			{#if actions}<div class="panel">{@render actions()}</div>{/if}
-			{#if progress}
-				<section class="progress">
-					<div class="status">
-						<h2>
-							{m.list_progress()}
-							<span class="amount">
-								{m.list_progress_count({ watched: progress.watched, total: progress.total })}
-							</span>
-						</h2>
-						<p class="percent">{percent}<span>%</span></p>
-					</div>
-					<svg class="track" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true">
-						<rect class="rail" width="100" height="1" />
-						<rect class="done" width={percent} height="1" />
-					</svg>
-				</section>
+	<aside>
+		<div class="panel">
+			{#if 'personal' in target}
+				<a href={resolve('/(app)/profile/lists/[id]/edit', { id: String(target.personal) })}>
+					{m.list_edit_or_delete()}
+				</a>
 			{/if}
-		</aside>
-	{/if}
+			<form method="POST" action="{path}?/clone" use:enhance>
+				<button>{m.list_clone()}</button>
+			</form>
+			<form method="POST" action="{path}?/watchlist" use:enhance>
+				<button>{m.list_add_all_watchlist()}</button>
+			</form>
+			{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
+		</div>
+		{#if progress}
+			<section class="progress">
+				<div class="status">
+					<h2>
+						{m.list_progress()}
+						<span class="amount">
+							{m.list_progress_count({ watched: progress.watched, total: progress.total })}
+						</span>
+					</h2>
+					<p class="percent">{percent}<span>%</span></p>
+				</div>
+				<svg class="track" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true">
+					<rect class="rail" width="100" height="1" />
+					<rect class="done-bar" width={percent} height="1" />
+				</svg>
+			</section>
+		{/if}
+	</aside>
 </div>
 
 <style>
@@ -124,35 +308,166 @@
 		margin-top: var(--list-offset);
 	}
 
-	.wide {
-		grid-template-columns: minmax(0, 1fr);
+	header {
+		margin-bottom: var(--space-6);
+		font-size: var(--font-size-control);
 	}
 
-	header {
+	.byline {
 		display: flex;
-		min-height: var(--space-8);
 		gap: var(--space-3);
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: var(--space-4);
-		padding-bottom: var(--space-2);
-		border-bottom: 1px solid var(--color-border);
-		font-size: var(--font-size-control);
+		min-height: var(--avatar-medium);
+		margin-bottom: var(--space-3);
 	}
 
 	.owner {
 		display: flex;
 		gap: var(--space-2);
 		align-items: center;
+		font-size: var(--font-size-body);
+	}
+
+	.count {
+		margin-inline-start: auto;
+		color: var(--color-text);
+	}
+
+	.owner :global(.avatar) {
+		width: var(--avatar-medium);
+		height: var(--avatar-medium);
 	}
 
 	.owner strong {
 		color: var(--color-text-strong);
 	}
 
-	.count {
-		margin-inline-start: auto;
+	.bar {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+		padding: var(--space-2) 0;
+		border-top: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.updated {
+		overflow: hidden;
+		min-width: 0;
+		margin-inline-end: auto;
+		color: var(--color-text);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.menus {
+		display: flex;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.menus > li {
+		position: relative;
+	}
+
+	.sizer,
+	.trigger {
+		display: flex;
+		gap: var(--space-1);
+		align-items: center;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-control);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.sizer {
+		visibility: hidden;
+	}
+
+	.menu {
+		position: absolute;
+		z-index: 15;
+		top: 0;
+		right: 0;
+		overflow: hidden;
+		min-width: 100%;
+		border-radius: var(--radius-small);
+	}
+
+	.trigger {
+		width: 100%;
+		justify-content: flex-end;
+		border: 0;
+		background: none;
+		color: var(--color-text);
+		font-family: inherit;
+		cursor: pointer;
+	}
+
+	.entries {
+		display: none;
+		overflow-y: auto;
+		max-height: 22rem;
+		margin: 0;
+		padding: var(--space-1) 0;
+		border-top: 1px solid var(--color-menu-divider);
+		list-style: none;
+	}
+
+	.menus:not(.suppressed) .menu:hover,
+	.menus:not(.suppressed) .menu:focus-within {
+		z-index: 16;
+		background: var(--color-menu);
+		box-shadow: var(--shadow-button), var(--shadow-menu);
+	}
+
+	.menus:not(.suppressed) .menu:hover .trigger,
+	.menus:not(.suppressed) .menu:focus-within .trigger {
+		color: var(--color-heading);
+	}
+
+	.menus:not(.suppressed) .menu:hover .entries,
+	.menus:not(.suppressed) .menu:focus-within .entries {
+		display: block;
+	}
+
+	.entries a {
+		display: block;
+		padding: var(--space-1) var(--space-3);
+		color: var(--color-menu-text);
+		white-space: nowrap;
+	}
+
+	.entries a:hover,
+	.entries a[aria-current] {
+		background: var(--color-menu-hover);
+		color: var(--color-heading);
+	}
+
+	.modes {
+		display: flex;
+		gap: var(--space-1);
+	}
+
+	.modes a {
+		display: flex;
+		padding: var(--space-1);
+		border-radius: var(--radius-small);
 		color: var(--color-text-muted);
+		font-size: var(--font-size-large);
+	}
+
+	.modes a:hover,
+	.modes a[aria-current] {
+		color: var(--color-text-strong);
+	}
+
+	.modes a[aria-current] {
+		background: var(--color-panel);
 	}
 
 	h1 {
@@ -191,6 +506,15 @@
 		width: 100%;
 	}
 
+	.grid .watched :global(.poster img) {
+		opacity: 0.5;
+		transition: opacity var(--duration-fast);
+	}
+
+	.grid .watched:hover :global(.poster img) {
+		opacity: 1;
+	}
+
 	.position {
 		margin-top: var(--space-1);
 		color: var(--color-text-muted);
@@ -204,10 +528,65 @@
 		overflow-wrap: anywhere;
 	}
 
+	.rows {
+		margin: var(--space-6) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.rows li {
+		display: flex;
+		gap: var(--space-4);
+		align-items: flex-start;
+		padding: var(--space-3) 0;
+		border-bottom: 1px solid var(--color-border-subtle);
+	}
+
+	.number {
+		min-width: 2rem;
+		padding-top: var(--space-1);
+		color: var(--color-text-muted);
+		text-align: end;
+	}
+
+	.row-text {
+		min-width: 0;
+	}
+
+	.row-text h2 {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		align-items: baseline;
+		font-family: var(--font-heading);
+		font-size: var(--font-size-large);
+		font-weight: 700;
+	}
+
+	.row-text a {
+		color: var(--color-heading);
+	}
+
+	.row-text a:hover {
+		color: var(--color-link-hover);
+	}
+
+	.year {
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: var(--font-size-body);
+		font-weight: 300;
+	}
+
+	.seen {
+		color: var(--color-highlight);
+		font-size: var(--font-size-body);
+	}
+
 	aside {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
+		gap: var(--space-6);
 	}
 
 	.panel {
@@ -218,76 +597,100 @@
 		background: var(--color-surface-raised);
 	}
 
-	.panel :global(a) {
+	.panel > a,
+	.panel button {
+		display: block;
+		width: 100%;
 		padding: var(--space-3);
+		border: 0;
+		border-top: 1px solid var(--color-dialog-divider);
+		background: none;
 		color: var(--color-text-panel);
+		font-family: inherit;
 		font-size: var(--font-size-body);
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.panel > :first-child,
+	.panel > :first-child button {
+		border-top: 0;
+	}
+
+	.panel > a:hover,
+	.panel button:hover {
+		color: var(--color-heading);
+	}
+
+	.done {
+		padding: var(--space-2) var(--space-3);
+		border-top: 1px solid var(--color-dialog-divider);
+		color: var(--color-highlight);
+		font-size: var(--font-size-control);
 		text-align: center;
 	}
 
-	.panel :global(a + a) {
-		border-top: 1px solid var(--color-dialog-divider);
-	}
-
-	.panel :global(a:hover) {
-		color: var(--color-heading);
+	.progress {
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
 	}
 
 	.status {
 		display: flex;
 		gap: var(--space-3);
-		align-items: flex-end;
+		align-items: center;
 		justify-content: space-between;
+		padding: var(--space-3) var(--space-4);
 	}
 
-	h2 {
+	.status h2 {
 		display: flex;
 		flex-direction: column;
 		color: var(--color-text);
 		font-family: var(--font-body);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-body);
 		font-weight: 400;
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
 	}
 
 	.amount {
-		color: var(--color-text-strong);
-		font-size: var(--font-size-body);
-		letter-spacing: 0;
-		text-transform: none;
+		color: var(--color-text);
 	}
 
 	.percent {
-		color: var(--color-highlight);
-		font-size: var(--font-size-title);
+		display: flex;
+		align-items: flex-start;
+		color: var(--color-text);
+		font-size: var(--font-size-progress);
 		font-weight: 300;
 		line-height: 1;
 	}
 
 	.percent span {
-		font-size: var(--font-size-body);
+		font-size: var(--font-size-large);
 	}
 
 	.track {
 		display: block;
 		width: 100%;
 		height: var(--space-1);
-		margin-top: var(--space-2);
-		border-radius: var(--radius-pill);
 	}
 
 	.rail {
 		fill: var(--color-panel);
 	}
 
-	.done {
-		fill: var(--color-highlight);
+	.done-bar {
+		fill: var(--color-progress);
 	}
 
 	@media (max-width: 48rem) {
 		.list {
 			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.bar {
+			flex-wrap: wrap;
 		}
 	}
 </style>

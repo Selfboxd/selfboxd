@@ -112,6 +112,8 @@ export interface ListItem {
 export interface WorkList {
 	id: number;
 	name: string;
+	/** Last change of the list, as an ISO timestamp. */
+	updatedAt: string;
 	description: string;
 	ranked: boolean;
 	items: ListItem[];
