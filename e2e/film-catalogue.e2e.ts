@@ -21,6 +21,9 @@ test.describe('film catalogue', () => {
 			await expect(page.getByRole('heading', { name })).toBeVisible();
 		}
 		await expect(page.locator('a[href="/film/78"]').first()).toBeVisible();
+		const upcoming = page.locator('section', { hasText: 'Upcoming' }).last();
+		await expect(upcoming.getByRole('listitem')).toHaveCount(1);
+		await expect(upcoming.locator('a[href="/film/9100"]')).toBeVisible();
 	});
 
 	test('finds a film by its title', async ({ page }) => {

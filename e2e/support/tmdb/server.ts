@@ -104,9 +104,10 @@ const server = createServer((request, response) => {
 		const year = url.searchParams.get('primary_release_year');
 		const genre = url.searchParams.get('with_genres');
 		const page = Number(url.searchParams.get('page') ?? '1');
-		const matching = summaries.filter((entry) => {
+		const future = { ...summaries[0], id: 9100, title: 'Future Film', release_date: '2099-01-01' };
+		const matching = [...summaries, future].filter((entry) => {
 			const released = String(entry.release_date);
-			if (genre !== null && genre !== '878') return false;
+			if (genre !== null && (genre !== '878' || entry.id === future.id)) return false;
 			if (year !== null && !released.startsWith(year)) return false;
 			return released >= from && released <= `${until}~`;
 		});

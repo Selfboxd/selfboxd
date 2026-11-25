@@ -105,7 +105,7 @@ test.describe('poster quick actions', () => {
 		await actions.getByRole('button', { name: 'More actions' }).click();
 		await expect(actions.getByRole('button', { name: 'Add to lists…' })).toBeVisible();
 
-		await page.getByRole('heading', { level: 1 }).click();
+		await page.getByRole('heading', { name: 'Highest rated' }).click();
 
 		await expect(actions.getByRole('button', { name: 'Add to lists…' })).toBeHidden();
 	});
