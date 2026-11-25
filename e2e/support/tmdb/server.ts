@@ -59,6 +59,59 @@ function film(id: number, language: string): Record<string, unknown> | undefined
 	}
 }
 
+/** The only key the fake MDBList accepts. */
+const validListKey = 'valid-mdblist-key';
+
+const publicLists = [
+	{ id: 101, name: 'Neon Noir', user_name: 'curator', items: 45, likes: 1200 },
+	{ id: 102, name: 'Rainy Cities', user_name: 'curator', items: 2, likes: null },
+	{ id: 103, name: '<img src=x onerror=alert(1)>', user_name: null, items: 0, likes: 0 }
+];
+
+function mdblist(url: URL, response: ServerResponse) {
+	const path = url.pathname.slice('/mdblist'.length);
+	if (url.searchParams.get('apikey') !== validListKey) {
+		send(response, 401, { error: 'Invalid API key' });
+		return;
+	}
+	const list = /^\/lists\/(\d+)(\/items)?$/.exec(path);
+	if (path === '/user') {
+		send(response, 200, { username: 'tester' });
+	} else if (path === '/lists/top') {
+		send(response, 200, publicLists);
+	} else if (path === '/lists/search') {
+		const query = (url.searchParams.get('query') ?? '').toLowerCase();
+		send(
+			response,
+			200,
+			publicLists.filter((entry) => entry.name.toLowerCase().includes(query))
+		);
+	} else if (list) {
+		const found = publicLists.find((entry) => entry.id === Number(list[1]));
+		if (!found) {
+			send(response, 404, { error: 'List not found' });
+		} else if (!list[2]) {
+			send(response, 200, found);
+		} else {
+			const offset = Number(url.searchParams.get('offset') ?? '0');
+			const movies = [
+				{ id: 78, title: 'Blade Runner', release_year: 1982, ids: { tmdb: 78 } },
+				{ id: 1, title: 'Blade Runner 2049', release_year: 2017, ids: { tmdb: 335984 } },
+				{ id: 424242, title: 'Unknown at TMDB', release_year: 1999, ids: { tmdb: 424242 } }
+			];
+			const first = found.id === 101 && offset === 0;
+			send(
+				response,
+				200,
+				{ movies: found.id === 103 ? [] : first ? movies : movies.slice(0, 1), shows: [] },
+				{ 'x-has-more': first ? 'true' : 'false' }
+			);
+		}
+	} else {
+		send(response, 404, { error: 'Not found' });
+	}
+}
+
 const server = createServer((request, response) => {
 	const url = new URL(request.url ?? '/', 'http://localhost');
 	const count = (requestCounts.get(url.pathname) ?? 0) + 1;
@@ -71,6 +124,10 @@ const server = createServer((request, response) => {
 	if (url.pathname === '/journal/rss/') {
 		response.writeHead(200, { 'content-type': 'application/rss+xml' });
 		response.end(journalFeed);
+		return;
+	}
+	if (url.pathname.startsWith('/mdblist/')) {
+		mdblist(url, response);
 		return;
 	}
 	if (request.headers.authorization !== `Bearer ${validKey}`) {

@@ -76,7 +76,7 @@
 				>
 					{m.nav_log_film()}
 				</button>
-				<a href={resolve('/(app)/lists/new')}>{m.lists_new()}</a>
+				<a href={resolve('/(app)/profile/lists/new')}>{m.lists_new()}</a>
 			</div>
 		{/if}
 	</div>

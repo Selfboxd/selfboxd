@@ -34,6 +34,7 @@ export default defineConfig({
 				DATA_DIR: dataDir,
 				BODY_SIZE_LIMIT: '12M',
 				TMDB_API_URL: `http://localhost:${String(tmdbPort)}/3`,
+				MDBLIST_API_URL: `http://localhost:${String(tmdbPort)}/mdblist`,
 				JOURNAL_FEED_URL: `http://localhost:${String(tmdbPort)}/journal/rss/`,
 				TMDB_IMAGE_URL: `${baseURL}/tmdb-images`
 			}

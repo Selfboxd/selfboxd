@@ -159,7 +159,7 @@
 			<ListForm initial={list} />
 			<button class="button button-primary">{m.log_save()}</button>
 		</form>
-		<a class="back" href={resolve('/(app)/lists/[id]', { id: String(list.id) })}>
+		<a class="back" href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>
 			{m.list_back()}
 		</a>
 		<form method="POST" action="?/delete" onsubmit={confirmDeletion}>

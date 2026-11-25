@@ -2,11 +2,11 @@ import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
 
 async function createList(page: Page, name: string, ranked = false): Promise<string> {
-	await page.goto('/lists/new');
+	await page.goto('/profile/lists/new');
 	await page.getByLabel('Name', { exact: true }).fill(name);
 	if (ranked) await page.getByLabel('Ranked list').check();
 	await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
-	await expect(page).toHaveURL(/\/lists\/\d+$/);
+	await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
 	return new URL(page.url()).pathname;
 }
 
@@ -25,7 +25,7 @@ test.describe('lists', () => {
 	});
 
 	test('starts empty and creates a list with a description', async ({ page }) => {
-		await page.goto('/lists');
+		await page.goto('/profile/lists');
 		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 
 		await page.getByRole('main').getByRole('link', { name: 'Start a new list…' }).click();
@@ -36,18 +36,18 @@ test.describe('lists', () => {
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rainy nights');
 		await expect(page.getByText('Neon and rain.')).toBeVisible();
 		await expect(page.getByText('This list has no film yet.')).toBeVisible();
-		await page.goto('/lists');
+		await page.goto('/profile/lists');
 		await expect(page.getByRole('link', { name: 'Rainy nights' })).toBeVisible();
 	});
 
 	test('requires a name', async ({ page, baseURL }) => {
-		const response = await page.request.post('/lists/new', {
+		const response = await page.request.post('/profile/lists/new', {
 			headers: { origin: baseURL ?? '' },
 			form: { name: '   ' }
 		});
 
 		expect(await response.text()).toContain('list_name_required');
-		await page.goto('/lists');
+		await page.goto('/profile/lists');
 		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 	});
 
@@ -164,14 +164,14 @@ test.describe('lists', () => {
 
 		page.on('dialog', (confirmation) => void confirmation.accept());
 		await page.getByRole('button', { name: 'Delete list' }).click();
-		await expect(page).toHaveURL('/lists');
+		await expect(page).toHaveURL('/profile/lists');
 		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 	});
 
 	test('renders the name and description as text, never as markup', async ({ page }) => {
 		let dialogs = 0;
 		page.on('dialog', () => (dialogs += 1));
-		await page.goto('/lists/new');
+		await page.goto('/profile/lists/new');
 		await page.getByLabel('Name', { exact: true }).fill('<img src=x onerror=alert(1)>');
 		await page.getByLabel('Description').fill('<script>alert(2)</script>');
 		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
@@ -179,7 +179,7 @@ test.describe('lists', () => {
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(
 			'<img src=x onerror=alert(1)>'
 		);
-		await page.goto('/lists');
+		await page.goto('/profile/lists');
 		await expect(page.getByText('<script>alert(2)</script>')).toBeVisible();
 		expect(dialogs).toBe(0);
 	});
@@ -188,7 +188,7 @@ test.describe('lists', () => {
 		await page.getByRole('button', { name: 'More ways to add' }).click();
 		await page.getByRole('banner').getByRole('link', { name: 'Start a new list…' }).click();
 
-		await expect(page).toHaveURL('/lists/new');
+		await expect(page).toHaveURL('/profile/lists/new');
 	});
 });
 
@@ -222,7 +222,7 @@ test.describe('list privacy', () => {
 	test('answers 404 for an identifier that is not a number', async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
 
-		expect((await page.goto('/lists/abc'))?.status()).toBe(404);
-		expect((await page.goto('/lists/0/edit'))?.status()).toBe(404);
+		expect((await page.goto('/profile/lists/abc'))?.status()).toBe(404);
+		expect((await page.goto('/profile/lists/0/edit'))?.status()).toBe(404);
 	});
 });

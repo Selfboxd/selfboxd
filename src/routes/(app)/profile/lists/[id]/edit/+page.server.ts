@@ -43,7 +43,7 @@ export const actions: Actions = {
 	delete: ({ locals, params }: ListEvent) => {
 		const { user } = requireUser(locals);
 		if (!deleteList(getDatabase(), user.id, listId(params))) return notFound();
-		redirect(303, '/lists');
+		redirect(303, '/profile/lists');
 	},
 
 	remove: async ({ locals, request, params }: ListEvent) => {

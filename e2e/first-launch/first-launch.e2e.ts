@@ -145,4 +145,43 @@ test.describe('first launch', () => {
 		await expect(page.getByText('A key is configured.')).toBeVisible();
 		expect(await page.content()).not.toContain('valid-test-key');
 	});
+
+	test('explains the missing MDBList key on the lists catalogue', async ({ page }) => {
+		await signIn(page, admin);
+
+		await page.goto('/lists');
+
+		await expect(page.getByRole('status')).toContainText(
+			'Add an MDBList API key in the settings to browse public lists.'
+		);
+		expect((await page.goto('/lists/101'))?.status()).toBe(404);
+	});
+
+	test('rejects an MDBList key that MDBList does not accept', async ({ page }) => {
+		await signIn(page, admin);
+
+		await page.goto('/settings/instance');
+		await page.getByLabel('MDBList API key').fill('wrong-key');
+		await page.getByRole('button', { name: 'Save MDBList key' }).click();
+
+		await expect(page.getByRole('alert')).toHaveText('MDBList did not accept this key.');
+		await expect(page.getByText('No MDBList key is configured.')).toBeVisible();
+	});
+
+	test('saves and removes a valid MDBList key without ever showing it again', async ({ page }) => {
+		await signIn(page, admin);
+		await page.goto('/settings/instance');
+
+		for (const round of [1, 2]) {
+			await page.getByLabel('MDBList API key').fill('valid-mdblist-key');
+			await page.getByRole('button', { name: 'Save MDBList key' }).click();
+			await expect(page.getByRole('status')).toHaveText('The MDBList key has been saved.');
+			await expect(page.getByText('An MDBList key is configured.')).toBeVisible();
+			expect(await page.content()).not.toContain('valid-mdblist-key');
+			if (round === 1) {
+				await page.getByRole('button', { name: 'Remove MDBList key' }).click();
+				await expect(page.getByText('No MDBList key is configured.')).toBeVisible();
+			}
+		}
+	});
 });

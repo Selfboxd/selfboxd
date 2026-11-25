@@ -23,6 +23,8 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_image_invalid();
 		case 'image_too_large':
 			return m.error_image_too_large();
+		case 'mdblist_key_invalid':
+			return m.error_mdblist_key_invalid();
 		case 'tmdb_key_invalid':
 			return m.error_tmdb_key_invalid();
 		case 'unauthorized':

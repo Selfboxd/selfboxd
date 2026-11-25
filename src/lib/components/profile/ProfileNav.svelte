@@ -14,7 +14,7 @@
 		{ href: resolve('/(app)/diary'), label: m.nav_diary() },
 		{ href: resolve('/(app)/reviews'), label: m.profile_tab_reviews() },
 		{ href: resolve('/(app)/watchlist'), label: m.nav_watchlist() },
-		{ href: resolve('/(app)/lists'), label: m.nav_lists() },
+		{ href: resolve('/(app)/profile/lists'), label: m.nav_lists() },
 		{ href: resolve('/(app)/likes'), label: m.profile_tab_likes() },
 		{ href: resolve('/(app)/tags'), label: m.profile_tab_tags() }
 	]);

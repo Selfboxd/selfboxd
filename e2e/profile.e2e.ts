@@ -123,10 +123,10 @@ test.describe('profile', () => {
 		await log(page, 78, { review: 'Tears in rain.', tags: 'cinema' });
 		await actions(page).getByRole('button', { name: '5 out of 5 stars', exact: true }).click();
 		await expect(actions(page).getByText('Rated')).toBeVisible();
-		await page.goto('/lists/new');
+		await page.goto('/profile/lists/new');
 		await page.getByLabel('Name', { exact: true }).fill('Rainy nights');
 		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
-		await expect(page).toHaveURL(/\/lists\/\d+$/);
+		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
 
 		await page.goto('/profile');
 
@@ -212,7 +212,7 @@ test.describe('profile bar', () => {
 			'/diary',
 			'/reviews',
 			'/watchlist',
-			'/lists',
+			'/profile/lists',
 			'/likes',
 			'/tags'
 		]) {

@@ -40,6 +40,7 @@ holds the whole self-hosted application and its Docker image.
 | `src/lib/catalog`         | Types of films and other works, shared by server and pages |
 | `src/lib/server/library`  | Works, diary, watchlist, lists and the profile             |
 | `src/lib/server/tmdb`     | TMDB client, local cache and conversion to catalog types   |
+| `src/lib/server/mdblist`  | MDBList client and public lists, cached locally            |
 | `src/lib/server/journal`  | Reader of the Journal RSS feed and its local cache         |
 | `src/lib/server/media`    | Image processing and storage                               |
 | `src/lib/server/settings` | Settings shared by every account of the instance           |
@@ -156,11 +157,14 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Every call to TMDB goes through `src/lib/server/tmdb/service.ts`, which caches responses and
   validates their shape. Never call an external API from a page or a component.
 - Text coming from an external API is rendered as text. Never use `{@html}` on it.
+- Public lists come from MDBList through `src/lib/server/mdblist/service.ts`, with the optional
+  key stored in the instance settings. Without the key the catalogue explains what is missing
+  and list pages answer 404. Posters of listed films are loaded from TMDB.
 - The Journal page reads the RSS feed set by `JOURNAL_FEED_URL` through
   `src/lib/server/journal/service.ts`. Only article links and pictures from the expected hosts
   are kept, and teasers are reduced to text runs.
 - End-to-end tests never reach a real external API: they run against the fake TMDB server of
-  `e2e/support/tmdb`, which also serves the feed of `e2e/support/journal`. Tests that show
+  `e2e/support/tmdb`, which also serves a fake MDBList and the feed of `e2e/support/journal`. Tests that show
   article pictures stub them with `stubJournalImages`.
 
 ### Tests

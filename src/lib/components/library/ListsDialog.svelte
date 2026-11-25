@@ -70,7 +70,7 @@
 			</ul>
 		{/if}
 		<div class="footer">
-			<a href={resolve('/(app)/lists/new')}>{m.lists_new()}</a>
+			<a href={resolve('/(app)/profile/lists/new')}>{m.lists_new()}</a>
 			{#if lists.length > 0}
 				<button class="button button-primary">{m.log_save()}</button>
 			{/if}
