@@ -1,10 +1,12 @@
-import type { ListEntry, ListOptions } from '../../catalog/list-view';
+import type { LikedList, ListEntry, ListOptions, ListTarget } from '../../catalog/list-view';
 import { listNameMaxLength, type WorkKind } from '../../catalog/library';
 import type { ListProgress } from '../../catalog/lists';
 import { getDatabase } from '../db/index';
 import { getTmdbContext } from '../tmdb/index';
 import { requestLanguage } from '../tmdb/page';
 import { getGenres, getSeriesGenres } from '../tmdb/service';
+import { formFlag } from './forms';
+import { isListLiked, setListLiked } from './list-likes';
 import { createListWithWorks } from './lists';
 import { listMarks, markKey } from './marks';
 import { loadWorkDetails } from './resolve';
@@ -100,4 +102,15 @@ export function workInput(film: ListEntry['film']): WorkInput {
 		year: film.year,
 		posterPath: film.posterPath
 	};
+}
+
+/** Whether the account likes a list. */
+export function likesList(userId: number, target: ListTarget): boolean {
+	return isListLiked(getDatabase(), userId, target);
+}
+
+/** Likes or unlikes a list from the `liked` field of a form. */
+export function likeList(userId: number, form: FormData, list: LikedList) {
+	setListLiked(getDatabase(), userId, list, formFlag(form, 'liked'));
+	return { action: 'like' as const, success: true };
 }

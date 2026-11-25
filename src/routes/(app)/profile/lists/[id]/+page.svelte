@@ -26,6 +26,7 @@
 	options={data.options}
 	decades={data.decades}
 	genres={data.genres}
+	liked={data.liked}
 	ranked={list.ranked}
 	updatedAt={list.updatedAt}
 />

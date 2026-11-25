@@ -33,6 +33,7 @@
 	options={data.options}
 	decades={data.decades}
 	genres={data.genres}
+	liked={data.liked}
 >
 	{#if data.totalPages > 1}
 		<nav class="pages" aria-label={name}>

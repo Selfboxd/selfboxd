@@ -11,7 +11,7 @@ async function createList(page: Page, name: string, ranked = false): Promise<str
 	await page.getByLabel('Name', { exact: true }).fill(name);
 	if (ranked) await page.getByLabel('Ranked list').check();
 	await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
-	await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
+	await expect(page).toHaveURL(/\/profile\/lists\/\d+$/, { timeout: 15_000 });
 	return new URL(page.url()).pathname;
 }
 

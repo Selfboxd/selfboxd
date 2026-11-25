@@ -217,3 +217,27 @@ export const favourites = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.userId, table.slot] })]
 );
+
+export const likedLists = sqliteTable(
+	'liked_lists',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		source: text('source', { enum: ['personal', 'public', 'chart'] }).notNull(),
+		reference: text('reference').notNull(),
+		name: text('name').notNull(),
+		owner: text('owner'),
+		itemCount: integer('item_count'),
+		preview: text('preview').notNull().default('[]'),
+		likedAt: integer('liked_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('liked_lists_user_source_reference_unique').on(
+			table.userId,
+			table.source,
+			table.reference
+		)
+	]
+);

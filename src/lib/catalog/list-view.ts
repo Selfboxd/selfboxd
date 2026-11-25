@@ -138,3 +138,16 @@ export const listActionMax = 100;
 
 /** The list a page shows: one of the account, a public list or a TMDB chart. */
 export type ListTarget = { personal: number } | { public: number } | { chart: Chart };
+
+/** What is kept of a list an account likes, to show it among its likes. */
+export interface LikedList {
+	target: ListTarget;
+	name: string;
+	owner: string | null;
+	itemCount: number | null;
+	/** First works of the list, for its stack of posters. */
+	preview: (FilmSummary & { kind: WorkKind })[];
+}
+
+/** Number of works kept to show a liked list. */
+export const likedListPreviewSize = 5;

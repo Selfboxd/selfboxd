@@ -44,7 +44,9 @@ const lifetimes = {
 	genres: 7 * 24 * hour
 };
 
+/** Parts appended to the details of a film or a series; also part of their cache keys. */
 const filmAppendix = 'credits,videos,release_dates,watch/providers,alternative_titles';
+const seriesAppendix = 'credits,videos,watch/providers,alternative_titles';
 
 export const searchQueryMaxLength = 100;
 
@@ -83,7 +85,7 @@ export async function getFilm(
 ): Promise<Loaded<Film>> {
 	const result = await load(
 		context,
-		`film:${String(id)}:${language}`,
+		`film:${String(id)}:${language}:${filmAppendix}`,
 		lifetimes.film,
 		filmDetailsSchema,
 		`/movie/${String(id)}`,
@@ -274,11 +276,11 @@ export async function getSeries(
 ): Promise<Loaded<Series>> {
 	const result = await load(
 		context,
-		`series:${String(id)}:${language}`,
+		`series:${String(id)}:${language}:${seriesAppendix}`,
 		lifetimes.film,
 		seriesDetailsSchema,
 		`/tv/${String(id)}`,
-		{ language, append_to_response: 'credits,videos,watch/providers,alternative_titles' }
+		{ language, append_to_response: seriesAppendix }
 	);
 	return result.ok ? { ok: true, value: toSeries(result.value, region) } : result;
 }

@@ -394,5 +394,10 @@
 	"browse_sort_highest": "Mejor valorados",
 	"browse_sort_lowest": "Peor valorados",
 	"search_section_all": "Todo",
-	"search_alternative_titles": "Títulos alternativos:"
+	"search_alternative_titles": "Títulos alternativos:",
+	"list_like": "Me gusta esta lista",
+	"list_liked": "Te gusta esta lista",
+	"likes_films": "Películas",
+	"likes_lists": "Listas",
+	"likes_lists_empty": "Aún no te ha gustado ninguna lista."
 }

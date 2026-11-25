@@ -7,6 +7,8 @@ import { parseId } from '#lib/server/library/forms.js';
 import {
 	cloneWorks,
 	genreChoices,
+	likeList,
+	likesList,
 	progressOf,
 	toEntries,
 	watchlistWorks,
@@ -54,11 +56,30 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		decades: listDecades(all),
 		genres,
 		progress: progressOf(all),
-		backdropPath
+		backdropPath,
+		liked: likesList(user.id, { personal: list.id })
 	};
 };
 
 export const actions: Actions = {
+	like: async ({ locals, params, request }) => {
+		const { user } = requireUser(locals);
+		const list = ownList(user.id, params.id);
+		return likeList(user.id, await request.formData(), {
+			target: { personal: list.id },
+			name: list.name,
+			owner: user.username,
+			itemCount: list.items.length,
+			preview: list.items.map(({ work }) => ({
+				id: Number(work.externalId),
+				kind: work.kind,
+				title: work.title,
+				year: work.year,
+				posterPath: work.posterPath
+			}))
+		});
+	},
+
 	clone: ({ locals, params }) => {
 		const { user } = requireUser(locals);
 		const list = ownList(user.id, params.id);
