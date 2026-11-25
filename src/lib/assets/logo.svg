@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Selfboxd">
+  <!-- soft shadow -->
+  <path d="M128 44 L212 112 H196 V192 a12 12 0 0 1 -12 12 H72 a12 12 0 0 1 -12 -12 V112 H44 Z"
+        transform="translate(0 8)" fill="#000" fill-opacity="0.18"
+        stroke="#000" stroke-opacity="0.18" stroke-width="28" stroke-linejoin="round"/>
+  <!-- white sticker edge -->
+  <path d="M128 44 L212 112 H196 V192 a12 12 0 0 1 -12 12 H72 a12 12 0 0 1 -12 -12 V112 H44 Z"
+        fill="#fff" stroke="#fff" stroke-width="28" stroke-linejoin="round"/>
+  <!-- walls -->
+  <path d="M60 108 H196 V192 a12 12 0 0 1 -12 12 H72 a12 12 0 0 1 -12 -12 Z" fill="#1fd06a"/>
+  <!-- roof -->
+  <path d="M128 44 L212 112 H44 Z" fill="#ff8a1f" stroke="#ff8a1f" stroke-width="8" stroke-linejoin="round"/>
+  <!-- door -->
+  <path d="M108 204 V164 a20 20 0 0 1 40 0 V204 Z" fill="#3db8f5"/>
+</svg>

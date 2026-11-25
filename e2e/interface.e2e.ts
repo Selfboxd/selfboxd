@@ -22,6 +22,15 @@ test.describe('interface', () => {
 		);
 	});
 
+	test('shows the logo in the header and as the favicon', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+
+		const logo = page.getByRole('banner').locator('img');
+		await expect(logo).toBeVisible();
+		expect(await logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+		await expect(page.locator('link[rel="icon"]')).toHaveAttribute('type', 'image/svg+xml');
+	});
+
 	test('states that the project is not affiliated with Letterboxd', async ({ page }) => {
 		await page.goto('/login');
 
