@@ -107,6 +107,8 @@ test.describe('film page', () => {
 		await expect(page.getByRole('contentinfo')).toContainText(
 			'This product uses the TMDB API but is not endorsed or certified by TMDB.'
 		);
+		const logo = page.getByRole('contentinfo').getByRole('img', { name: 'TMDB' });
+		expect(await logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
 	});
 
 	test('answers 404 for an unknown film and for a malformed identifier', async ({ page }) => {
