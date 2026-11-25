@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "この映画には背景画像がありません。",
 	"error_pin_limit_reached": "ピン留めできるレビューは2件までです。先に1件解除してください。",
 	"nav_films": "映画",
-	"films_popular": "今週の人気映画"
+	"films_popular": "今週の人気映画",
+	"poster_more": "その他の操作",
+	"poster_log_again": "もう一度記録・レビューを追加…",
+	"poster_watchlist_add": "ウォッチリストに追加",
+	"poster_lists_add": "リストに追加…"
 }

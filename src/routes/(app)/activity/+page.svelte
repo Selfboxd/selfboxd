@@ -5,6 +5,7 @@
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
 	import { activitySentence } from '#lib/i18n/activity.js';
 	import { formatDate } from '#lib/i18n/dates.js';
+	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
@@ -17,6 +18,8 @@
 <svelte:head>
 	<title>{m.nav_activity()} - Selfboxd</title>
 </svelte:head>
+
+<ProfileNav />
 
 <h1 class="section-title">{m.nav_activity()}</h1>
 

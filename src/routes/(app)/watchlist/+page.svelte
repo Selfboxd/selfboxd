@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
+	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
@@ -16,6 +17,8 @@
 <svelte:head>
 	<title>{m.watchlist_title()} - Selfboxd</title>
 </svelte:head>
+
+<ProfileNav />
 
 <div class="layout">
 	<section>

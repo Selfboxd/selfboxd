@@ -12,9 +12,11 @@
 		 * `field` only updates a hidden `rating` field of the surrounding form.
 		 */
 		mode: 'submit' | 'field';
+		/** Called in `field` mode with the new rating each time one is chosen. */
+		onchoose?: (rating: number | null) => void;
 	}
 
-	let { value = $bindable(), scale, mode }: Props = $props();
+	let { value = $bindable(), scale, mode, onchoose }: Props = $props();
 
 	let hovered = $state<number | null>(null);
 
@@ -22,7 +24,9 @@
 	const steps = Array.from({ length: ratingMax }, (_, index) => index + 1);
 
 	function choose(step: number) {
-		if (mode === 'field') value = step === value ? null : step;
+		if (mode !== 'field') return;
+		value = step === value ? null : step;
+		onchoose?.(value);
 	}
 </script>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import Icon from '#lib/components/Icon.svelte';
 	import { m } from '#lib/paraglide/messages.js';
@@ -7,13 +8,15 @@
 	interface Props {
 		/** Set to `true` to open the dialog; reset when the dialog closes. */
 		open: boolean;
+		/** Identifier of the film at TMDB. */
+		filmId: string;
 		/** Every list of the account. */
 		lists: { id: number; name: string }[];
 		/** Identifiers of the lists that hold the film. */
 		member: number[];
 	}
 
-	let { open = $bindable(), lists, member }: Props = $props();
+	let { open = $bindable(), filmId, lists, member }: Props = $props();
 
 	let dialog: HTMLDialogElement | undefined = $state();
 
@@ -39,11 +42,12 @@
 
 	<form
 		method="POST"
-		action="?/lists"
+		action="{resolve('/(app)/film/[id]', { id: filmId })}?/lists"
 		use:enhance={() =>
-			async ({ result, update }) => {
-				await update({ reset: false });
-				if (result.type === 'success') dialog?.close();
+			async ({ result }) => {
+				if (result.type !== 'success') return;
+				await refreshAll();
+				dialog?.close();
 			}}
 	>
 		{#if lists.length === 0}

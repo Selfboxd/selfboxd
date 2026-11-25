@@ -26,7 +26,7 @@ test.describe('lists', () => {
 
 	test('starts empty and creates a list with a description', async ({ page }) => {
 		await page.goto('/lists');
-		await expect(page.getByText('You have no list yet.')).toBeVisible();
+		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 
 		await page.getByRole('main').getByRole('link', { name: 'Start a new list…' }).click();
 		await page.getByLabel('Name', { exact: true }).fill('Rainy nights');
@@ -48,7 +48,7 @@ test.describe('lists', () => {
 
 		expect(await response.text()).toContain('list_name_required');
 		await page.goto('/lists');
-		await expect(page.getByText('You have no list yet.')).toBeVisible();
+		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 	});
 
 	test('adds films from their page and shows them ranked', async ({ page }) => {
@@ -165,7 +165,7 @@ test.describe('lists', () => {
 		page.on('dialog', (confirmation) => void confirmation.accept());
 		await page.getByRole('button', { name: 'Delete list' }).click();
 		await expect(page).toHaveURL('/lists');
-		await expect(page.getByText('You have no list yet.')).toBeVisible();
+		await expect(page.getByRole('main').getByText('You have no list yet.')).toBeVisible();
 	});
 
 	test('renders the name and description as text, never as markup', async ({ page }) => {

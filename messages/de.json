@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "Dieser Film hat kein Hintergrundbild.",
 	"error_pin_limit_reached": "Du kannst höchstens zwei Rezensionen anpinnen. Löse zuerst eine.",
 	"nav_films": "Filme",
-	"films_popular": "Beliebte Filme dieser Woche"
+	"films_popular": "Beliebte Filme dieser Woche",
+	"poster_more": "Weitere Aktionen",
+	"poster_log_again": "Erneut eintragen / Rezension hinzufügen…",
+	"poster_watchlist_add": "Zur Watchlist hinzufügen",
+	"poster_lists_add": "Zu Listen hinzufügen…"
 }

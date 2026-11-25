@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "这部电影没有背景图。",
 	"error_pin_limit_reached": "最多置顶两篇影评，请先取消一篇。",
 	"nav_films": "电影",
-	"films_popular": "本周热门电影"
+	"films_popular": "本周热门电影",
+	"poster_more": "更多操作",
+	"poster_log_again": "再次记录 / 添加影评…",
+	"poster_watchlist_add": "加入待看清单",
+	"poster_lists_add": "添加到片单…"
 }

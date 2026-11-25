@@ -145,6 +145,9 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   from the profile and its tabs.
 - A profile banner is the official backdrop of a film, stored as its TMDB path. No banner
   picture is ever uploaded.
+- Linked posters offer quick actions on hover through `PosterActions.svelte`, which reads and
+  changes the state of a film with `/api/v1/films/[id]/state`. The log and lists dialogs it
+  opens are mounted once by the application layout.
 - The log dialog always posts to the actions of the film page, whichever page opened it, and
   reports errors itself.
 

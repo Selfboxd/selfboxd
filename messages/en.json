@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "This film has no backdrop.",
 	"error_pin_limit_reached": "You can pin two reviews at most. Unpin one first.",
 	"nav_films": "Films",
-	"films_popular": "Popular films this week"
+	"films_popular": "Popular films this week",
+	"poster_more": "More actions",
+	"poster_log_again": "Log again / add review…",
+	"poster_watchlist_add": "Add to watchlist",
+	"poster_lists_add": "Add to lists…"
 }

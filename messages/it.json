@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "Questo film non ha un'immagine di sfondo.",
 	"error_pin_limit_reached": "Puoi mettere in evidenza al massimo due recensioni. Rimuovine prima una.",
 	"nav_films": "Film",
-	"films_popular": "Film popolari questa settimana"
+	"films_popular": "Film popolari questa settimana",
+	"poster_more": "Altre azioni",
+	"poster_log_again": "Registra di nuovo / aggiungi recensione…",
+	"poster_watchlist_add": "Aggiungi alla watchlist",
+	"poster_lists_add": "Aggiungi alle liste…"
 }

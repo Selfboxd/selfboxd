@@ -12,6 +12,8 @@
 	--color-header-scrim: rgb(20 24 28 / 92%);
 	--shadow-header-text: 0 1px 3px rgb(0 0 0 / 85%);
 	--shadow-header-icon: drop-shadow(0 1px 2px rgb(0 0 0 / 85%));
+	--color-poster-bar: rgb(20 24 28 / 85%);
+	--color-profile-bar: #2c3440;
 	--color-journal-band: #445566;
 	--color-journal-band-rule: rgb(255 255 255 / 12%);
 	--color-panel: #2c3440;
@@ -98,6 +100,7 @@
 	--font-size-film-title: 2rem;
 	--font-size-display: 3.5rem;
 	--font-size-rating-input: 1.75rem;
+	--font-size-poster-action: 1.125rem;
 	--font-size-rating-card: 2.125rem;
 	--font-size-journal-feature: 3rem;
 	--font-size-journal-title: 1.5rem;
@@ -123,6 +126,7 @@
 	--avatar-large: 7rem;
 	--profile-offset: 19rem;
 	--histogram-height: 3rem;
+	--profile-bar-height: 2.75rem;
 	--menu-width: 10.5rem;
 	--search-width: 11rem;
 	--search-open-width: 13.5rem;
@@ -139,6 +143,7 @@
 	--log-button-height: 1.625rem;
 	--header-scrim-height: 9rem;
 	--journal-width: 72rem;
+	--poster-menu-width: 13rem;
 	--journal-overlap: 3.5rem;
 	--journal-overlap-padding: 6.5rem;
 	--list-stack-width: 12.5rem;
