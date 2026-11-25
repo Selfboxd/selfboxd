@@ -15,8 +15,8 @@
 	<title>{m.settings_title()} - Selfboxd</title>
 </svelte:head>
 
-<div class="columns">
-	<section>
+<div class="split">
+	<section class="split-main">
 		<h2 class="section-title">{m.auth_password_title()}</h2>
 		<form method="POST" action="?/password" class="form" use:enhance>
 			{#if form?.action === 'password' && 'error' in form}
@@ -76,12 +76,6 @@
 </div>
 
 <style>
-	.columns {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-		gap: var(--space-12);
-	}
-
 	.intro {
 		margin-bottom: var(--space-4);
 		color: var(--color-text-muted);
@@ -134,6 +128,6 @@
 		background: var(--color-accent);
 		color: var(--color-accent-contrast);
 		font-size: var(--font-size-small);
-		font-weight: 600;
+		font-weight: 700;
 	}
 </style>

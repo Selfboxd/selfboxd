@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { admin, createAccount, signIn, submitSignIn, uniqueUsername } from './support/accounts';
+import {
+	admin,
+	createAccount,
+	signIn,
+	signOut,
+	submitSignIn,
+	uniqueUsername
+} from './support/accounts';
 
 const invalidCredentials = 'Incorrect username or password.';
 
@@ -88,7 +95,7 @@ test.describe('sign-out', () => {
 	test('returns to the sign-in page', async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
 
-		await page.getByRole('button', { name: 'Sign out' }).click();
+		await signOut(page);
 
 		await expect(page).toHaveURL('/login');
 		await page.goto('/');
@@ -99,7 +106,7 @@ test.describe('sign-out', () => {
 		await signIn(page, await createAccount(request));
 		const cookies = await context.cookies();
 
-		await page.getByRole('button', { name: 'Sign out' }).click();
+		await signOut(page);
 		await expect(page).toHaveURL('/login');
 		await context.addCookies(cookies);
 		await page.goto('/');
@@ -118,7 +125,7 @@ test.describe('without JavaScript', () => {
 		await submitSignIn(page, account);
 		await expect(page).toHaveURL('/');
 
-		await page.getByRole('button', { name: 'Sign out' }).click();
+		await signOut(page);
 		await expect(page).toHaveURL('/login');
 	});
 });

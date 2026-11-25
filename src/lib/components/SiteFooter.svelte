@@ -8,10 +8,15 @@
 
 <style>
 	footer {
-		padding: var(--space-6) var(--space-4);
-		border-top: 1px solid var(--color-border);
-		color: var(--color-text-muted);
-		font-size: var(--font-size-small);
-		text-align: center;
+		margin-top: var(--space-12);
+		padding: var(--space-8) var(--space-4);
+		background: var(--color-panel);
+		color: var(--color-text);
+		font-size: var(--font-size-control);
+	}
+
+	p {
+		max-width: var(--content-width);
+		margin: 0 auto;
 	}
 </style>

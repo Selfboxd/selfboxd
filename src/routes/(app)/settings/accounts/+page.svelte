@@ -14,22 +14,8 @@
 	<title>{m.accounts_title()} - Selfboxd</title>
 </svelte:head>
 
-<div class="columns">
-	<section>
-		<h2 class="section-title">{m.accounts_title()}</h2>
-		<ul class="accounts">
-			{#each data.accounts as account (account.id)}
-				<li>
-					<span class="username">{account.username}</span>
-					{#if account.isAdmin}
-						<span class="role">{m.accounts_role_admin()}</span>
-					{/if}
-				</li>
-			{/each}
-		</ul>
-	</section>
-
-	<div class="forms">
+<div class="split">
+	<div class="split-main">
 		<section>
 			<h2 class="section-title">{m.accounts_create_title()}</h2>
 			<form method="POST" action="?/create" class="form" use:enhance>
@@ -84,21 +70,23 @@
 			</form>
 		</section>
 	</div>
+
+	<section>
+		<h2 class="section-title">{m.accounts_title()}</h2>
+		<ul class="accounts">
+			{#each data.accounts as account (account.id)}
+				<li>
+					<span class="username">{account.username}</span>
+					{#if account.isAdmin}
+						<span class="role">{m.accounts_role_admin()}</span>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	</section>
 </div>
 
 <style>
-	.columns {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-		gap: var(--space-12);
-	}
-
-	.forms {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-12);
-	}
-
 	.accounts {
 		margin: 0;
 		padding: 0;

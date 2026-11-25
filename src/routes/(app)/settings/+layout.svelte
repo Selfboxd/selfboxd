@@ -39,16 +39,15 @@
 		margin-bottom: -1px;
 		padding: var(--space-2) 0;
 		border-bottom: 1px solid transparent;
-		color: var(--color-accent);
-		font-size: var(--font-size-small);
-		font-weight: 600;
-		letter-spacing: 0.08em;
+		color: var(--color-highlight);
+		font-size: var(--font-size-control);
+		font-weight: 400;
+		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 	}
 
 	.tabs a:hover {
-		color: var(--color-link);
-		text-decoration: none;
+		color: var(--color-link-hover);
 	}
 
 	.tabs a[aria-current='page'] {
