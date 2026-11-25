@@ -31,6 +31,19 @@ test.describe('interface', () => {
 		await expect(page.locator('link[rel="icon"]')).toHaveAttribute('type', 'image/svg+xml');
 	});
 
+	test('opens the account menu from the header', async ({ page, request }) => {
+		const account = await createAccount(request);
+		await signIn(page, account);
+		const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+
+		await expect(navigation.getByRole('link', { name: 'Settings' })).toBeHidden();
+		await navigation.getByText(account.username).click();
+		await navigation.getByRole('link', { name: 'Settings' }).click();
+
+		await expect(page).toHaveURL('/settings/auth');
+		await expect(navigation.getByRole('link', { name: 'Settings' })).toBeHidden();
+	});
+
 	test('states that the project is not affiliated with Letterboxd', async ({ page }) => {
 		await page.goto('/login');
 

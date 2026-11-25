@@ -28,6 +28,13 @@ export async function signIn(page: Page, account: Account): Promise<void> {
 	await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
 }
 
+/** Opens the account menu of the header and signs out. */
+export async function signOut(page: Page): Promise<void> {
+	const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+	await navigation.locator('summary').click();
+	await navigation.getByRole('button', { name: 'Sign out' }).click();
+}
+
 /** Signs an account in through the API and returns its device token. */
 export async function apiSignIn(
 	request: APIRequestContext,

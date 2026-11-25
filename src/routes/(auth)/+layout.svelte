@@ -6,7 +6,7 @@
 </script>
 
 <main>
-	<p class="wordmark"><SiteLogo size="large" /></p>
+	<p class="wordmark"><SiteLogo /></p>
 	{@render children()}
 </main>
 

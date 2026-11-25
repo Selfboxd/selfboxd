@@ -9,13 +9,19 @@
 	<SiteHeader user={data.user} />
 {/if}
 
-<main>
-	{@render children()}
-</main>
+<div class="body">
+	<main>
+		{@render children()}
+	</main>
+</div>
 
 <style>
-	main {
+	.body {
 		flex: 1;
+		background: linear-gradient(var(--color-background-raised), transparent 16rem);
+	}
+
+	main {
 		width: 100%;
 		max-width: var(--content-width);
 		margin: 0 auto;
