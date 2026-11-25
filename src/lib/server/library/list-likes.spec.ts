@@ -22,16 +22,12 @@ describe('list likes', () => {
 
 	beforeEach(async () => {
 		database = createTestDatabase();
-		ada = await createUser(database.db, {
-			username: 'ada',
-			password: 'password-1',
-			isAdmin: false
-		});
-		grace = await createUser(database.db, {
-			username: 'grace',
-			password: 'password-1',
-			isAdmin: false
-		});
+		const created = await Promise.all(
+			['ada', 'grace'].map((username) =>
+				createUser(database.db, { username, password: 'password-1', isAdmin: false })
+			)
+		);
+		[ada, grace] = created as [User, User];
 	});
 
 	afterEach(() => {
