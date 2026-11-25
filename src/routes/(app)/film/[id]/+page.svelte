@@ -36,7 +36,7 @@
 	<div class="film" class:with-backdrop={film.backdropPath}>
 		<aside class="side">
 			<FilmPoster {film} size="large" linked={false} />
-			<FilmWatch watch={film.watch} />
+			<FilmWatch watch={film.watch} trailerKey={film.trailerKey} />
 		</aside>
 
 		<div class="main">
@@ -67,23 +67,29 @@
 
 					<p class="footer">
 						{#if film.runtime}<span>{m.film_runtime({ minutes: film.runtime })}</span>{/if}
-						{#if film.trailerKey}
+						<span class="more-at">
+							{m.film_more_at()}
 							<a
-								href="https://www.youtube.com/watch?v={film.trailerKey}"
+								class="micro"
+								href="https://www.themoviedb.org/movie/{film.id}"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								{m.film_trailer()}
+								TMDB
 							</a>
-						{/if}
+						</span>
 					</p>
 				</div>
 
 				<section class="ratings">
-					<h2 class="section-title">{m.film_ratings()}</h2>
+					<header class="ratings-header">
+						<h2>{m.film_ratings()}</h2>
+						{#if film.rating.count > 0}
+							<span>{m.film_rating_count({ count: formatCount(film.rating.count) })}</span>
+						{/if}
+					</header>
 					{#if film.rating.count > 0}
 						<p class="average">{film.rating.average.toFixed(1)}<span>/10</span></p>
-						<p class="count">{m.film_rating_count({ count: formatCount(film.rating.count) })}</p>
 					{/if}
 				</section>
 			</div>
@@ -91,8 +97,8 @@
 	</div>
 
 	{#if data.related && data.related.films.length > 0}
-		<section class="related">
-			<h2 class="section-title">{data.related.name}</h2>
+		<section class="related" aria-label={data.related.name}>
+			<h2 class="section-title">{m.film_related()}</h2>
 			<ul>
 				{#each data.related.films as other (other.id)}
 					<li><FilmPoster film={other} size="medium" /></li>
@@ -106,7 +112,7 @@
 	.backdrop {
 		position: absolute;
 		z-index: -1;
-		top: 0;
+		top: calc(-1 * var(--header-height));
 		left: 50%;
 		overflow: hidden;
 		width: min(100%, var(--backdrop-width));
@@ -118,20 +124,26 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: center 20%;
+		object-position: center top;
 	}
 
 	.backdrop::after {
 		position: absolute;
 		background:
+			var(--texture-grain),
 			linear-gradient(
 				to right,
 				var(--color-background),
-				transparent 20%,
-				transparent 80%,
+				var(--color-background-clear) 22%,
+				var(--color-background-clear) 78%,
 				var(--color-background)
 			),
-			linear-gradient(to bottom, transparent 30%, var(--color-background) 95%);
+			linear-gradient(
+				to bottom,
+				var(--color-background-clear) 45%,
+				var(--color-background-veil) 75%,
+				var(--color-background)
+			);
 		content: '';
 		inset: 0;
 	}
@@ -150,18 +162,19 @@
 	.side {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
+		gap: var(--space-6);
 	}
 
 	h1 {
 		display: inline;
+		margin-inline-end: var(--space-2);
 		font-size: var(--font-size-film-title);
 		font-weight: 700;
+		letter-spacing: -0.01em;
 	}
 
 	.byline {
 		display: inline;
-		margin-inline-start: var(--space-2);
 		color: var(--color-text-strong);
 		font-size: var(--font-size-large);
 	}
@@ -183,8 +196,8 @@
 	.columns {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
-		gap: var(--space-8);
-		margin-top: var(--space-6);
+		gap: var(--space-12);
+		margin-top: var(--space-8);
 	}
 
 	.tagline {
@@ -198,28 +211,65 @@
 		margin-bottom: var(--space-8);
 		font-family: var(--font-heading);
 		font-size: var(--font-size-prose);
+		line-height: 1.55;
 	}
 
 	.footer {
 		display: flex;
 		gap: var(--space-4);
+		align-items: center;
 		margin-top: var(--space-6);
 		font-size: var(--font-size-small);
 	}
 
-	.average {
+	.more-at {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+	}
+
+	.micro {
+		padding: 0 var(--space-1);
+		border: 2px solid var(--color-micro-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		font-size: var(--font-size-micro);
+		letter-spacing: var(--letter-spacing-caps);
+	}
+
+	.micro:hover {
+		border-color: var(--color-text);
 		color: var(--color-heading);
+	}
+
+	.ratings-header {
+		display: flex;
+		gap: var(--space-2);
+		align-items: baseline;
+		justify-content: space-between;
+		margin-bottom: var(--space-3);
+		padding-bottom: var(--space-1);
+		border-bottom: 1px solid var(--color-border);
+		font-size: var(--font-size-small);
+	}
+
+	.ratings-header h2 {
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: var(--font-size-control);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.average {
+		color: var(--color-text);
 		font-size: var(--font-size-title);
 		font-weight: 300;
+		text-align: end;
 	}
 
 	.average span {
-		color: var(--color-text);
 		font-size: var(--font-size-body);
-	}
-
-	.count {
-		font-size: var(--font-size-small);
 	}
 
 	.related {

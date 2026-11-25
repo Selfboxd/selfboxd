@@ -5,6 +5,11 @@ export interface FilmSummary {
 	posterPath: string | null;
 }
 
+export interface FilmSearchResult extends FilmSummary {
+	originalTitle: string;
+	directors: Person[];
+}
+
 export interface Person {
 	id: number;
 	name: string;

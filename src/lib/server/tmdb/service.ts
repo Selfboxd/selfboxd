@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { AppDatabase } from '../db/connection';
 import { readCache, writeCache } from './cache';
 import { tmdbGet, type TmdbConfig, type TmdbError } from './client';
-import type { Film, FilmCollection, FilmSummary } from '../../catalog/film';
+import type { Film, FilmCollection, FilmSearchResult } from '../../catalog/film';
 import { toCollection, toFilm, toFilmSummary } from './film';
 import { collectionSchema, filmDetailsSchema, filmSearchSchema } from './schemas';
 
@@ -89,30 +89,55 @@ export async function getCollection(
 }
 
 export interface FilmSearch {
-	films: FilmSummary[];
+	films: FilmSearchResult[];
 	total: number;
+	page: number;
+	totalPages: number;
 }
 
-/** Returns the first page of films matching the query. */
+/** Highest page of search results TMDB serves. */
+export const searchPageMax = 500;
+
+/**
+ * Returns one page of films matching the query, each with its directors.
+ * A film whose details cannot be loaded is listed without directors.
+ */
 export async function searchFilms(
 	context: TmdbContext,
 	rawQuery: string,
-	language: string
+	language: string,
+	page = 1
 ): Promise<Loaded<FilmSearch>> {
 	const query = rawQuery.trim().slice(0, searchQueryMaxLength);
-	if (!query) return { ok: true, value: { films: [], total: 0 } };
+	if (!query) return { ok: true, value: { films: [], total: 0, page: 1, totalPages: 0 } };
 
 	const result = await load(
 		context,
-		`search:film:${language}:${query.toLowerCase()}`,
+		`search:film:${language}:${String(page)}:${query.toLowerCase()}`,
 		lifetimes.search,
 		filmSearchSchema,
 		'/search/movie',
-		{ language, query, include_adult: 'false' }
+		{ language, query, page: String(page), include_adult: 'false' }
 	);
 	if (!result.ok) return result;
+
+	const films = await Promise.all(
+		result.value.results.map(async (entry) => {
+			const details = await getFilm(context, entry.id, language, '');
+			return {
+				...toFilmSummary(entry),
+				originalTitle: entry.original_title,
+				directors: details.ok ? details.value.directors : []
+			};
+		})
+	);
 	return {
 		ok: true,
-		value: { films: result.value.results.map(toFilmSummary), total: result.value.total_results }
+		value: {
+			films,
+			total: result.value.total_results,
+			page: result.value.page,
+			totalPages: Math.min(result.value.total_pages, searchPageMax)
+		}
 	};
 }

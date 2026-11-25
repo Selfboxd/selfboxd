@@ -86,7 +86,7 @@
 	"film_watch_rent": "Rent",
 	"film_watch_buy": "Buy",
 	"film_watch_none": "Not available on any service in your country.",
-	"film_watch_all": "All services",
+	"film_watch_all": "All services…",
 	"film_watch_source": "Streaming data from JustWatch.",
 	"film_ratings": "Ratings",
 	"film_rating_count": "{count} ratings on TMDB",
@@ -111,5 +111,12 @@
 	"instance_tmdb_saved": "The TMDB key has been saved.",
 	"instance_tmdb_configured": "A key is configured.",
 	"instance_tmdb_missing": "No key is configured.",
-	"footer_tmdb": "Film data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB."
+	"footer_tmdb": "Film data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.",
+	"search_filter_title": "Show results for",
+	"search_next": "Next page",
+	"search_previous": "Previous page",
+	"film_more_at": "More at",
+	"film_related": "Related films",
+	"film_show_all": "Show all…",
+	"film_watch_credit": "JustWatch"
 }

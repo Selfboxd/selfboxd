@@ -86,7 +86,7 @@
 	"film_watch_rent": "租赁",
 	"film_watch_buy": "购买",
 	"film_watch_none": "在你所在的国家没有可观看的服务。",
-	"film_watch_all": "所有服务",
+	"film_watch_all": "所有服务…",
 	"film_watch_source": "流媒体数据来自 JustWatch。",
 	"film_ratings": "评分",
 	"film_rating_count": "TMDB 上 {count} 个评分",
@@ -111,5 +111,12 @@
 	"instance_tmdb_saved": "TMDB 密钥已保存。",
 	"instance_tmdb_configured": "已配置密钥。",
 	"instance_tmdb_missing": "未配置密钥。",
-	"footer_tmdb": "电影数据来自 TMDB。本产品使用 TMDB API，但未获得 TMDB 的认可或认证。"
+	"footer_tmdb": "电影数据来自 TMDB。本产品使用 TMDB API，但未获得 TMDB 的认可或认证。",
+	"search_filter_title": "显示结果类型",
+	"search_next": "下一页",
+	"search_previous": "上一页",
+	"film_more_at": "更多信息：",
+	"film_related": "相关电影",
+	"film_show_all": "显示全部…",
+	"film_watch_credit": "JustWatch"
 }

@@ -93,7 +93,7 @@ export const filmSearchSchema = v.object({
 	page: v.number(),
 	total_pages: v.number(),
 	total_results: v.number(),
-	results: v.array(filmSummarySchema)
+	results: v.array(v.object({ ...filmSummarySchema.entries, original_title: v.string() }))
 });
 
 export type RawFilmDetails = v.InferOutput<typeof filmDetailsSchema>;

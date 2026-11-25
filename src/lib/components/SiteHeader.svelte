@@ -65,7 +65,13 @@
 
 <style>
 	header {
+		position: relative;
+		z-index: 2;
 		background: var(--color-header);
+	}
+
+	:global(.app-root:has(.backdrop)) header {
+		background: linear-gradient(var(--color-header-scrim), transparent);
 	}
 
 	.bar {

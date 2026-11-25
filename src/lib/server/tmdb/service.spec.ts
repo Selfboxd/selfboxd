@@ -8,7 +8,7 @@ const filmBody = readFileSync('e2e/support/tmdb/film-78.json', 'utf8');
 describe('TMDB service', () => {
 	let database: TestDatabase;
 	let requests: URL[];
-	let respond: () => Response;
+	let respond: (url: URL) => Response;
 	let context: TmdbContext;
 
 	beforeEach(() => {
@@ -22,7 +22,7 @@ describe('TMDB service', () => {
 				apiKey: 'token',
 				fetch: (input) => {
 					requests.push(input as URL);
-					return Promise.resolve(respond());
+					return Promise.resolve(respond(input as URL));
 				}
 			}
 		};
@@ -73,27 +73,79 @@ describe('TMDB service', () => {
 	it('does not call TMDB for an empty search', async () => {
 		const result = await searchFilms(context, '   ', 'en-US');
 
-		expect(result).toEqual({ ok: true, value: { films: [], total: 0 } });
+		expect(result).toMatchObject({ ok: true, value: { films: [], total: 0 } });
 		expect(requests).toHaveLength(0);
 	});
 
-	it('searches films and shares the cache between spellings of the same query', async () => {
-		respond = () =>
-			Response.json({
-				page: 1,
-				total_pages: 1,
-				total_results: 1,
-				results: [{ id: 78, title: 'Blade Runner', release_date: '1982-06-25', poster_path: null }]
-			});
+	describe('film search', () => {
+		const searchBody = {
+			page: 1,
+			total_pages: 3,
+			total_results: 41,
+			results: [
+				{
+					id: 78,
+					title: 'Blade Runner',
+					original_title: 'Blade Runner',
+					release_date: '1982-06-25',
+					poster_path: null
+				}
+			]
+		};
 
-		const result = await searchFilms(context, ' Blade Runner ', 'en-US');
-		await searchFilms(context, 'blade runner', 'en-US');
-
-		expect(result).toEqual({
-			ok: true,
-			value: { films: [{ id: 78, title: 'Blade Runner', year: 1982, posterPath: null }], total: 1 }
+		beforeEach(() => {
+			respond = (url) =>
+				url.pathname === '/3/search/movie' ? Response.json(searchBody) : new Response(filmBody);
 		});
-		expect(requests).toHaveLength(1);
-		expect(requests[0]?.searchParams.get('query')).toBe('Blade Runner');
+
+		it('returns the films with their directors', async () => {
+			const result = await searchFilms(context, ' Blade Runner ', 'en-US');
+
+			expect(result).toEqual({
+				ok: true,
+				value: {
+					films: [
+						{
+							id: 78,
+							title: 'Blade Runner',
+							originalTitle: 'Blade Runner',
+							year: 1982,
+							posterPath: null,
+							directors: [{ id: 578, name: 'Ridley Scott' }]
+						}
+					],
+					total: 41,
+					page: 1,
+					totalPages: 3
+				}
+			});
+			expect(requests[0]?.searchParams.get('query')).toBe('Blade Runner');
+		});
+
+		it('shares the cache between spellings of the same query', async () => {
+			await searchFilms(context, ' Blade Runner ', 'en-US');
+			const before = requests.length;
+
+			await searchFilms(context, 'blade runner', 'en-US');
+
+			expect(requests).toHaveLength(before);
+		});
+
+		it('asks TMDB for the requested page', async () => {
+			await searchFilms(context, 'blade', 'en-US', 2);
+
+			expect(requests[0]?.searchParams.get('page')).toBe('2');
+		});
+
+		it('lists a film without directors when its details cannot be loaded', async () => {
+			respond = (url) =>
+				url.pathname === '/3/search/movie'
+					? Response.json(searchBody)
+					: new Response('{}', { status: 500 });
+
+			const result = await searchFilms(context, 'blade', 'en-US');
+
+			expect(result).toMatchObject({ ok: true, value: { films: [{ id: 78, directors: [] }] } });
+		});
 	});
 });

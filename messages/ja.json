@@ -86,7 +86,7 @@
 	"film_watch_rent": "レンタル",
 	"film_watch_buy": "購入",
 	"film_watch_none": "お住まいの国ではどのサービスでも視聴できません。",
-	"film_watch_all": "すべてのサービス",
+	"film_watch_all": "すべてのサービス…",
 	"film_watch_source": "配信情報の提供：JustWatch",
 	"film_ratings": "評価",
 	"film_rating_count": "TMDBでの評価 {count} 件",
@@ -111,5 +111,12 @@
 	"instance_tmdb_saved": "TMDBのキーを保存しました。",
 	"instance_tmdb_configured": "キーが設定されています。",
 	"instance_tmdb_missing": "キーが設定されていません。",
-	"footer_tmdb": "映画データはTMDBより提供されています。本製品はTMDB APIを使用していますが、TMDBによる承認・認定を受けたものではありません。"
+	"footer_tmdb": "映画データはTMDBより提供されています。本製品はTMDB APIを使用していますが、TMDBによる承認・認定を受けたものではありません。",
+	"search_filter_title": "表示する結果",
+	"search_next": "次のページ",
+	"search_previous": "前のページ",
+	"film_more_at": "詳細：",
+	"film_related": "関連作品",
+	"film_show_all": "すべて表示…",
+	"film_watch_credit": "JustWatch"
 }

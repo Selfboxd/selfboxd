@@ -12,8 +12,24 @@ test.describe('search', () => {
 		await expect(page).toHaveURL('/search?q=blade');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Showing matches for “blade”');
 		await expect(page.getByRole('link', { name: 'Blade Runner 2049', exact: true })).toBeVisible();
+		await expect(page.getByText('Directed by Ridley Scott').first()).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Show results for' })).toBeVisible();
 		await page.getByRole('link', { name: 'Blade Runner', exact: true }).click();
 		await expect(page).toHaveURL('/film/78');
+	});
+
+	test('pages through long result lists', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+
+		await page.goto('/search?q=many');
+		await expect(page.getByRole('link', { name: 'Many 1', exact: true })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Previous page' })).toBeHidden();
+		await page.getByRole('link', { name: 'Next page' }).click();
+
+		await expect(page).toHaveURL('/search?q=many&page=2');
+		await expect(page.getByRole('link', { name: 'Many 2', exact: true })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Next page' })).toBeHidden();
+		await expect(page.getByRole('link', { name: 'Previous page' })).toBeVisible();
 	});
 
 	test('says when nothing matches', async ({ page, request }) => {
@@ -52,6 +68,10 @@ test.describe('film page', () => {
 			'href',
 			'https://www.youtube.com/watch?v=official-trailer-key'
 		);
+		await expect(page.getByRole('link', { name: 'TMDB', exact: true })).toHaveAttribute(
+			'href',
+			'https://www.themoviedb.org/movie/78'
+		);
 		await expect(page.getByText('7.9')).toBeVisible();
 		await expect(page.getByText('14,500 ratings on TMDB')).toBeVisible();
 	});
@@ -87,13 +107,20 @@ test.describe('film page', () => {
 
 		await expect(watch.getByText('Netflix')).toBeVisible();
 		await expect(watch.getByText('Apple TV')).toBeVisible();
-		await expect(watch.getByText('Streaming data from JustWatch.')).toBeVisible();
+		await expect(watch.getByText('Stream', { exact: true })).toBeVisible();
+		await expect(watch.getByText('Rent', { exact: true })).toBeVisible();
+		await expect(watch.getByRole('link', { name: 'All services…' })).toHaveAttribute(
+			'href',
+			/^https:\/\/www\.themoviedb\.org\//
+		);
+		await expect(watch.getByTitle('Streaming data from JustWatch.')).toHaveText('JustWatch');
 	});
 
 	test('lists the other films of the same saga, not recommendations', async ({ page }) => {
 		await page.goto('/film/78');
-		const related = page.locator('section', { hasText: 'Blade Runner Collection' }).last();
+		const related = page.getByRole('region', { name: 'Blade Runner Collection' });
 
+		await expect(related.getByRole('heading', { name: 'Related films' })).toBeVisible();
 		await expect(related.getByRole('link')).toHaveCount(1);
 		await related.getByRole('link', { name: 'Blade Runner 2049 (2017)' }).click();
 
@@ -218,12 +245,28 @@ test.describe('film API', () => {
 				{
 					id: 335984,
 					title: 'Blade Runner 2049',
+					originalTitle: 'Blade Runner 2049',
 					year: 2017,
-					posterPath: '/blade-runner-poster.jpg'
+					posterPath: '/blade-runner-poster.jpg',
+					directors: [{ id: 578, name: 'Ridley Scott' }]
 				}
 			],
-			total: 1
+			total: 1,
+			page: 1,
+			totalPages: 1
 		});
+	});
+
+	test('rejects a malformed page number', async ({ request }) => {
+		const token = await apiSignIn(request, admin);
+
+		for (const page of ['0', 'abc', '501', '1.5']) {
+			const response = await request.get(`/api/v1/search/films?q=blade&page=${page}`, {
+				headers: bearer(token)
+			});
+
+			expect(response.status()).toBe(400);
+		}
 	});
 
 	test('is closed to anonymous requests', async ({ request }) => {

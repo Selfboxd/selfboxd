@@ -20,6 +20,7 @@ const sequel = {
 const summaries = [bladeRunner, sequel].map((entry: Record<string, unknown>) => ({
 	id: entry.id,
 	title: entry.title,
+	original_title: entry.original_title,
 	release_date: entry.release_date,
 	poster_path: entry.poster_path
 }));
@@ -85,6 +86,13 @@ const server = createServer((request, response) => {
 		send(response, 200, { id: 422837, name: 'Blade Runner Collection', parts: summaries });
 	} else if (url.pathname === '/3/search/movie') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
+		const page = Number(url.searchParams.get('page') ?? '1');
+		if (query === 'many') {
+			const title = `Many ${String(page)}`;
+			const results = [{ ...summaries[0], id: 7000 + page, title, original_title: title }];
+			send(response, 200, { page, total_pages: 2, total_results: 2, results });
+			return;
+		}
 		const results = summaries.filter((entry) => String(entry.title).toLowerCase().includes(query));
 		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else {

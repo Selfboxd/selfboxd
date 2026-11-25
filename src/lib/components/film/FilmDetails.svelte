@@ -30,7 +30,13 @@
 		tv: m.release_tv
 	};
 
+	/** Number of cast members shown before the list is expanded. */
+	const castPreview = 30;
+
 	let active = $state<TabId>('cast');
+	let castExpanded = $state(false);
+
+	const visibleCast = $derived(castExpanded ? film.cast : film.cast.slice(0, castPreview));
 
 	const id = $props.id();
 
@@ -67,9 +73,14 @@
 <div class="panel" role="tabpanel" id="{id}-panel-{active}" aria-labelledby="{id}-tab-{active}">
 	{#if active === 'cast'}
 		<ul class="chips">
-			{#each film.cast as member (member.id)}
+			{#each visibleCast as member (member.id)}
 				<li title={member.character}>{member.name}</li>
 			{/each}
+			{#if film.cast.length > castPreview && !castExpanded}
+				<li class="more">
+					<button onclick={() => (castExpanded = true)}>{m.film_show_all()}</button>
+				</li>
+			{/if}
 		</ul>
 	{:else if active === 'crew'}
 		<dl>
@@ -117,7 +128,7 @@
 	.tabs {
 		display: flex;
 		gap: var(--space-4);
-		margin-bottom: var(--space-3);
+		margin-bottom: var(--space-4);
 		border-bottom: 1px solid var(--color-border);
 	}
 
@@ -161,7 +172,25 @@
 		background: var(--color-chip);
 		box-shadow: var(--shadow-chip);
 		color: var(--color-text);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-control);
+		line-height: 1.4;
+	}
+
+	.chips .more {
+		padding: 0;
+	}
+
+	.more button {
+		padding: var(--space-1) var(--space-2);
+		border: 0;
+		background: none;
+		color: var(--color-text-strong);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.more button:hover {
+		color: var(--color-link-hover);
 	}
 
 	dl {

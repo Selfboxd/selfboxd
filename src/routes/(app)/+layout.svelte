@@ -23,6 +23,10 @@
 		background: linear-gradient(var(--color-background-raised), transparent 16rem);
 	}
 
+	.body:has(:global(.backdrop)) {
+		background: none;
+	}
+
 	main {
 		width: 100%;
 		max-width: var(--content-width);

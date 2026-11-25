@@ -86,7 +86,7 @@
 	"film_watch_rent": "Alugar",
 	"film_watch_buy": "Comprar",
 	"film_watch_none": "Não disponível em nenhum serviço no seu país.",
-	"film_watch_all": "Todos os serviços",
+	"film_watch_all": "Todos os serviços…",
 	"film_watch_source": "Dados de streaming da JustWatch.",
 	"film_ratings": "Classificações",
 	"film_rating_count": "{count} classificações no TMDB",
@@ -111,5 +111,12 @@
 	"instance_tmdb_saved": "A chave do TMDB foi guardada.",
 	"instance_tmdb_configured": "Há uma chave configurada.",
 	"instance_tmdb_missing": "Não há nenhuma chave configurada.",
-	"footer_tmdb": "Dados de filmes do TMDB. Este produto utiliza a API do TMDB, mas não é apoiado nem certificado pelo TMDB."
+	"footer_tmdb": "Dados de filmes do TMDB. Este produto utiliza a API do TMDB, mas não é apoiado nem certificado pelo TMDB.",
+	"search_filter_title": "Mostrar resultados de",
+	"search_next": "Página seguinte",
+	"search_previous": "Página anterior",
+	"film_more_at": "Mais em",
+	"film_related": "Filmes relacionados",
+	"film_show_all": "Mostrar tudo…",
+	"film_watch_credit": "JustWatch"
 }
