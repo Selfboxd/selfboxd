@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const paths = ['/', '/api/v1/health', '/missing-page'];
+const paths = ['/login', '/api/v1/health', '/api/v1/auth/session', '/missing-page'];
 
 test.describe('security headers', () => {
 	for (const path of paths) {
@@ -9,7 +9,7 @@ test.describe('security headers', () => {
 
 			expect(headers['x-content-type-options']).toBe('nosniff');
 			expect(headers['x-frame-options']).toBe('DENY');
-			expect(headers['referrer-policy']).toBe('no-referrer');
+			expect(headers['referrer-policy']).toBe('same-origin');
 			expect(headers['cross-origin-opener-policy']).toBe('same-origin');
 			expect(headers['cross-origin-resource-policy']).toBe('same-origin');
 			expect(headers['permissions-policy']).toContain('camera=()');
@@ -17,7 +17,7 @@ test.describe('security headers', () => {
 	}
 
 	test('do not disclose the server technology', async ({ request }) => {
-		const headers = (await request.get('/')).headers();
+		const headers = (await request.get('/login')).headers();
 
 		expect(headers['x-powered-by']).toBeUndefined();
 		expect(headers['server']).toBeUndefined();
@@ -26,7 +26,7 @@ test.describe('security headers', () => {
 
 test.describe('content security policy', () => {
 	test('restricts every source to the instance itself', async ({ request }) => {
-		const policy = (await request.get('/')).headers()['content-security-policy'] ?? '';
+		const policy = (await request.get('/login')).headers()['content-security-policy'] ?? '';
 
 		expect(policy).toContain("default-src 'self'");
 		expect(policy).toContain("object-src 'none'");
@@ -36,7 +36,7 @@ test.describe('content security policy', () => {
 	});
 
 	test('forbids inline and evaluated scripts', async ({ request }) => {
-		const policy = (await request.get('/')).headers()['content-security-policy'] ?? '';
+		const policy = (await request.get('/login')).headers()['content-security-policy'] ?? '';
 		const scriptSources = /script-src ([^;]*)/.exec(policy)?.[1] ?? '';
 
 		expect(scriptSources).toContain("'self'");
@@ -47,9 +47,9 @@ test.describe('content security policy', () => {
 
 test.describe('cross-site request forgery', () => {
 	test('rejects form submissions from another origin', async ({ request }) => {
-		const response = await request.post('/', {
+		const response = await request.post('/login', {
 			headers: { origin: 'https://attacker.example' },
-			form: { field: 'value' }
+			form: { username: 'admin', password: 'x' }
 		});
 
 		expect(response.status()).toBe(403);

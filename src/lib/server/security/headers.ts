@@ -2,7 +2,7 @@
 export const securityHeaders: Readonly<Record<string, string>> = {
 	'X-Content-Type-Options': 'nosniff',
 	'X-Frame-Options': 'DENY',
-	'Referrer-Policy': 'no-referrer',
+	'Referrer-Policy': 'same-origin',
 	'Cross-Origin-Opener-Policy': 'same-origin',
 	'Cross-Origin-Resource-Policy': 'same-origin',
 	'Permissions-Policy': 'camera=(), geolocation=(), microphone=(), payment=(), usb=()'

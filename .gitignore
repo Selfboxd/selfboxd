@@ -6,6 +6,7 @@ node_modules
 
 # Instance data
 /data
+/.e2e-data
 
 # Environment
 .env
