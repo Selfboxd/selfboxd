@@ -61,6 +61,18 @@
 		}
 	}
 
+	$effect(() => {
+		const poster = root?.parentElement;
+		if (!poster) return;
+		const start = () => void load();
+		poster.addEventListener('mouseenter', start);
+		poster.addEventListener('focusin', start);
+		return () => {
+			poster.removeEventListener('mouseenter', start);
+			poster.removeEventListener('focusin', start);
+		};
+	});
+
 	function toggleMenu() {
 		if (!menuOpen && root) {
 			menuOnLeft = root.getBoundingClientRect().right + menuRoom > window.innerWidth;
@@ -97,15 +109,7 @@
 
 <svelte:window onclick={closeOnOutsideClick} />
 
-<div
-	class="actions"
-	class:open={menuOpen}
-	role="group"
-	aria-label={film.title}
-	bind:this={root}
-	onmouseenter={load}
-	onfocusin={load}
->
+<div class="actions" class:open={menuOpen} role="group" aria-label={film.title} bind:this={root}>
 	<div class="bar">
 		<button
 			type="button"

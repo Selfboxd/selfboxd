@@ -143,7 +143,7 @@ test.describe('film state API', () => {
 				liked: true,
 				rating: 9,
 				watched: true,
-				inWatchlist: false
+				inWatchlist: true
 			}
 		});
 
