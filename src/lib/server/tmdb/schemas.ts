@@ -14,7 +14,8 @@ export const filmSummarySchema = v.object({
 	id: v.number(),
 	title: v.string(),
 	release_date: optionalText,
-	poster_path: optionalText
+	poster_path: optionalText,
+	backdrop_path: optionalText
 });
 
 export const filmDetailsSchema = v.object({

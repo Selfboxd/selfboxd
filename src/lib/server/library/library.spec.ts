@@ -10,6 +10,7 @@ import {
 } from './diary';
 import { getWorkState, setLiked, setRating, setWatched } from './states';
 import { listTagNames } from './tags';
+import { listWatchedFilmIds } from './watched';
 import { addToWatchlist, deleteFromWatchlist, listWatchlist } from './watchlist';
 import { saveWork } from './works';
 
@@ -94,6 +95,14 @@ describe('library', () => {
 			setWatched(database.db, ada.id, film, true);
 
 			expect(state(grace).watched).toBe(false);
+		});
+
+		it('gives the TMDB identifiers of the watched films of one account', () => {
+			setWatched(database.db, ada.id, film, true);
+			setLiked(database.db, grace.id, film, true);
+
+			expect(listWatchedFilmIds(database.db, ada.id).size).toBe(1);
+			expect(listWatchedFilmIds(database.db, grace.id).size).toBe(0);
 		});
 
 		it('likes a work without marking it as watched', () => {

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { chartPageMax, type Chart, type ChartPage } from '../../catalog/charts';
 import type { AppDatabase } from '../db/connection';
 import { readCache, writeCache } from './cache';
 import { tmdbGet, type TmdbConfig, type TmdbError } from './client';
@@ -215,6 +216,40 @@ export async function browseFilms(
 			films: result.value.results.map(toFilmSummary),
 			page: result.value.page,
 			totalPages: Math.min(result.value.total_pages, browsePageMax)
+		}
+	};
+}
+
+const chartPaths: Record<Chart, string> = {
+	popular: '/movie/popular',
+	'top-rated': '/movie/top_rated',
+	'now-playing': '/movie/now_playing',
+	upcoming: '/movie/upcoming'
+};
+
+/** Returns one page of a film chart of TMDB. */
+export async function getChart(
+	context: TmdbContext,
+	chart: Chart,
+	language: string,
+	page = 1
+): Promise<Loaded<ChartPage>> {
+	const result = await load(
+		context,
+		`chart:${chart}:${language}:${String(page)}`,
+		lifetimes.popular,
+		filmPageSchema,
+		chartPaths[chart],
+		{ language, page: String(page) }
+	);
+	if (!result.ok) return result;
+	return {
+		ok: true,
+		value: {
+			films: result.value.results.map(toFilmSummary),
+			backdropPath: result.value.results.find((film) => film.backdrop_path)?.backdrop_path ?? null,
+			page: result.value.page,
+			totalPages: Math.min(result.value.total_pages, chartPageMax)
 		}
 	};
 }

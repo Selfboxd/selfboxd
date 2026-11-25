@@ -100,7 +100,9 @@
 	--font-size-film-title: 2rem;
 	--font-size-display: 3.5rem;
 	--font-size-rating-input: 1.75rem;
-	--font-size-poster-action: 1.25rem;
+	--font-size-poster-action: 0.875rem;
+	--font-size-poster-action-small: 0.625rem;
+	--font-size-poster-action-large: 1rem;
 	--font-size-rating-card: 2.125rem;
 	--font-size-journal-feature: 3rem;
 	--font-size-journal-title: 1.5rem;
@@ -136,6 +138,8 @@
 	--poster-small: 4.375rem;
 	--poster-medium: 9.375rem;
 	--poster-large: 14.375rem;
+	--poster-list: 7.5rem;
+	--list-offset: 17rem;
 	--backdrop-width: 75rem;
 	--backdrop-height: 35rem;
 	--backdrop-offset: 26rem;

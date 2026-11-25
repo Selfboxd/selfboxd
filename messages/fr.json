@@ -304,8 +304,6 @@
 	"catalogue_lists_hero": "Collectionnez, organisez, partagez. Les listes sont la façon idéale de regrouper des films.",
 	"catalogue_lists_start": "Créer votre propre liste",
 	"catalogue_lists_popular": "Listes populaires",
-	"catalogue_lists_matches": "Listes correspondant à « {query} »",
-	"catalogue_lists_find": "Trouver une liste",
 	"catalogue_lists_empty": "Aucune liste ne correspond.",
 	"catalogue_lists_unavailable": "MDBList est injoignable. Réessayez plus tard.",
 	"catalogue_lists_credit": "Données des listes fournies par MDBList. Ce produit n’est ni approuvé ni certifié par MDBList.",
@@ -320,5 +318,16 @@
 	"instance_mdblist_configured": "Une clé MDBList est configurée.",
 	"instance_mdblist_missing": "Aucune clé MDBList n’est configurée.",
 	"instance_mdblist_remove": "Retirer la clé MDBList",
-	"error_mdblist_key_invalid": "MDBList n’a pas accepté cette clé."
+	"error_mdblist_key_invalid": "MDBList n’a pas accepté cette clé.",
+	"list_by": "Liste de",
+	"list_progress": "Vous avez vu",
+	"list_progress_count": "{watched} sur {total}",
+	"catalogue_lists_featured": "Listes à la une",
+	"catalogue_lists_official": "Sélection officielle",
+	"chart_popular": "Films populaires",
+	"chart_top_rated": "Films les mieux notés",
+	"chart_now_playing": "Actuellement au cinéma",
+	"chart_upcoming": "Films à venir",
+	"chart_empty": "Ce classement ne contient aucun film sur cette page.",
+	"search_section_lists": "Listes"
 }

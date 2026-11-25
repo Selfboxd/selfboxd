@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
 import { mdblistGet, type MdblistConfig } from './client';
 import {
+	getListFilmIds,
 	getListFilms,
 	getListInfo,
 	getTopLists,
@@ -142,6 +143,22 @@ describe('MDBList service', () => {
 			{ id: 78, title: 'Blade Runner', year: 1982, posterPath: expect.any(String) as string },
 			{ id: 5, title: 'No TMDB', year: null, posterPath: null }
 		]);
+	});
+
+	it('gives the backdrop of the first film that has one', async () => {
+		const films = await getListFilms(context, 101);
+
+		expect(films.ok && films.value.backdropPath).toBe('/blade-runner-backdrop.jpg');
+	});
+
+	it('gives the identifiers of every film of a list that fits in one request', async () => {
+		expect(await getListFilmIds(context, 101)).toEqual({ ok: true, value: [78, 5] });
+	});
+
+	it('gives no identifiers when the list continues after the request', async () => {
+		context.config.fetch = () => Promise.resolve(json({ movies }, 200, { 'x-has-more': 'true' }));
+
+		expect(await getListFilmIds(context, 101)).toEqual({ ok: true, value: null });
 	});
 
 	it('lists films without poster when the instance has no TMDB key', async () => {

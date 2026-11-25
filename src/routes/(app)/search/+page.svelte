@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FormError from '#lib/components/FormError.svelte';
+	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -12,6 +13,10 @@
 	function pageQuery(page: number): string {
 		return new URLSearchParams({ q: data.query, page: String(page) }).toString();
 	}
+
+	const filmsQuery = $derived(new URLSearchParams({ q: data.query }).toString());
+	const listsQuery = $derived(new URLSearchParams({ q: data.query, type: 'lists' }).toString());
+	const showsLists = $derived(data.state === 'lists' || data.state === 'lists_error');
 </script>
 
 <svelte:head>
@@ -28,7 +33,19 @@
 	<div class="layout">
 		<section>
 			<h1 class="section-title">{m.search_heading({ query: data.query })}</h1>
-			{#if data.films.length === 0}
+			{#if data.state === 'lists_error'}
+				<FormError message={m.catalogue_lists_unavailable()} />
+			{:else if data.state === 'lists'}
+				{#if data.lists.length === 0}
+					<p class="empty">{m.catalogue_lists_empty()}</p>
+				{:else}
+					<div class="lists">
+						{#each data.lists as list (list.id)}
+							<PublicListCard {list} target={{ list: list.id }} row />
+						{/each}
+					</div>
+				{/if}
+			{:else if data.films.length === 0}
 				<p class="empty">{m.search_empty()}</p>
 			{:else}
 				<ul class="results">
@@ -81,7 +98,24 @@
 		<aside>
 			<h2 class="section-title">{m.search_filter_title()}</h2>
 			<ul class="filters">
-				<li><span aria-current="true">{m.search_section_films()}</span></li>
+				<li>
+					<a
+						href="{resolve('/(app)/search')}?{filmsQuery}"
+						aria-current={showsLists ? undefined : 'true'}
+					>
+						{m.search_section_films()}
+					</a>
+				</li>
+				{#if data.hasLists}
+					<li>
+						<a
+							href="{resolve('/(app)/search')}?{listsQuery}"
+							aria-current={showsLists ? 'true' : undefined}
+						>
+							{m.search_section_lists()}
+						</a>
+					</li>
+				{/if}
 			</ul>
 		</aside>
 	</div>
@@ -183,8 +217,15 @@
 		list-style: none;
 	}
 
-	.filters span {
+	.lists {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.filters a {
 		display: block;
+		color: var(--color-text);
 		padding: var(--space-1) var(--space-2);
 		border-radius: var(--radius-small);
 	}
