@@ -157,7 +157,12 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   watched progress. Options live in the query string (`src/lib/catalog/list-view.ts`). A refined
   public list or chart works on its first `listActionMax` films instead of one page.
 - Menus opening on hover are a single block holding the trigger and its entries, like the
-  account menu of the header. The trigger never moves when the menu opens.
+  account menu of the header. The trigger never moves when the menu opens. Filter menus use
+  `FilterMenus.svelte`; the page draws each link with `resolve`.
+- The interface has no native `select`: use `Select.svelte`, a listbox that sends its value with a
+  hidden input.
+- The main search covers films and series together by default (`searchWorks`), and shows the
+  directors or creators and the other titles of each result.
 - The catalogue has no search of its own. Everything is found from the search of the header.
 - Works are films or series (`WorkKind`). Links to a work go through `workRoute(kind)` of
   `src/lib/paths.ts`, given to `resolve`. A series summary uses `title` for its name, so posters

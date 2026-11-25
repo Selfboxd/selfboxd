@@ -377,5 +377,22 @@
 	"list_edit_or_delete": "このリストを編集・削除…",
 	"list_clone": "このリストを複製",
 	"list_add_all_watchlist": "すべてをウォッチリストに追加",
-	"list_added_watchlist": "ウォッチリストに追加しました。"
+	"list_added_watchlist": "ウォッチリストに追加しました。",
+	"browse_count_all": "{count} 本の映画があります。",
+	"browse_count_decade": "{decade}年代に公開された映画は {count} 本です。",
+	"browse_count_year": "{year}年に公開された映画は {count} 本です。",
+	"browse_count_genre": "ジャンル「{genre}」の映画は {count} 本です。",
+	"browse_count_genre_decade": "{decade}年代に公開されたジャンル「{genre}」の映画は {count} 本です。",
+	"browse_count_genre_year": "{year}年に公開されたジャンル「{genre}」の映画は {count} 本です。",
+	"series_count_all": "{count} 本のシリーズがあります。",
+	"series_count_decade": "{decade}年代に始まったシリーズは {count} 本です。",
+	"series_count_year": "{year}年に始まったシリーズは {count} 本です。",
+	"series_count_genre": "ジャンル「{genre}」のシリーズは {count} 本です。",
+	"series_count_genre_decade": "{decade}年代に始まったジャンル「{genre}」のシリーズは {count} 本です。",
+	"series_count_genre_year": "{year}年に始まったジャンル「{genre}」のシリーズは {count} 本です。",
+	"browse_sort_popular": "人気順",
+	"browse_sort_highest": "高評価順",
+	"browse_sort_lowest": "低評価順",
+	"search_section_all": "すべて",
+	"search_alternative_titles": "別題:"
 }

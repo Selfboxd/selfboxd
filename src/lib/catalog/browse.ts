@@ -35,14 +35,20 @@ export function browseDecades(now = new Date()): number[] {
 }
 
 /** Query string of the browse page for a filter, leaving out its default values. */
-export function browseQuery(filter: {
-	[Key in keyof BrowseFilter]?: BrowseFilter[Key] | undefined;
-}): string {
+export function browseQuery(
+	filter: {
+		[Key in keyof BrowseFilter]?: BrowseFilter[Key] | undefined;
+	} & {
+		/** Which works are shown by what the account watched; all of them by default. */
+		show?: 'all' | 'unwatched' | 'watched';
+	}
+): string {
 	const params = new URLSearchParams();
 	if (filter.sort && filter.sort !== 'popular') params.set('sort', filter.sort);
 	if (filter.decade) params.set('decade', String(filter.decade));
 	if (filter.year) params.set('year', String(filter.year));
 	if (filter.genre) params.set('genre', String(filter.genre));
+	if (filter.show && filter.show !== 'all') params.set('show', filter.show);
 	if (filter.page && filter.page > 1) params.set('page', String(filter.page));
 	return params.toString();
 }

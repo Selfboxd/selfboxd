@@ -377,5 +377,22 @@
 	"list_edit_or_delete": "Liste bearbeiten oder löschen…",
 	"list_clone": "Liste klonen",
 	"list_add_all_watchlist": "Alle Filme zur Watchlist hinzufügen",
-	"list_added_watchlist": "Die Filme stehen auf deiner Watchlist."
+	"list_added_watchlist": "Die Filme stehen auf deiner Watchlist.",
+	"browse_count_all": "Es gibt {count} Filme.",
+	"browse_count_decade": "Es gibt {count} Filme aus den {decade}er-Jahren.",
+	"browse_count_year": "Es gibt {count} Filme aus dem Jahr {year}.",
+	"browse_count_genre": "Es gibt {count} Filme im Genre {genre}.",
+	"browse_count_genre_decade": "Es gibt {count} Filme im Genre {genre} aus den {decade}er-Jahren.",
+	"browse_count_genre_year": "Es gibt {count} Filme im Genre {genre} aus dem Jahr {year}.",
+	"series_count_all": "Es gibt {count} Serien.",
+	"series_count_decade": "Es gibt {count} Serien, die in den {decade}er-Jahren starteten.",
+	"series_count_year": "Es gibt {count} Serien, die {year} starteten.",
+	"series_count_genre": "Es gibt {count} Serien im Genre {genre}.",
+	"series_count_genre_decade": "Es gibt {count} Serien im Genre {genre}, die in den {decade}er-Jahren starteten.",
+	"series_count_genre_year": "Es gibt {count} Serien im Genre {genre}, die {year} starteten.",
+	"browse_sort_popular": "Beliebtheit",
+	"browse_sort_highest": "Am besten bewertet",
+	"browse_sort_lowest": "Am schlechtesten bewertet",
+	"search_section_all": "Alles",
+	"search_alternative_titles": "Alternative Titel:"
 }

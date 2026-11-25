@@ -38,17 +38,56 @@ test.describe('film catalogue', () => {
 		await choose(page, 'Year', '1980s');
 
 		await expect(page).toHaveURL('/films/browse?decade=1980');
-		await expect(page.getByRole('heading', { level: 1 })).toContainText('1980s');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Films');
+		await expect(page.getByText('There are 1 films released in the 1980s.')).toBeVisible();
 		await expect(page.locator('a[href="/film/78"]')).toBeVisible();
 		await expect(page.locator('a[href="/film/335984"]')).toHaveCount(0);
+	});
+
+	test('narrows a decade to one of its years from the strip of years', async ({ page }) => {
+		await page.goto('/films/browse?decade=1980');
+		const years = page.getByRole('navigation', { name: 'Year' });
+		await expect(years.getByRole('link', { name: '1980s' })).toHaveAttribute(
+			'aria-current',
+			'page'
+		);
+
+		await years.getByRole('link', { name: '1982', exact: true }).click();
+
+		await expect(page).toHaveURL('/films/browse?year=1982');
+		await expect(years.getByRole('link', { name: '1982', exact: true })).toHaveAttribute(
+			'aria-current',
+			'page'
+		);
+		await expect(page.getByText('There are 1 films released in 1982.')).toBeVisible();
+		await years.getByRole('link', { name: '1990s' }).click();
+		await expect(page).toHaveURL('/films/browse?decade=1990');
+	});
+
+	test('changes the filters from the small menus of the results', async ({ page }) => {
+		await page.goto('/films/browse');
+		const head = page.getByRole('main').locator('header');
+		await expect(page.getByText('There are 3 films.')).toBeVisible();
+
+		await head.getByRole('button', { name: 'Genre', exact: true }).hover();
+		await head.getByRole('link', { name: 'Science Fiction', exact: true }).click();
+
+		await expect(page).toHaveURL('/films/browse?genre=878');
+		await expect(page.getByText('There are 41 films in Science Fiction.')).toBeVisible();
+		await expect(head.getByRole('button', { name: 'Science Fiction', exact: true })).toBeVisible();
+		await head.getByRole('button', { name: /^Sort by/ }).hover();
+		await head.getByRole('link', { name: 'Highest rated', exact: true }).click();
+		await expect(page).toHaveURL('/films/browse?sort=rating&genre=878');
 	});
 
 	test('combines a genre with an order and keeps them across pages', async ({ page }) => {
 		await choose(page, 'Genre', 'Science Fiction');
 		await expect(page).toHaveURL('/films/browse?genre=878');
-		await choose(page, 'Rating', 'Lowest first');
+		const head = page.getByRole('main').locator('header');
+		await head.getByRole('button', { name: /^Sort by/ }).hover();
+		await head.getByRole('link', { name: 'Lowest rated', exact: true }).click();
 		await expect(page).toHaveURL('/films/browse?sort=rating_lowest&genre=878');
-		const posters = page.getByRole('main').getByRole('listitem').getByRole('link');
+		const posters = page.locator('main ul.grid a[title]');
 		await expect(posters.first()).toHaveAttribute('href', '/film/335984');
 
 		await page.getByRole('link', { name: 'Next page' }).click();
@@ -72,7 +111,8 @@ test.describe('film catalogue', () => {
 	test('ignores filters that are not valid', async ({ page }) => {
 		await page.goto('/films/browse?sort=%3Cscript%3E&decade=1985&genre=999999&page=-3');
 
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Films\s+Popular$/);
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Films');
+		await expect(page.getByRole('button', { name: 'Sort by Popularity' })).toBeVisible();
 		await expect(page.locator('a[href="/film/78"]')).toBeVisible();
 	});
 

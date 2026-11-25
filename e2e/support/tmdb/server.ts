@@ -196,7 +196,28 @@ const server = createServer((request, response) => {
 	} else if (url.pathname === '/3/discover/tv') {
 		const genre = url.searchParams.get('with_genres');
 		const results = genre === '80' ? seriesSummaries.slice(0, 1) : seriesSummaries;
-		send(response, 200, { page: 1, total_pages: 1, results });
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
+	} else if (url.pathname === '/3/search/multi') {
+		const query = (url.searchParams.get('query') ?? '').toLowerCase();
+		const page = Number(url.searchParams.get('page') ?? '1');
+		if (query === 'many') {
+			const title = `Many ${String(page)}`;
+			const results = [
+				{ ...summaries[0], id: 7000 + page, title, original_title: title, media_type: 'movie' }
+			];
+			send(response, 200, { page, total_pages: 2, total_results: 2, results });
+			return;
+		}
+		const results = [
+			...seriesSummaries
+				.filter((entry) => String(entry.name).toLowerCase().includes(query))
+				.map((entry) => ({ ...entry, media_type: 'tv' })),
+			{ id: 501, name: 'Ada Rivers', media_type: 'person' },
+			...summaries
+				.filter((entry) => String(entry.title).toLowerCase().includes(query))
+				.map((entry) => ({ ...entry, media_type: 'movie' }))
+		];
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else if (url.pathname === '/3/search/tv') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
 		const results = seriesSummaries.filter((entry) =>
@@ -230,6 +251,7 @@ const server = createServer((request, response) => {
 		send(response, 200, {
 			page,
 			total_pages: genre === '878' ? 3 : 1,
+			total_results: genre === '878' ? 41 : matching.length,
 			results: page === 1 ? ordered : ordered.slice(0, 1)
 		});
 	} else if (/^\/3\/movie\/(popular|top_rated|now_playing|upcoming)$/.test(url.pathname)) {

@@ -79,6 +79,17 @@ export function toProviders(raw: RawFilmDetails['watch/providers']['results'][st
 	}));
 }
 
+/** Distinct titles, leaving out the given ones, in their first order. */
+export function otherTitles(titles: string[], known: string[]): string[] {
+	const seen = new Set(known.map((title) => title.toLowerCase()));
+	return titles.filter((title) => {
+		const key = title.trim().toLowerCase();
+		if (key === '' || seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
+}
+
 /** Offers of a film or a series in the given country, or `null` when TMDB knows none. */
 export function toWatch(
 	raw: RawFilmDetails['watch/providers'],
@@ -122,7 +133,11 @@ export function toFilm(raw: RawFilmDetails, region: string): Film {
 		trailerKey: findTrailer(raw.videos.results),
 		releases: toReleases(raw.release_dates.results),
 		watch: toWatch(raw['watch/providers'], region),
-		collection: raw.belongs_to_collection ?? null
+		collection: raw.belongs_to_collection ?? null,
+		alternativeTitles: otherTitles(
+			raw.alternative_titles.titles.map((entry) => entry.title),
+			[raw.title, raw.original_title]
+		)
 	};
 }
 

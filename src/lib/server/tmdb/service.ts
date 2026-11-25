@@ -4,10 +4,12 @@ import type { AppDatabase } from '../db/connection';
 import { readCache, writeCache } from './cache';
 import { tmdbGet, type TmdbConfig, type TmdbError } from './client';
 import type { Film, FilmCollection, FilmSearchResult, FilmSummary } from '../../catalog/film';
-import { toCollection, toFilm, toFilmSummary } from './film';
+import { toCollection, toFilm, toFilmSummary, yearOf } from './film';
 import { browsePageMax, type BrowseFilter, type Genre } from '../../catalog/browse';
 import { discoverParams } from './browse';
 import type { Series, SeriesSummary } from '../../catalog/series';
+import type { WorkKind } from '../../catalog/library';
+import type { WorkSearch, WorkSearchResult } from '../../catalog/search';
 import { toSeries, toSeriesSummary } from './series';
 import {
 	collectionSchema,
@@ -19,7 +21,7 @@ import {
 	seriesDetailsSchema,
 	seriesListSchema,
 	seriesPageSchema,
-	seriesSearchSchema
+	multiSearchSchema
 } from './schemas';
 
 export interface TmdbContext {
@@ -42,7 +44,7 @@ const lifetimes = {
 	genres: 7 * 24 * hour
 };
 
-const filmAppendix = 'credits,videos,release_dates,watch/providers';
+const filmAppendix = 'credits,videos,release_dates,watch/providers,alternative_titles';
 
 export const searchQueryMaxLength = 100;
 
@@ -145,7 +147,8 @@ export async function searchFilms(
 			return {
 				...toFilmSummary(entry),
 				originalTitle: entry.original_title,
-				directors: details.ok ? details.value.directors : []
+				directors: details.ok ? details.value.directors : [],
+				alternativeTitles: details.ok ? details.value.alternativeTitles : []
 			};
 		})
 	);
@@ -195,6 +198,8 @@ export interface FilmPage {
 	films: FilmSummary[];
 	page: number;
 	totalPages: number;
+	/** Number of works matching, on every page. */
+	total: number;
 }
 
 /** Returns one page of the films matching a browse filter. */
@@ -221,7 +226,8 @@ export async function browseFilms(
 		value: {
 			films: result.value.results.map(toFilmSummary),
 			page: result.value.page,
-			totalPages: Math.min(result.value.total_pages, browsePageMax)
+			totalPages: Math.min(result.value.total_pages, browsePageMax),
+			total: result.value.total_results
 		}
 	};
 }
@@ -272,7 +278,7 @@ export async function getSeries(
 		lifetimes.film,
 		seriesDetailsSchema,
 		`/tv/${String(id)}`,
-		{ language, append_to_response: 'credits,videos,watch/providers' }
+		{ language, append_to_response: 'credits,videos,watch/providers,alternative_titles' }
 	);
 	return result.ok ? { ok: true, value: toSeries(result.value, region) } : result;
 }
@@ -335,43 +341,104 @@ export async function browseSeries(
 		value: {
 			films: result.value.results.map(toSeriesSummary),
 			page: result.value.page,
-			totalPages: Math.min(result.value.total_pages, browsePageMax)
+			totalPages: Math.min(result.value.total_pages, browsePageMax),
+			total: result.value.total_results
 		}
 	};
 }
 
-export interface SeriesSearch {
-	series: (SeriesSummary & { originalTitle: string })[];
-	total: number;
-	page: number;
-	totalPages: number;
+/** Directors or creators and other titles of a film or a series found by a search. */
+async function searchDetails(
+	context: TmdbContext,
+	kind: WorkKind,
+	id: number,
+	language: string
+): Promise<Pick<WorkSearchResult, 'people' | 'alternativeTitles'>> {
+	if (kind === 'series') {
+		const details = await getSeries(context, id, language, '');
+		return details.ok
+			? { people: details.value.creators, alternativeTitles: details.value.alternativeTitles }
+			: { people: [], alternativeTitles: [] };
+	}
+	const details = await getFilm(context, id, language, '');
+	return details.ok
+		? { people: details.value.directors, alternativeTitles: details.value.alternativeTitles }
+		: { people: [], alternativeTitles: [] };
 }
 
-/** Returns one page of series matching the query. */
-export async function searchSeries(
+/** What a search covers: films and series together, or one kind. */
+export type SearchScope = 'all' | WorkKind;
+
+const emptySearch: WorkSearch = { results: [], total: 0, page: 1, totalPages: 0 };
+
+/**
+ * Returns one page of the films and series matching the query, most relevant first,
+ * each with its directors or creators and its other titles.
+ */
+export async function searchWorks(
 	context: TmdbContext,
 	rawQuery: string,
 	language: string,
-	page = 1
-): Promise<Loaded<SeriesSearch>> {
+	page = 1,
+	scope: SearchScope = 'all'
+): Promise<Loaded<WorkSearch>> {
 	const query = rawQuery.trim().slice(0, searchQueryMaxLength);
-	if (!query) return { ok: true, value: { series: [], total: 0, page: 1, totalPages: 0 } };
+	if (!query) return { ok: true, value: emptySearch };
+
+	if (scope === 'film') {
+		const films = await searchFilms(context, query, language, page);
+		if (!films.ok) return films;
+		const { films: found, ...pages } = films.value;
+		return {
+			ok: true,
+			value: {
+				...pages,
+				results: found.map(({ directors, ...film }) => ({
+					...film,
+					kind: 'film',
+					people: directors
+				}))
+			}
+		};
+	}
+
+	const multi = scope === 'all';
 	const result = await load(
 		context,
-		`search:series:${language}:${String(page)}:${query.toLowerCase()}`,
+		`search:${multi ? 'multi' : 'tv'}:${language}:${String(page)}:${query.toLowerCase()}`,
 		lifetimes.search,
-		seriesSearchSchema,
-		'/search/tv',
+		multiSearchSchema,
+		multi ? '/search/multi' : '/search/tv',
 		{ language, query, page: String(page), include_adult: 'false' }
 	);
 	if (!result.ok) return result;
+
+	const works = result.value.results.flatMap((entry) => {
+		const type = multi ? entry.media_type : 'tv';
+		if (type !== 'movie' && type !== 'tv') return [];
+		const kind: WorkKind = type === 'tv' ? 'series' : 'film';
+		const title = (kind === 'film' ? entry.title : entry.name) ?? '';
+		return [
+			{
+				kind,
+				id: entry.id,
+				title,
+				originalTitle: (kind === 'film' ? entry.original_title : entry.original_name) ?? title,
+				year: yearOf(kind === 'film' ? entry.release_date : entry.first_air_date),
+				posterPath: entry.poster_path ?? null
+			}
+		];
+	});
+	const results = await Promise.all(
+		works.map(async (work) => ({
+			...work,
+			...(await searchDetails(context, work.kind, work.id, language))
+		}))
+	);
 	return {
 		ok: true,
 		value: {
-			series: result.value.results.map((entry) => ({
-				...toSeriesSummary(entry),
-				originalTitle: entry.original_name
-			})),
+			results,
 			total: result.value.total_results,
 			page: result.value.page,
 			totalPages: Math.min(result.value.total_pages, searchPageMax)
