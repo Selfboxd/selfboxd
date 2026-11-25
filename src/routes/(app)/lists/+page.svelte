@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
+	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
@@ -10,6 +11,8 @@
 <svelte:head>
 	<title>{m.lists_title()} - Selfboxd</title>
 </svelte:head>
+
+<ProfileNav />
 
 <header class="head">
 	<h1 class="section-title">{m.lists_title()}</h1>

@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { tmdbImage, type TmdbImageSize } from '#lib/images.js';
 	import type { FilmSummary } from '#lib/catalog/film.js';
+	import PosterActions from './PosterActions.svelte';
 
 	interface Props {
 		/** The film whose poster is shown. */
@@ -10,9 +11,11 @@
 		size?: 'tiny' | 'small' | 'medium' | 'large';
 		/** Whether the poster links to the page of the film. */
 		linked?: boolean;
+		/** Whether hovering the poster offers the quick actions; follows `linked` by default. */
+		actions?: boolean;
 	}
 
-	let { film, size = 'medium', linked = true }: Props = $props();
+	let { film, size = 'medium', linked = true, actions = linked }: Props = $props();
 
 	const imageSizes: Record<NonNullable<Props['size']>, TmdbImageSize> = {
 		tiny: 'w92',
@@ -32,24 +35,22 @@
 	{/if}
 {/snippet}
 
-{#if linked}
-	<a
-		class="poster {size}"
-		href={resolve('/(app)/film/[id]', { id: String(film.id) })}
-		title={label}
-	>
+<div class="poster {size}" class:interactive={linked || actions}>
+	{#if linked}
+		<a href={resolve('/(app)/film/[id]', { id: String(film.id) })} title={label}>
+			{@render picture()}
+		</a>
+	{:else}
 		{@render picture()}
-	</a>
-{:else}
-	<span class="poster {size}">{@render picture()}</span>
-{/if}
+	{/if}
+	{#if actions && size !== 'tiny'}<PosterActions {film} />{/if}
+</div>
 
 <style>
 	.poster {
 		position: relative;
 		display: block;
 		flex-shrink: 0;
-		overflow: hidden;
 		aspect-ratio: 2 / 3;
 		border-radius: var(--radius-medium);
 		background: var(--color-panel);
@@ -65,9 +66,14 @@
 		pointer-events: none;
 	}
 
-	a.poster:hover::after,
-	a.poster:focus-visible::after {
+	.interactive:hover::after,
+	.interactive:focus-within::after {
 		box-shadow: var(--shadow-poster-hover);
+	}
+
+	a {
+		display: block;
+		height: 100%;
 	}
 
 	.tiny {
@@ -90,7 +96,13 @@
 	img {
 		width: 100%;
 		height: 100%;
+		border-radius: inherit;
 		object-fit: cover;
+	}
+
+	a,
+	.placeholder {
+		border-radius: inherit;
 	}
 
 	.placeholder {

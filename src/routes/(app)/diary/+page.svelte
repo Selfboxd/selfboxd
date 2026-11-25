@@ -5,6 +5,7 @@
 	import LogDialog from '#lib/components/library/LogDialog.svelte';
 	import type { LogTarget } from '#lib/components/library/log-target.js';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
+	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { PageProps } from './$types';
@@ -34,6 +35,8 @@
 <svelte:head>
 	<title>{m.diary_title()} - Selfboxd</title>
 </svelte:head>
+
+<ProfileNav />
 
 <h1 class="section-title">
 	{m.diary_title()}

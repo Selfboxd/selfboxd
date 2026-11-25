@@ -79,26 +79,22 @@
 
 <div class="columns">
 	<div class="main">
-		<section>
-			<h2 class="section-title">{m.profile_favourites()}</h2>
-			<ul class="posters">
-				{#each data.favourites as work, index (index)}
-					<li>
-						{#if work}
-							<FilmPoster film={{ ...work, id: work.externalId }} size="medium" />
-						{:else}
-							<a
-								class="slot"
-								href={resolve('/(app)/settings/profile')}
-								aria-label={m.profile_favourite_add({ slot: index + 1 })}
-							>
-								<Icon name="plus" />
-							</a>
-						{/if}
-					</li>
-				{/each}
-			</ul>
-		</section>
+		{#if data.favourites.some((work) => work !== null)}
+			<section>
+				<h2 class="section-title">{m.profile_favourites()}</h2>
+				<ul class="posters">
+					{#each data.favourites as work, index (index)}
+						<li>
+							{#if work}
+								<FilmPoster film={{ ...work, id: work.externalId }} size="medium" />
+							{:else}
+								<span class="slot"></span>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
 
 		{#if data.recent.length > 0}
 			<section>
@@ -392,19 +388,11 @@
 	}
 
 	.slot {
-		display: grid;
-		border: 1px dashed var(--color-border);
+		display: block;
 		border-radius: var(--radius-medium);
 		aspect-ratio: 2 / 3;
 		background: var(--color-chip);
-		color: var(--color-text-muted);
-		font-size: var(--font-size-title);
-		place-items: center;
-	}
-
-	.slot:hover {
-		border-color: var(--color-text);
-		color: var(--color-heading);
+		box-shadow: var(--shadow-poster-frame);
 	}
 
 	.meta {

@@ -2,6 +2,7 @@
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
+	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
@@ -13,6 +14,8 @@
 <svelte:head>
 	<title>{m.watched_title()} - Selfboxd</title>
 </svelte:head>
+
+<ProfileNav />
 
 <h1 class="section-title">{m.watched_title()}</h1>
 

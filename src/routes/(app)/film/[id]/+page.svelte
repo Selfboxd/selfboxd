@@ -49,7 +49,7 @@
 
 	<div class="film" class:with-backdrop={film.backdropPath}>
 		<aside class="side">
-			<FilmPoster {film} size="large" linked={false} />
+			<FilmPoster {film} size="large" linked={false} actions />
 			<FilmWatch watch={film.watch} trailerKey={film.trailerKey} />
 		</aside>
 
@@ -168,6 +168,7 @@
 	<LogDialog bind:target={logTarget} {scale} />
 	<ListsDialog
 		bind:open={listsOpen}
+		filmId={String(film.id)}
 		lists={data.library.lists}
 		member={data.library.listMembership}
 	/>

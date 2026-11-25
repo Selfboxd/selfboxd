@@ -1,4 +1,7 @@
 <script lang="ts">
+	import ListsDialog from '#lib/components/library/ListsDialog.svelte';
+	import LogDialog from '#lib/components/library/LogDialog.svelte';
+	import { sharedDialogs } from '#lib/components/library/shared-dialogs.svelte.js';
 	import SiteHeader from '#lib/components/SiteHeader.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -14,6 +17,21 @@
 		{@render children()}
 	</main>
 </div>
+
+{#if data.user}
+	<LogDialog bind:target={sharedDialogs.log} scale={data.user.ratingScale} />
+	<ListsDialog
+		bind:open={
+			() => sharedDialogs.lists !== null,
+			(open) => {
+				if (!open) sharedDialogs.lists = null;
+			}
+		}
+		filmId={sharedDialogs.lists?.filmId ?? '0'}
+		lists={sharedDialogs.lists?.lists ?? []}
+		member={sharedDialogs.lists?.member ?? []}
+	/>
+{/if}
 
 <style>
 	.body {

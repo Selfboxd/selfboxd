@@ -36,10 +36,19 @@ test.describe('profile', () => {
 		await page.goto('/profile');
 
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(account.username);
-		await expect(page.getByRole('link', { name: 'Choose favorite film 1' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Favorite films' })).toBeHidden();
 		await expect(page.getByText('No rating yet.')).toBeVisible();
 		const tabs = page.getByRole('navigation', { name: 'Profile' });
-		for (const name of ['Activity', 'Watched', 'Diary', 'Reviews', 'Watchlist', 'Lists', 'Likes']) {
+		for (const name of [
+			'Activity',
+			'Films',
+			'Diary',
+			'Reviews',
+			'Watchlist',
+			'Lists',
+			'Likes',
+			'Tags'
+		]) {
 			await expect(tabs.getByRole('link', { name, exact: true })).toBeVisible();
 		}
 		await expect(tabs.getByRole('link', { name: 'Profile' })).toHaveAttribute(
@@ -81,10 +90,12 @@ test.describe('profile', () => {
 
 		await page.goto('/profile');
 		const favourites = page.locator('section', { hasText: 'Favorite films' }).first();
+		await expect(favourites.getByRole('listitem')).toHaveCount(4);
 		await expect(favourites.getByRole('listitem').nth(1).getByRole('link')).toHaveAttribute(
 			'href',
 			'/film/335984'
 		);
+		await expect(favourites.getByRole('link')).toHaveCount(1);
 
 		await page.goto('/settings/profile');
 		await page.getByRole('listitem').nth(1).hover();
@@ -184,6 +195,35 @@ test.describe('profile', () => {
 		await page.goto('/diary?tag=%3Cscript%3E');
 
 		await expect(page.getByRole('row').filter({ hasText: 'Blade Runner' })).toHaveCount(1);
+	});
+});
+
+test.describe('profile bar', () => {
+	test('heads every page of the profile with the account and its tabs', async ({
+		page,
+		request
+	}) => {
+		const account = await createAccount(request);
+		await signIn(page, account);
+
+		for (const path of [
+			'/activity',
+			'/watched',
+			'/diary',
+			'/reviews',
+			'/watchlist',
+			'/lists',
+			'/likes',
+			'/tags'
+		]) {
+			await page.goto(path);
+			const bar = page.getByRole('navigation', { name: 'Profile' });
+			await expect(bar.getByRole('link', { name: account.username })).toHaveAttribute(
+				'href',
+				'/profile'
+			);
+			await expect(bar.locator('a[aria-current="page"]')).toHaveAttribute('href', path);
+		}
 	});
 });
 

@@ -279,5 +279,9 @@
 	"error_banner_unavailable": "Este filme não tem imagem de fundo.",
 	"error_pin_limit_reached": "Pode fixar no máximo duas críticas. Desafixe uma primeiro.",
 	"nav_films": "Filmes",
-	"films_popular": "Filmes populares esta semana"
+	"films_popular": "Filmes populares esta semana",
+	"poster_more": "Mais ações",
+	"poster_log_again": "Registar novamente / adicionar crítica…",
+	"poster_watchlist_add": "Adicionar à watchlist",
+	"poster_lists_add": "Adicionar a listas…"
 }
