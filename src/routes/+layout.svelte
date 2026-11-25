@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '@fontsource/source-serif-4/900.css';
 	import '#lib/styles/base.css';
 	import '#lib/styles/forms.css';
 	import favicon from '#lib/assets/favicon.svg';

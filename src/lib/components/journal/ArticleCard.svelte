@@ -51,6 +51,9 @@
 				{/each}
 			{/if}
 		</p>
+		{#if variant === 'feature'}
+			<time datetime={article.publishedAt}>{formatDate(new Date(article.publishedAt))}</time>
+		{/if}
 	</a>
 </article>
 
@@ -81,16 +84,17 @@
 
 	.rubric {
 		color: var(--color-ink);
+		font-family: var(--font-heading);
+		font-size: var(--font-size-body);
 		font-weight: 700;
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
 	}
 
 	h2,
 	h3 {
 		color: var(--color-ink);
-		font-weight: 700;
-		letter-spacing: -0.01em;
+		font-family: var(--font-body);
+		font-weight: 900;
+		letter-spacing: -0.02em;
 	}
 
 	h3 {
@@ -100,7 +104,7 @@
 	a:hover h2,
 	a:hover h3 {
 		text-decoration: underline;
-		text-decoration-thickness: 1px;
+		text-decoration-thickness: 2px;
 		text-underline-offset: 0.15em;
 	}
 
@@ -112,25 +116,55 @@
 		line-height: 1.55;
 	}
 
-	.feature {
-		max-width: 60rem;
-		margin: 0 auto;
+	.feature a {
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		gap: var(--space-2) var(--space-12);
+		align-content: center;
+		align-items: center;
 		text-align: center;
 	}
 
+	.feature img {
+		grid-row: 1 / span 4;
+		margin: 0;
+	}
+
 	.feature .meta {
+		align-self: end;
 		justify-content: center;
-		margin-top: var(--space-6);
+		margin: 0;
+	}
+
+	.feature .rubric,
+	.feature h2 {
+		color: var(--color-heading);
+	}
+
+	.feature .rubric {
+		color: var(--color-field-light);
+		font-size: var(--font-size-large);
 	}
 
 	.feature h2 {
-		font-size: var(--font-size-journal-feature);
+		font-size: var(--font-size-title);
 	}
 
 	.feature .teaser {
-		max-width: 40rem;
-		margin: var(--space-4) auto 0;
-		font-size: var(--font-size-large);
+		align-self: start;
+		margin: 0;
+		color: var(--color-text-strong);
+		font-size: var(--font-size-heading);
+		line-height: 1.35;
+	}
+
+	.feature time {
+		align-self: start;
+		color: var(--color-field-light);
+		font-size: var(--font-size-small);
+		font-weight: 700;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
 	}
 
 	.line {
@@ -144,5 +178,15 @@
 
 	.line .teaser {
 		margin-top: var(--space-1);
+	}
+
+	@media (max-width: 56rem) {
+		.feature a {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.feature img {
+			grid-row: auto;
+		}
 	}
 </style>

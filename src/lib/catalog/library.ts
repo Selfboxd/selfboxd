@@ -74,3 +74,35 @@ export interface ActivityEvent {
 	rewatch: boolean;
 	reviewed: boolean;
 }
+
+/** A list of an account, as shown among its other lists. */
+export interface ListSummary {
+	id: number;
+	name: string;
+	description: string;
+	ranked: boolean;
+	/** Number of works in the list. */
+	count: number;
+	/** First works of the list, in order. */
+	preview: Work[];
+}
+
+export interface ListItem {
+	work: Work;
+	note: string;
+}
+
+/** A list of an account with every work it holds, in order. */
+export interface WorkList {
+	id: number;
+	name: string;
+	description: string;
+	ranked: boolean;
+	items: ListItem[];
+}
+
+export const listNameMaxLength = 100;
+export const listDescriptionMaxLength = 2000;
+export const listNoteMaxLength = 500;
+/** Number of works shown for a list among the other lists. */
+export const listPreviewSize = 5;

@@ -1,12 +1,20 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { Article } from '#lib/catalog/journal.js';
 	import FormError from '#lib/components/FormError.svelte';
+	import Icon from '#lib/components/Icon.svelte';
 	import ArticleCard from '#lib/components/journal/ArticleCard.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	let sectionsMenu: HTMLDetailsElement | undefined = $state();
+
+	afterNavigate(() => {
+		if (sectionsMenu) sectionsMenu.open = false;
+	});
 
 	/** Number of articles shown under the lead of the front page. */
 	const latestCount = 6;
@@ -57,31 +65,42 @@
 </svelte:head>
 
 <div class="journal">
-	<nav class="masthead" aria-label={m.journal_sections()}>
-		<a class="wordmark" href={resolve('/(app)/journal')}>{m.nav_journal()}</a>
-		{#if data.state === 'ready'}
-			<ul>
-				<li>
-					<a
-						href="{resolve('/(app)/journal')}?{sectionQuery(null)}"
-						aria-current={data.archive && data.section === null ? 'page' : undefined}
-					>
-						{m.journal_all_sections()}
-					</a>
-				</li>
-				{#each data.sections as name (name)}
-					<li>
-						<a
-							href="{resolve('/(app)/journal')}?{sectionQuery(name)}"
-							aria-current={data.section === name ? 'page' : undefined}
-						>
-							{name}
-						</a>
-					</li>
-				{/each}
-			</ul>
+	<div class="band" class:with-lead={front?.lead && data.state === 'ready' && !data.archive}>
+		<div class="masthead">
+			<a class="wordmark" href={resolve('/(app)/journal')}>{m.nav_journal()}</a>
+			{#if data.state === 'ready'}
+				<nav aria-label={m.journal_sections()}>
+					<details bind:this={sectionsMenu}>
+						<summary>{m.journal_sections()} <Icon name="chevron" /></summary>
+						<ul>
+							<li>
+								<a
+									href="{resolve('/(app)/journal')}?{sectionQuery(null)}"
+									aria-current={data.archive && data.section === null ? 'page' : undefined}
+								>
+									{m.journal_all_sections()}
+								</a>
+							</li>
+							{#each data.sections as name (name)}
+								<li>
+									<a
+										href="{resolve('/(app)/journal')}?{sectionQuery(name)}"
+										aria-current={data.section === name ? 'page' : undefined}
+									>
+										{name}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</details>
+				</nav>
+			{/if}
+		</div>
+		{#if data.state === 'ready' && !data.archive && front?.lead}
+			<h1 class="sr-only">{m.nav_journal()}</h1>
+			<ArticleCard article={front.lead} variant="feature" />
 		{/if}
-	</nav>
+	</div>
 
 	{#if data.state === 'error'}
 		<FormError message={m.journal_unavailable()} />
@@ -97,12 +116,7 @@
 			</div>
 		</section>
 	{:else if front?.lead}
-		<h1 class="sr-only">{m.nav_journal()}</h1>
-		<section class="lead">
-			<ArticleCard article={front.lead} variant="feature" />
-		</section>
-
-		<section>
+		<section class="latest">
 			<div class="grid three">
 				{#each front.latest as article (article.id)}
 					<ArticleCard {article} />
@@ -160,33 +174,87 @@
 		color: var(--color-ink);
 	}
 
+	.band {
+		margin-top: calc(-1 * var(--space-8));
+		padding-bottom: var(--space-8);
+		background: var(--color-journal-band);
+		box-shadow: 0 0 0 100vmax var(--color-journal-band);
+		clip-path: inset(0 -100vmax);
+	}
+
+	.with-lead {
+		padding-bottom: var(--journal-overlap-padding);
+	}
+
 	.masthead {
 		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3) var(--space-8);
-		align-items: baseline;
-		padding-bottom: var(--space-3);
-		border-bottom: 2px solid var(--color-ink);
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--space-6);
+		padding: var(--space-6) 0 var(--space-3);
+		border-bottom: 1px solid var(--color-journal-band-rule);
 	}
 
 	.wordmark {
-		color: var(--color-ink);
-		font-size: var(--font-size-heading);
+		color: var(--color-field-light);
+		font-size: var(--font-size-body);
 		font-weight: 900;
-		letter-spacing: 0.3em;
+		letter-spacing: 0.45em;
 		text-transform: uppercase;
 	}
 
-	.masthead ul {
+	.wordmark:hover {
+		color: var(--color-heading);
+	}
+
+	details {
+		position: relative;
+	}
+
+	summary {
 		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1) var(--space-4);
+		gap: var(--space-1);
+		align-items: center;
+		color: var(--color-field-light);
+		list-style: none;
+		cursor: pointer;
+	}
+
+	summary::-webkit-details-marker {
+		display: none;
+	}
+
+	summary:hover {
+		color: var(--color-heading);
+	}
+
+	details ul {
+		position: absolute;
+		z-index: 5;
+		top: calc(100% + var(--space-2));
+		right: 0;
 		margin: 0;
-		padding: 0;
+		padding: var(--space-1) 0;
+		border-radius: var(--radius-small);
+		background: var(--color-paper);
+		box-shadow: var(--shadow-menu);
 		list-style: none;
 	}
 
-	.masthead li a,
+	details li a {
+		display: block;
+		padding: var(--space-1) var(--space-4);
+		color: var(--color-ink-soft);
+		font-size: var(--font-size-control);
+		white-space: nowrap;
+	}
+
+	details li a:hover,
+	details li a[aria-current] {
+		color: var(--color-ink);
+		font-weight: 700;
+	}
+
 	.section-head a,
 	.more a {
 		color: var(--color-ink-soft);
@@ -196,8 +264,6 @@
 		text-transform: uppercase;
 	}
 
-	.masthead li a:hover,
-	.masthead li a[aria-current],
 	.section-head a:hover,
 	.more a:hover {
 		color: var(--color-ink);
@@ -207,8 +273,9 @@
 		margin-top: var(--space-12);
 	}
 
-	.lead {
-		margin-top: var(--space-8);
+	.latest {
+		position: relative;
+		margin-top: calc(-1 * var(--journal-overlap));
 	}
 
 	.grid {

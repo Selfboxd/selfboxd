@@ -271,9 +271,9 @@
 
 	.film-title {
 		color: var(--color-heading);
-		font-family: var(--font-heading);
+		font-family: var(--font-display);
 		font-size: var(--font-size-heading);
-		font-weight: 700;
+		font-weight: 900;
 	}
 
 	.film-year {
