@@ -100,6 +100,19 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   indicated delay before a single retry.
 - Security behaviour is covered by tests in `e2e/security.e2e.ts`.
 
+### Public profile images
+
+- Profile picture: the only custom image sent to the platform. The instance resizes it to a
+  square of at most 400 x 400 px, compresses it, strips all metadata (EXIF, GPS), then sends
+  it encoded inside the signed profile update.
+- Banner: an official film banner chosen by the user. It is referenced, never uploaded.
+- Posters: the public profile shows the poster selected by the user when it is an official
+  one (TMDB or MoviePosterDB). It is served from the official source with the API keys of the
+  platform.
+- Custom posters imported by the user never leave the instance. For those works the public
+  profile shows the default official poster.
+- No other image is sent to the platform or stored by it.
+
 ### Tests
 
 - Unit tests sit next to the code as `*.spec.ts`.
