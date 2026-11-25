@@ -32,22 +32,24 @@
 	<div class="bar">
 		<a class="brand" href={resolve('/(app)')}><SiteLogo /></a>
 		<nav aria-label={m.nav_label()}>
-			<details class="account" bind:this={menu}>
-				<summary>
-					<Avatar {user} />
-					<span class="username">{user.username}</span>
-					<svg class="chevron" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-						<path d="M1 1l4 4 4-4" />
-					</svg>
-				</summary>
-				<div class="menu">
-					<a href={resolve('/(app)')}>{m.nav_home()}</a>
-					<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
-					<form method="POST" action={resolve('/(app)/logout')}>
-						<button>{m.nav_sign_out()}</button>
-					</form>
-				</div>
-			</details>
+			<div class="anchor">
+				<details class="account" bind:this={menu}>
+					<summary>
+						<Avatar {user} />
+						<span class="username">{user.username}</span>
+						<svg class="chevron" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+							<path d="M1 1l4 4 4-4" />
+						</svg>
+					</summary>
+					<div class="menu">
+						<a href={resolve('/(app)')}>{m.nav_home()}</a>
+						<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
+						<form method="POST" action={resolve('/(app)/logout')}>
+							<button>{m.nav_sign_out()}</button>
+						</form>
+					</div>
+				</details>
+			</div>
 		</nav>
 	</div>
 </header>
@@ -78,17 +80,33 @@
 		align-items: center;
 	}
 
-	.account {
+	.anchor {
 		position: relative;
 		width: var(--menu-width);
+		height: var(--menu-row-height);
+	}
+
+	.account {
+		position: absolute;
+		z-index: 10;
+		top: 0;
+		right: 0;
+		left: 0;
+		overflow: hidden;
+		border-radius: var(--radius-small);
+	}
+
+	.account[open] {
+		background: var(--color-menu);
+		box-shadow: var(--shadow-button), var(--shadow-menu);
 	}
 
 	summary {
 		display: flex;
 		gap: var(--space-2);
 		align-items: center;
-		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-small);
+		height: var(--menu-row-height);
+		padding: 0 var(--space-3);
 		color: var(--color-text-strong);
 		font-size: var(--font-size-control);
 		font-weight: 700;
@@ -102,7 +120,8 @@
 		display: none;
 	}
 
-	summary:hover {
+	summary:hover,
+	.account[open] summary {
 		color: var(--color-heading);
 	}
 
@@ -121,26 +140,11 @@
 		stroke-width: 2;
 	}
 
-	.account[open] summary {
-		border-radius: var(--radius-small) var(--radius-small) 0 0;
-		background: var(--color-menu);
-		box-shadow: var(--shadow-button);
-		color: var(--color-heading);
-	}
-
 	.menu {
-		position: absolute;
-		z-index: 10;
-		top: 100%;
-		right: 0;
-		left: 0;
 		display: flex;
 		flex-direction: column;
 		padding: var(--space-1) 0;
 		border-top: 1px solid var(--color-menu-divider);
-		border-radius: 0 0 var(--radius-small) var(--radius-small);
-		background: var(--color-menu);
-		box-shadow: var(--shadow-menu);
 	}
 
 	.menu form {
