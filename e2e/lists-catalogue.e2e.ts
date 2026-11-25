@@ -73,7 +73,7 @@ test.describe('lists catalogue', () => {
 
 	test('offers the quick actions on the films of a public list', async ({ page }) => {
 		await page.goto('/lists/101');
-		const poster = page.locator('.poster').first();
+		const poster = page.getByRole('main').getByRole('listitem').first().locator('.poster');
 		await poster.hover();
 
 		await poster.getByRole('button', { name: 'Like', exact: true }).click();

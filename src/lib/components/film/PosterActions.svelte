@@ -65,11 +65,10 @@
 		const poster = root?.parentElement;
 		if (!poster) return;
 		const start = () => void load();
-		poster.addEventListener('mouseenter', start);
-		poster.addEventListener('focusin', start);
+		const events = ['mouseenter', 'mousemove', 'focusin'];
+		for (const name of events) poster.addEventListener(name, start);
 		return () => {
-			poster.removeEventListener('mouseenter', start);
-			poster.removeEventListener('focusin', start);
+			for (const name of events) poster.removeEventListener(name, start);
 		};
 	});
 

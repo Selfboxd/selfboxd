@@ -59,7 +59,24 @@
 		margin-inline-start: -17.5%;
 	}
 
+	.stack > :global(:nth-child(1)) {
+		z-index: 4;
+	}
+
+	.stack > :global(:nth-child(2)) {
+		z-index: 3;
+	}
+
+	.stack > :global(:nth-child(3)) {
+		z-index: 2;
+	}
+
+	.stack > :global(:nth-child(4)) {
+		z-index: 1;
+	}
+
 	.slot {
+		position: relative;
 		background: var(--color-chip);
 	}
 
