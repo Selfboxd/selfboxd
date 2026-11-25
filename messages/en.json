@@ -283,5 +283,22 @@
 	"poster_more": "More actions",
 	"poster_log_again": "Log again / add review…",
 	"poster_watchlist_add": "Add to watchlist",
-	"poster_lists_add": "Add to lists…"
+	"poster_lists_add": "Add to lists…",
+	"browse_by": "Browse by",
+	"browse_year": "Year",
+	"browse_rating": "Rating",
+	"browse_popular": "Popular",
+	"browse_genre": "Genre",
+	"browse_other": "Other",
+	"browse_all": "All",
+	"browse_upcoming": "Upcoming",
+	"browse_decade": "{decade}s",
+	"browse_highest": "Highest first",
+	"browse_lowest": "Lowest first",
+	"browse_all_time": "All time",
+	"browse_this_year": "This year",
+	"browse_name": "Film name (A–Z)",
+	"browse_empty": "No films match these filters.",
+	"films_find": "Find a film",
+	"films_top_rated": "Highest rated"
 }

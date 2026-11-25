@@ -91,6 +91,32 @@ const server = createServer((request, response) => {
 		send(response, body ? 200 : 404, body ?? { status_code: 34 });
 	} else if (url.pathname === '/3/collection/422837') {
 		send(response, 200, { id: 422837, name: 'Blade Runner Collection', parts: summaries });
+	} else if (url.pathname === '/3/genre/movie/list') {
+		send(response, 200, {
+			genres: [
+				{ id: 878, name: 'Science Fiction' },
+				{ id: 18, name: 'Drama' }
+			]
+		});
+	} else if (url.pathname === '/3/discover/movie') {
+		const from = url.searchParams.get('primary_release_date.gte') ?? '0000';
+		const until = url.searchParams.get('primary_release_date.lte') ?? '9999';
+		const year = url.searchParams.get('primary_release_year');
+		const genre = url.searchParams.get('with_genres');
+		const page = Number(url.searchParams.get('page') ?? '1');
+		const matching = summaries.filter((entry) => {
+			const released = String(entry.release_date);
+			if (genre !== null && genre !== '878') return false;
+			if (year !== null && !released.startsWith(year)) return false;
+			return released >= from && released <= `${until}~`;
+		});
+		const ordered =
+			url.searchParams.get('sort_by') === 'vote_average.asc' ? matching.toReversed() : matching;
+		send(response, 200, {
+			page,
+			total_pages: genre === '878' ? 3 : 1,
+			results: page === 1 ? ordered : ordered.slice(0, 1)
+		});
 	} else if (url.pathname === '/3/trending/movie/week') {
 		send(response, 200, { page: 1, results: summaries });
 	} else if (url.pathname === '/3/search/movie') {

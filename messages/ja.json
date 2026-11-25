@@ -283,5 +283,22 @@
 	"poster_more": "その他の操作",
 	"poster_log_again": "もう一度記録・レビューを追加…",
 	"poster_watchlist_add": "ウォッチリストに追加",
-	"poster_lists_add": "リストに追加…"
+	"poster_lists_add": "リストに追加…",
+	"browse_by": "絞り込み",
+	"browse_year": "年",
+	"browse_rating": "評価",
+	"browse_popular": "人気",
+	"browse_genre": "ジャンル",
+	"browse_other": "その他",
+	"browse_all": "すべて",
+	"browse_upcoming": "近日公開",
+	"browse_decade": "{decade}年代",
+	"browse_highest": "評価の高い順",
+	"browse_lowest": "評価の低い順",
+	"browse_all_time": "全期間",
+	"browse_this_year": "今年",
+	"browse_name": "タイトル順",
+	"browse_empty": "条件に一致する映画はありません。",
+	"films_find": "映画を探す",
+	"films_top_rated": "高評価"
 }

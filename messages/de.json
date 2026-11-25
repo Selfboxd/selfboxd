@@ -283,5 +283,22 @@
 	"poster_more": "Weitere Aktionen",
 	"poster_log_again": "Erneut eintragen / Rezension hinzufügen…",
 	"poster_watchlist_add": "Zur Watchlist hinzufügen",
-	"poster_lists_add": "Zu Listen hinzufügen…"
+	"poster_lists_add": "Zu Listen hinzufügen…",
+	"browse_by": "Stöbern nach",
+	"browse_year": "Jahr",
+	"browse_rating": "Bewertung",
+	"browse_popular": "Beliebt",
+	"browse_genre": "Genre",
+	"browse_other": "Sonstiges",
+	"browse_all": "Alle",
+	"browse_upcoming": "Demnächst",
+	"browse_decade": "{decade}er",
+	"browse_highest": "Beste zuerst",
+	"browse_lowest": "Schlechteste zuerst",
+	"browse_all_time": "Aller Zeiten",
+	"browse_this_year": "Dieses Jahr",
+	"browse_name": "Filmtitel (A–Z)",
+	"browse_empty": "Keine Filme entsprechen diesen Filtern.",
+	"films_find": "Film finden",
+	"films_top_rated": "Am besten bewertet"
 }

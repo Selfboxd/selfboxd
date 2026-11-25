@@ -119,7 +119,11 @@
 			disabled={!status}
 			onclick={() => change({ watched: !status?.state.watched })}
 		>
-			<Icon name="eye" filled={status?.state.watched ?? false} />
+			<svg class="eye" viewBox="0 0 52 32" aria-hidden="true">
+				<path
+					d="M2 16C9 5.500 18 2.500 26 2.500S43 5.500 50 16C43 26.500 34 29.500 26 29.500S9 26.500 2 16ZM26 7.500a8.500 8.500 0 1 0 0 17a8.500 8.500 0 1 0 0-17ZM26 12a4 4 0 1 1 0 8a4 4 0 1 1 0-8Z"
+				/>
+			</svg>
 		</button>
 		<button
 			type="button"
@@ -189,8 +193,9 @@
 
 	.bar {
 		display: flex;
-		gap: var(--space-1);
-		padding: var(--space-1);
+		gap: var(--space-2);
+		align-items: center;
+		padding: var(--space-1) var(--space-2);
 		border-radius: var(--radius-medium);
 		background: var(--color-poster-bar);
 	}
@@ -217,12 +222,32 @@
 		cursor: default;
 	}
 
+	.eye {
+		height: 1em;
+		fill: currentcolor;
+		fill-rule: evenodd;
+	}
+
+	.bar :global(.icon) {
+		stroke-width: 0;
+	}
+
 	.bar .watched {
 		color: var(--color-highlight);
 	}
 
 	.bar .liked {
 		color: var(--color-like);
+	}
+
+	:global(.poster.small) > .actions .bar {
+		gap: var(--space-1);
+		padding: 2px var(--space-1);
+		font-size: var(--font-size-small);
+	}
+
+	:global(.poster.small) > .actions .bar button {
+		font-size: inherit;
 	}
 
 	.menu {

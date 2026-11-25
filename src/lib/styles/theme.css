@@ -12,7 +12,7 @@
 	--color-header-scrim: rgb(20 24 28 / 92%);
 	--shadow-header-text: 0 1px 3px rgb(0 0 0 / 85%);
 	--shadow-header-icon: drop-shadow(0 1px 2px rgb(0 0 0 / 85%));
-	--color-poster-bar: rgb(20 24 28 / 85%);
+	--color-poster-bar: rgb(20 24 28 / 90%);
 	--color-profile-bar: #2c3440;
 	--color-journal-band: #445566;
 	--color-journal-band-rule: rgb(255 255 255 / 12%);
@@ -100,7 +100,7 @@
 	--font-size-film-title: 2rem;
 	--font-size-display: 3.5rem;
 	--font-size-rating-input: 1.75rem;
-	--font-size-poster-action: 1.125rem;
+	--font-size-poster-action: 1.25rem;
 	--font-size-rating-card: 2.125rem;
 	--font-size-journal-feature: 3rem;
 	--font-size-journal-title: 1.5rem;
