@@ -283,5 +283,22 @@
 	"poster_more": "Altre azioni",
 	"poster_log_again": "Registra di nuovo / aggiungi recensione…",
 	"poster_watchlist_add": "Aggiungi alla watchlist",
-	"poster_lists_add": "Aggiungi alle liste…"
+	"poster_lists_add": "Aggiungi alle liste…",
+	"browse_by": "Sfoglia per",
+	"browse_year": "Anno",
+	"browse_rating": "Voto",
+	"browse_popular": "Popolari",
+	"browse_genre": "Genere",
+	"browse_other": "Altro",
+	"browse_all": "Tutto",
+	"browse_upcoming": "In arrivo",
+	"browse_decade": "Anni {decade}",
+	"browse_highest": "Voti più alti",
+	"browse_lowest": "Voti più bassi",
+	"browse_all_time": "Di sempre",
+	"browse_this_year": "Quest'anno",
+	"browse_name": "Titolo (A–Z)",
+	"browse_empty": "Nessun film corrisponde a questi filtri.",
+	"films_find": "Trova un film",
+	"films_top_rated": "I più votati"
 }

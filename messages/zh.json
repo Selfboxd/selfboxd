@@ -283,5 +283,22 @@
 	"poster_more": "更多操作",
 	"poster_log_again": "再次记录 / 添加影评…",
 	"poster_watchlist_add": "加入待看清单",
-	"poster_lists_add": "添加到片单…"
+	"poster_lists_add": "添加到片单…",
+	"browse_by": "浏览方式",
+	"browse_year": "年份",
+	"browse_rating": "评分",
+	"browse_popular": "热门",
+	"browse_genre": "类型",
+	"browse_other": "其他",
+	"browse_all": "全部",
+	"browse_upcoming": "即将上映",
+	"browse_decade": "{decade}年代",
+	"browse_highest": "评分最高",
+	"browse_lowest": "评分最低",
+	"browse_all_time": "历来",
+	"browse_this_year": "今年",
+	"browse_name": "片名 (A–Z)",
+	"browse_empty": "没有符合这些条件的电影。",
+	"films_find": "查找电影",
+	"films_top_rated": "评分最高"
 }

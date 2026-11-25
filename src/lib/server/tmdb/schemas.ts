@@ -101,3 +101,13 @@ export type RawFilmSummary = v.InferOutput<typeof filmSummarySchema>;
 export type RawCollection = v.InferOutput<typeof collectionSchema>;
 
 export const filmListSchema = v.object({ results: v.array(filmSummarySchema) });
+
+export const filmPageSchema = v.object({
+	page: v.number(),
+	total_pages: v.number(),
+	results: v.array(filmSummarySchema)
+});
+
+export const genreListSchema = v.object({
+	genres: v.array(v.object({ id: v.number(), name: v.string() }))
+});

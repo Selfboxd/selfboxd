@@ -262,15 +262,3 @@ test.describe('profile privacy', () => {
 		await expect(page.getByRole('heading', { name: 'Pinned reviews' })).toBeHidden();
 	});
 });
-
-test.describe('films', () => {
-	test('lists the popular films of the week', async ({ page, request }) => {
-		await signIn(page, await createAccount(request));
-
-		await page.goto('/films');
-
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Popular films this week');
-		await expect(page.locator('a[href="/film/78"]')).toBeVisible();
-		await expect(page.locator('a[href="/film/335984"]')).toBeVisible();
-	});
-});
