@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '#lib/paraglide/messages.js';
+	import SiteLogo from './SiteLogo.svelte';
 	import type { PublicUser } from '#lib/server/auth/users.js';
 
 	interface Props {
@@ -13,7 +14,7 @@
 
 <header>
 	<div class="bar">
-		<a class="wordmark" href={resolve('/(app)')}>Selfboxd</a>
+		<a class="wordmark" href={resolve('/(app)')}><SiteLogo /></a>
 		<nav aria-label={m.nav_label()}>
 			<span class="username">{user.username}</span>
 			<a href={resolve('/(app)/settings')}>{m.nav_settings()}</a>
@@ -41,10 +42,7 @@
 	}
 
 	.wordmark {
-		color: var(--color-heading);
-		font-size: var(--font-size-large);
-		font-weight: 700;
-		letter-spacing: -0.02em;
+		display: flex;
 	}
 
 	.wordmark:hover {

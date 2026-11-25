@@ -13,7 +13,8 @@ holds the whole self-hosted application and its Docker image.
 - No secrets and no information about any deployment environment in this repository.
 - No telemetry. The instance never sends statistics anywhere.
 - No social features: no friends, no followers, no activity feed.
-- No Selfboxd logo and no Letterboxd logo, icons or buttons.
+- The only logo is the Selfboxd logo in `src/lib/assets`. Never use a Letterboxd logo, icon or
+  button.
 - Every change ships with tests. End-to-end tests are the most important part of the project.
 
 ## Stack

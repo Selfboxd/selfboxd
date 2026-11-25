@@ -1,11 +1,12 @@
 <script lang="ts">
+	import SiteLogo from '#lib/components/SiteLogo.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
 </script>
 
 <main>
-	<p class="wordmark">Selfboxd</p>
+	<p class="wordmark"><SiteLogo size="large" /></p>
 	{@render children()}
 </main>
 
@@ -20,9 +21,5 @@
 
 	.wordmark {
 		margin-bottom: var(--space-8);
-		color: var(--color-heading);
-		font-size: var(--font-size-title);
-		font-weight: 700;
-		letter-spacing: -0.02em;
 	}
 </style>

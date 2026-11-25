@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/lib/assets/logo.svg" alt="" width="128" height="128" />
+</p>
+
 <h1 align="center">Selfboxd</h1>
 
 <p align="center">
