@@ -81,10 +81,10 @@ test.describe('poster quick actions', () => {
 	});
 
 	test('adds a film to a list from the menu', async ({ page }) => {
-		await page.goto('/lists/new');
+		await page.goto('/profile/lists/new');
 		await page.getByLabel('Name', { exact: true }).fill('From posters');
 		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
-		await expect(page).toHaveURL(/\/lists\/\d+$/);
+		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
 		const listPath = new URL(page.url()).pathname;
 		await page.goto('/films');
 

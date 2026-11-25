@@ -53,8 +53,8 @@ test.describe('interface', () => {
 			'/activity',
 			'/diary',
 			'/journal',
-			'/lists',
-			'/lists/new'
+			'/profile/lists',
+			'/profile/lists/new'
 		]) {
 			await page.goto(path);
 			await page.waitForLoadState('networkidle');

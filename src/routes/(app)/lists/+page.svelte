@@ -1,116 +1,144 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
-	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
+	import FormError from '#lib/components/FormError.svelte';
+	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const id = $props.id();
 </script>
 
 <svelte:head>
-	<title>{m.lists_title()} - Selfboxd</title>
+	<title>{m.nav_lists()} - Selfboxd</title>
 </svelte:head>
 
-<ProfileNav />
-
-<header class="head">
-	<h1 class="section-title">{m.lists_title()}</h1>
-	<a class="button button-primary" href={resolve('/(app)/lists/new')}>{m.lists_new()}</a>
+<header class="hero">
+	<h1>{m.catalogue_lists_hero()}</h1>
+	<a class="button button-secondary" href={resolve('/(app)/profile/lists/new')}>
+		{m.catalogue_lists_start()}
+	</a>
 </header>
 
-{#if data.lists.length === 0}
-	<p>{m.lists_empty()}</p>
+{#if data.state === 'not_configured'}
+	<p class="form-message notice" role="status">
+		{data.user?.isAdmin ? m.mdblist_not_configured_admin() : m.mdblist_not_configured_user()}
+		{#if data.user?.isAdmin}
+			<a href={resolve('/(app)/settings/instance')}>{m.tmdb_open_settings()}</a>
+		{/if}
+	</p>
 {:else}
-	<ul>
-		{#each data.lists as list (list.id)}
-			<li>
-				<a class="stack" href={resolve('/(app)/lists/[id]', { id: String(list.id) })} tabindex="-1">
-					{#each list.preview as work (work.id)}
-						<FilmPoster film={{ ...work, id: work.externalId }} size="small" linked={false} />
-					{/each}
-				</a>
-				<div class="text">
-					<h2>
-						<a href={resolve('/(app)/lists/[id]', { id: String(list.id) })}>{list.name}</a>
-					</h2>
-					<p class="count">{m.list_count({ count: list.count })}</p>
-					{#if list.description}<p class="description">{list.description}</p>{/if}
-				</div>
-			</li>
-		{/each}
-	</ul>
+	<section>
+		<h2 class="section-title split-title">
+			<span>
+				{data.query
+					? m.catalogue_lists_matches({ query: data.query })
+					: m.catalogue_lists_popular()}
+			</span>
+			<form class="find" method="GET" role="search">
+				<label for="{id}-find">{m.catalogue_lists_find()}</label>
+				<input id="{id}-find" type="search" name="q" value={data.query} autocomplete="off" />
+			</form>
+		</h2>
+
+		{#if data.state === 'error'}
+			<FormError
+				message={data.error === 'unauthorized'
+					? m.error_mdblist_key_invalid()
+					: m.catalogue_lists_unavailable()}
+			/>
+		{:else if data.lists.length === 0}
+			<p>{m.catalogue_lists_empty()}</p>
+		{:else}
+			<div class="grid">
+				{#each data.lists as list (list.id)}
+					<PublicListCard {list} />
+				{/each}
+			</div>
+		{/if}
+	</section>
+	<p class="credit">{m.catalogue_lists_credit()}</p>
 {/if}
 
 <style>
-	.head {
+	.hero {
 		display: flex;
+		flex-direction: column;
 		gap: var(--space-4);
-		align-items: flex-start;
-	}
-
-	.head h1 {
-		flex: 1;
-	}
-
-	ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	li {
-		display: flex;
-		gap: var(--space-6);
 		align-items: center;
-		padding: var(--space-4) 0;
-		border-bottom: 1px solid var(--color-border-subtle);
+		margin: var(--space-4) 0 var(--space-12);
+		text-align: center;
 	}
 
-	.stack {
+	h1 {
+		max-width: 40rem;
+		color: var(--color-text);
+		font-size: var(--font-size-title);
+		font-style: italic;
+		line-height: 1.3;
+	}
+
+	.notice {
+		background: var(--color-panel);
+		color: var(--color-text-strong);
+	}
+
+	.notice a {
+		margin-inline-start: var(--space-2);
+		text-decoration: underline;
+	}
+
+	.split-title {
 		display: flex;
-		flex-shrink: 0;
-		width: var(--list-stack-width);
-		min-height: var(--list-stack-height);
-		border-radius: var(--radius-medium);
-		background: var(--color-chip);
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		align-items: baseline;
+		justify-content: space-between;
 	}
 
-	.stack :global(.poster) {
-		flex-shrink: 0;
-		box-shadow: var(--shadow-poster-stack);
+	.find {
+		display: flex;
+		gap: var(--space-2);
+		align-items: baseline;
 	}
 
-	.stack :global(.poster + .poster) {
-		margin-inline-start: calc(-1 * var(--list-stack-overlap));
-	}
-
-	h2 {
-		font-family: var(--font-body);
-		font-size: var(--font-size-large);
-		font-weight: 700;
-	}
-
-	h2 a {
-		color: var(--color-heading);
-	}
-
-	h2 a:hover {
-		color: var(--color-link-hover);
-	}
-
-	.count {
-		color: var(--color-text-muted);
+	.find input {
+		width: 12rem;
+		padding: var(--space-1) var(--space-2);
+		border: 0;
+		border-radius: var(--radius-small);
+		background: var(--color-input);
+		box-shadow: var(--shadow-input);
+		color: var(--color-input-text);
+		font: inherit;
 		font-size: var(--font-size-control);
+		letter-spacing: 0;
+		text-transform: none;
 	}
 
-	.description {
-		display: -webkit-box;
-		overflow: hidden;
-		margin-top: var(--space-2);
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		white-space: pre-line;
+	.find input:focus {
+		background: var(--color-input-focus);
+		box-shadow: none;
+		color: var(--color-input-focus-text);
+		outline: none;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-8) var(--space-6);
+	}
+
+	.credit {
+		margin-top: var(--space-12);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
+	}
+
+	@media (max-width: 48rem) {
+		.grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 </style>

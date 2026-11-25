@@ -201,19 +201,22 @@
 		{#if data.lists.length > 0}
 			<section>
 				<h2 class="section-title split-title">
-					<a href={resolve('/(app)/lists')}>{m.profile_recent_lists()}</a>
-					<a href={resolve('/(app)/lists')}>{String(data.stats.lists)}</a>
+					<a href={resolve('/(app)/profile/lists')}>{m.profile_recent_lists()}</a>
+					<a href={resolve('/(app)/profile/lists')}>{String(data.stats.lists)}</a>
 				</h2>
 				<ul class="lists">
 					{#each data.lists as list (list.id)}
 						<li>
-							<a class="stack" href={resolve('/(app)/lists/[id]', { id: String(list.id) })}>
+							<a class="stack" href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>
 								{#each list.preview as work (work.id)}
 									<FilmPoster film={{ ...work, id: work.externalId }} size="small" linked={false} />
 								{/each}
 							</a>
 							<p>
-								<a class="list-name" href={resolve('/(app)/lists/[id]', { id: String(list.id) })}>
+								<a
+									class="list-name"
+									href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
+								>
 									{list.name}
 								</a>
 								<span>{m.list_count({ count: list.count })}</span>

@@ -11,6 +11,6 @@ export const actions: Actions = {
 		const parsed = parseListForm(await request.formData());
 		if (!parsed.ok) return fail(400, { error: parsed.error });
 		const id = createList(getDatabase(), user.id, parsed.value);
-		redirect(303, `/lists/${String(id)}`);
+		redirect(303, `/profile/lists/${String(id)}`);
 	}
 };
