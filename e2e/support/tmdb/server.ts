@@ -50,6 +50,66 @@ const summaries = [bladeRunner, sequel].map((entry: Record<string, unknown>) => 
 	backdrop_path: entry.backdrop_path
 }));
 
+const credit = (entry: Record<string, unknown>, extra: Record<string, unknown>) => ({
+	...entry,
+	vote_count: 10,
+	vote_average: 7.5,
+	genre_ids: [878],
+	...extra
+});
+
+/** A director credited on both films and both series, with a talk show left out of pages. */
+const ridley = {
+	id: 578,
+	name: 'Ridley Scott',
+	biography: 'An English film director.\n\nHe made Alien and Blade Runner.',
+	birthday: '1937-11-30',
+	deathday: null,
+	place_of_birth: 'South Shields, England',
+	profile_path: null,
+	known_for_department: 'Directing',
+	combined_credits: {
+		cast: [
+			credit(seriesSummaries[1] ?? {}, {
+				media_type: 'tv',
+				character: 'Narrator',
+				genre_ids: [18]
+			}),
+			credit(
+				{ id: 9900, name: 'Late Night Talk', first_air_date: '2010-01-01', poster_path: null },
+				{ media_type: 'tv', character: 'Self', genre_ids: [10767] }
+			)
+		],
+		crew: [
+			credit(summaries[0] ?? {}, { media_type: 'movie', job: 'Director', vote_count: 30 }),
+			credit(summaries[1] ?? {}, { media_type: 'movie', job: 'Director', vote_count: 50 }),
+			credit(summaries[1] ?? {}, { media_type: 'movie', job: 'Producer' }),
+			credit(seriesSummaries[0] ?? {}, { media_type: 'tv', job: 'Executive Producer' }),
+			credit(summaries[0] ?? {}, { media_type: 'movie', job: 'Thanks' })
+		]
+	}
+};
+
+const companies: Record<string, Record<string, unknown>> = {
+	'/3/company/174': { id: 174, name: 'Warner Bros. Pictures', origin_country: 'US' },
+	'/3/network/49': { id: 49, name: 'Night Channel', origin_country: 'GB' }
+};
+
+/** People found by a search, only for queries of three letters or more. */
+function people(query: string) {
+	return query.length >= 3 && 'ridley scott'.includes(query)
+		? [
+				{
+					id: 578,
+					name: 'Ridley Scott',
+					profile_path: null,
+					known_for_department: 'Directing',
+					known_for: [{ title: 'Blade Runner' }, { title: 'Blade Runner 2049' }]
+				}
+			]
+		: [];
+}
+
 /** Number of requests received for each path. */
 const requestCounts = new Map<string, number>();
 
@@ -184,6 +244,13 @@ const server = createServer((request, response) => {
 	} else if (tv) {
 		const found = [neonPrecinct, harbour].find((entry) => entry.id === Number(tv[1]));
 		send(response, found ? 200 : 404, found ?? { status_code: 34 });
+	} else if (url.pathname === '/3/person/578') {
+		send(response, 200, {
+			...ridley,
+			biography: language.startsWith('en') ? ridley.biography : ''
+		});
+	} else if (companies[url.pathname]) {
+		send(response, 200, companies[url.pathname]);
 	} else if (url.pathname === '/3/trending/tv/week') {
 		send(response, 200, { page: 1, results: seriesSummaries });
 	} else if (url.pathname === '/3/genre/tv/list') {
@@ -195,7 +262,8 @@ const server = createServer((request, response) => {
 		});
 	} else if (url.pathname === '/3/discover/tv') {
 		const genre = url.searchParams.get('with_genres');
-		const results = genre === '80' ? seriesSummaries.slice(0, 1) : seriesSummaries;
+		const narrowed = genre === '80' || url.searchParams.has('with_companies');
+		const results = narrowed ? seriesSummaries.slice(0, 1) : seriesSummaries;
 		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else if (url.pathname === '/3/search/multi') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
@@ -212,11 +280,14 @@ const server = createServer((request, response) => {
 			...seriesSummaries
 				.filter((entry) => String(entry.name).toLowerCase().includes(query))
 				.map((entry) => ({ ...entry, media_type: 'tv' })),
-			{ id: 501, name: 'Ada Rivers', media_type: 'person' },
+			...people(query).map((entry) => ({ ...entry, media_type: 'person' })),
 			...summaries
 				.filter((entry) => String(entry.title).toLowerCase().includes(query))
 				.map((entry) => ({ ...entry, media_type: 'movie' }))
 		];
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
+	} else if (url.pathname === '/3/search/person') {
+		const results = people((url.searchParams.get('query') ?? '').toLowerCase());
 		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else if (url.pathname === '/3/search/tv') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
@@ -244,6 +315,7 @@ const server = createServer((request, response) => {
 			const released = String(entry.release_date);
 			if (genre !== null && (genre !== '878' || entry.id === future.id)) return false;
 			if (year !== null && !released.startsWith(year)) return false;
+			if (url.searchParams.has('with_companies') && entry.id !== 78) return false;
 			return released >= from && released <= `${until}~`;
 		});
 		const ordered =

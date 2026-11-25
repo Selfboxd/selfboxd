@@ -9,8 +9,11 @@ import { browsePageMax, type BrowseFilter, type Genre } from '../../catalog/brow
 import { discoverParams } from './browse';
 import type { Series, SeriesSummary } from '../../catalog/series';
 import type { WorkKind } from '../../catalog/library';
-import type { WorkSearch, WorkSearchResult } from '../../catalog/search';
+import type { SearchResult, WorkSearch, WorkSearchResult } from '../../catalog/search';
 import { toSeries, toSeriesSummary } from './series';
+import type { PersonDetails } from '../../catalog/person';
+import type { CompanyKind, Studio } from '../../catalog/studio';
+import { toPerson, toStudio } from './person';
 import {
 	collectionSchema,
 	filmDetailsSchema,
@@ -21,7 +24,9 @@ import {
 	seriesDetailsSchema,
 	seriesListSchema,
 	seriesPageSchema,
-	multiSearchSchema
+	multiSearchSchema,
+	personSchema,
+	companySchema
 } from './schemas';
 
 export interface TmdbContext {
@@ -41,7 +46,8 @@ const lifetimes = {
 	collection: 7 * 24 * hour,
 	search: hour,
 	popular: 6 * hour,
-	genres: 7 * 24 * hour
+	genres: 7 * 24 * hour,
+	company: 7 * 24 * hour
 };
 
 /** Parts appended to the details of a film or a series; also part of their cache keys. */
@@ -49,6 +55,9 @@ const filmAppendix = 'credits,videos,release_dates,watch/providers,alternative_t
 const seriesAppendix = 'credits,videos,watch/providers,alternative_titles';
 
 export const searchQueryMaxLength = 100;
+
+/** Language of the texts used when TMDB has none in the language of the user. */
+const fallbackLanguage = 'en-US';
 
 /** Fetches a TMDB resource through the local cache and validates its shape. */
 async function load<TSchema extends v.GenericSchema>(
@@ -204,13 +213,27 @@ export interface FilmPage {
 	total: number;
 }
 
+/** Narrows a browse to the works of a production company or of a television network. */
+export interface BrowseScope {
+	studio?: number;
+	network?: number;
+}
+
+function scopeParams(scope: BrowseScope): Record<string, string> {
+	const params: Record<string, string> = {};
+	if (scope.studio !== undefined) params.with_companies = String(scope.studio);
+	if (scope.network !== undefined) params.with_networks = String(scope.network);
+	return params;
+}
+
 /** Returns one page of the films matching a browse filter. */
 export async function browseFilms(
 	context: TmdbContext,
 	filter: BrowseFilter,
-	language: string
+	language: string,
+	scope: BrowseScope = {}
 ): Promise<Loaded<FilmPage>> {
-	const params = { language, ...discoverParams(filter) };
+	const params = { language, ...discoverParams(filter), ...scopeParams(scope) };
 	const key = Object.entries(params)
 		.map(([name, value]) => `${name}=${value}`)
 		.join('&');
@@ -323,9 +346,14 @@ export async function getSeriesGenres(
 export async function browseSeries(
 	context: TmdbContext,
 	filter: BrowseFilter,
-	language: string
+	language: string,
+	scope: BrowseScope = {}
 ): Promise<Loaded<FilmPage>> {
-	const params = { language, ...discoverParams(filter, new Date(), 'series') };
+	const params = {
+		language,
+		...discoverParams(filter, new Date(), 'series'),
+		...scopeParams(scope)
+	};
 	const key = Object.entries(params)
 		.map(([name, value]) => `${name}=${value}`)
 		.join('&');
@@ -368,14 +396,30 @@ async function searchDetails(
 		: { people: [], alternativeTitles: [] };
 }
 
-/** What a search covers: films and series together, or one kind. */
-export type SearchScope = 'all' | WorkKind;
+/** What a search covers: films, series and people together, one kind of work, or people. */
+export type SearchScope = 'all' | WorkKind | 'person';
+
+const searchPaths: Record<Exclude<SearchScope, 'film'>, string> = {
+	all: '/search/multi',
+	series: '/search/tv',
+	person: '/search/person'
+};
+
+const searchTypes: Record<Exclude<SearchScope, 'film'>, string | null> = {
+	all: null,
+	series: 'tv',
+	person: 'person'
+};
+
+/** A search result before the details of its work are loaded. */
+type SearchEntry =
+	Exclude<SearchResult, WorkSearchResult> | Omit<WorkSearchResult, 'people' | 'alternativeTitles'>;
 
 const emptySearch: WorkSearch = { results: [], total: 0, page: 1, totalPages: 0 };
 
 /**
- * Returns one page of the films and series matching the query, most relevant first,
- * each with its directors or creators and its other titles.
+ * Returns one page of the films, series and people matching the query, most relevant first,
+ * each work with its directors or creators and its other titles.
  */
 export async function searchWorks(
 	context: TmdbContext,
@@ -404,19 +448,33 @@ export async function searchWorks(
 		};
 	}
 
-	const multi = scope === 'all';
 	const result = await load(
 		context,
-		`search:${multi ? 'multi' : 'tv'}:${language}:${String(page)}:${query.toLowerCase()}`,
+		`search:${scope}:${language}:${String(page)}:${query.toLowerCase()}`,
 		lifetimes.search,
 		multiSearchSchema,
-		multi ? '/search/multi' : '/search/tv',
+		searchPaths[scope],
 		{ language, query, page: String(page), include_adult: 'false' }
 	);
 	if (!result.ok) return result;
 
-	const works = result.value.results.flatMap((entry) => {
-		const type = multi ? entry.media_type : 'tv';
+	const found = result.value.results.flatMap((entry): SearchEntry[] => {
+		const type = searchTypes[scope] ?? entry.media_type;
+		if (type === 'person') {
+			return [
+				{
+					kind: 'person',
+					id: entry.id,
+					name: entry.name ?? '',
+					profilePath: entry.profile_path ?? null,
+					department: entry.known_for_department ?? '',
+					knownFor: entry.known_for.flatMap((work) => {
+						const title = work.title ?? work.name;
+						return title ? [title] : [];
+					})
+				}
+			];
+		}
 		if (type !== 'movie' && type !== 'tv') return [];
 		const kind: WorkKind = type === 'tv' ? 'series' : 'film';
 		const title = (kind === 'film' ? entry.title : entry.name) ?? '';
@@ -432,10 +490,11 @@ export async function searchWorks(
 		];
 	});
 	const results = await Promise.all(
-		works.map(async (work) => ({
-			...work,
-			...(await searchDetails(context, work.kind, work.id, language))
-		}))
+		found.map(async (entry): Promise<SearchResult> =>
+			entry.kind === 'person'
+				? entry
+				: { ...entry, ...(await searchDetails(context, entry.kind, entry.id, language)) }
+		)
 	);
 	return {
 		ok: true,
@@ -446,4 +505,54 @@ export async function searchWorks(
 			totalPages: Math.min(result.value.total_pages, searchPageMax)
 		}
 	};
+}
+
+/** Returns a person with the films and series they are credited on. */
+export async function getPerson(
+	context: TmdbContext,
+	id: number,
+	language: string
+): Promise<Loaded<PersonDetails>> {
+	const path = `/person/${String(id)}`;
+	const result = await load(
+		context,
+		`person:${String(id)}:${language}:combined_credits`,
+		lifetimes.film,
+		personSchema,
+		path,
+		{ language, append_to_response: 'combined_credits' }
+	);
+	if (!result.ok) return result;
+	const person = toPerson(result.value);
+	if (person.biography || language === fallbackLanguage) return { ok: true, value: person };
+	const fallback = await load(
+		context,
+		`person:${String(id)}:${fallbackLanguage}`,
+		lifetimes.film,
+		personSchema,
+		path,
+		{ language: fallbackLanguage }
+	);
+	return {
+		ok: true,
+		value: fallback.ok ? { ...person, biography: toPerson(fallback.value).biography } : person
+	};
+}
+
+/** Returns a production company or a television network. */
+export async function getStudio(
+	context: TmdbContext,
+	kind: CompanyKind,
+	id: number
+): Promise<Loaded<Studio>> {
+	const path = kind === 'studio' ? 'company' : 'network';
+	const result = await load(
+		context,
+		`${path}:${String(id)}`,
+		lifetimes.company,
+		companySchema,
+		`/${path}/${String(id)}`,
+		{}
+	);
+	return result.ok ? { ok: true, value: toStudio(result.value) } : result;
 }

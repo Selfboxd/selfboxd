@@ -4,11 +4,22 @@ import { getDatabase } from '../db/index';
 import { parseBrowseFilter } from '../tmdb/browse';
 import { getTmdbContext } from '../tmdb/index';
 import { requestLanguage } from '../tmdb/page';
-import { browseFilms, browseSeries, getGenres, getSeriesGenres } from '../tmdb/service';
+import {
+	browseFilms,
+	browseSeries,
+	getGenres,
+	getSeriesGenres,
+	type BrowseScope
+} from '../tmdb/service';
 import { listMarks, markKey } from './marks';
 
 /** Loads one page of the films or series matching the query string of the browse page. */
-export async function loadBrowse(kind: WorkKind, userId: number, params: URLSearchParams) {
+export async function loadBrowse(
+	kind: WorkKind,
+	userId: number,
+	params: URLSearchParams,
+	scope: BrowseScope = {}
+) {
 	const context = getTmdbContext();
 	if (!context) return { state: 'not_configured' as const };
 
@@ -21,7 +32,12 @@ export async function loadBrowse(kind: WorkKind, userId: number, params: URLSear
 		genre: known.some((genre) => genre.id === parsed.genre) ? parsed.genre : null
 	};
 	const visibility = listVisibilities.find((name) => name === params.get('show')) ?? 'all';
-	const result = await (kind === 'series' ? browseSeries : browseFilms)(context, filter, language);
+	const result = await (kind === 'series' ? browseSeries : browseFilms)(
+		context,
+		filter,
+		language,
+		scope
+	);
 	if (!result.ok) return { state: 'error' as const, error: result.error };
 
 	const marks = listMarks(getDatabase(), userId);

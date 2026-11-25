@@ -197,7 +197,56 @@ export const multiSearchSchema = v.object({
 			original_name: optionalText,
 			release_date: optionalText,
 			first_air_date: optionalText,
-			poster_path: optionalText
+			poster_path: optionalText,
+			profile_path: optionalText,
+			known_for_department: optionalText,
+			known_for: v.optional(v.array(v.object({ title: optionalText, name: optionalText })), [])
 		})
 	)
 });
+
+const personCredit = {
+	id: v.number(),
+	media_type: v.optional(v.string(), ''),
+	title: optionalText,
+	name: optionalText,
+	release_date: optionalText,
+	first_air_date: optionalText,
+	poster_path: optionalText,
+	vote_average: v.optional(v.number(), 0),
+	vote_count: v.optional(v.number(), 0),
+	genre_ids: v.optional(v.array(v.number()), []),
+	episode_count: v.nullish(v.number())
+};
+
+export const personSchema = v.object({
+	id: v.number(),
+	name: v.string(),
+	biography: optionalText,
+	birthday: optionalText,
+	deathday: optionalText,
+	place_of_birth: optionalText,
+	profile_path: optionalText,
+	known_for_department: optionalText,
+	combined_credits: v.optional(
+		v.object({
+			cast: v.optional(v.array(v.object({ ...personCredit, character: optionalText })), []),
+			crew: v.optional(v.array(v.object({ ...personCredit, job: v.string() })), [])
+		}),
+		{ cast: [], crew: [] }
+	)
+});
+
+export type RawPerson = v.InferOutput<typeof personSchema>;
+
+export const companySchema = v.object({
+	id: v.number(),
+	name: v.string(),
+	description: optionalText,
+	headquarters: optionalText,
+	homepage: optionalText,
+	logo_path: optionalText,
+	origin_country: optionalText
+});
+
+export type RawCompany = v.InferOutput<typeof companySchema>;

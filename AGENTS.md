@@ -161,8 +161,13 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   `FilterMenus.svelte`; the page draws each link with `resolve`.
 - The interface has no native `select`: use `Select.svelte`, a listbox that sends its value with a
   hidden input.
-- The main search covers films and series together by default (`searchWorks`), and shows the
-  directors or creators and the other titles of each result.
+- The main search covers films, series and people together by default (`searchWorks`), and shows
+  the directors or creators and the other titles of each work.
+- Every name of a person, studio or network on a film or series page links to its page:
+  `/person/[id]`, `/studio/[id]` and `/network/[id]`. A person page has one tab per role
+  (`personRoles` of `src/lib/catalog/person.ts`, mapped from TMDB jobs by `jobRoles`) and opens on
+  the role of the person's department. Studio and network pages reuse `CatalogueBrowse` with a
+  `BrowseScope` that narrows the TMDB discover request.
 - The catalogue has no search of its own. Everything is found from the search of the header.
 - Works are films or series (`WorkKind`). Links to a work go through `workRoute(kind)` of
   `src/lib/paths.ts`, given to `resolve`. A series summary uses `title` for its name, so posters

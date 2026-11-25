@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { Snippet } from 'svelte';
+	import type { BrowseTarget } from './browse-target.js';
 	import {
 		browseQuery,
 		browseDecades,
@@ -19,6 +21,13 @@
 
 	interface Props {
 		kind: WorkKind;
+		target?: BrowseTarget;
+		/** Heading of the page; the kind of works by default. */
+		title?: string;
+		/** Small line above the heading. */
+		kicker?: string;
+		/** Shown between the heading and the works. */
+		children?: Snippet;
 		genres: Genre[];
 		filter: BrowseFilter;
 		visibility: ListVisibility;
@@ -29,10 +38,31 @@
 		total: number;
 	}
 
-	let { kind, genres, filter, visibility, works, page, totalPages, total }: Props = $props();
+	let {
+		kind,
+		target = { page: 'browse' },
+		title: heading,
+		kicker,
+		children,
+		genres,
+		filter,
+		visibility,
+		works,
+		page,
+		totalPages,
+		total
+	}: Props = $props();
 
-	const path = $derived(resolve(browseRoute(kind)));
-	const title = $derived(kind === 'series' ? m.nav_series() : m.nav_films());
+	const path = $derived(
+		target.page === 'studio'
+			? resolve('/(app)/studio/[id]', { id: String(target.id) })
+			: target.page === 'network'
+				? resolve('/(app)/network/[id]', { id: String(target.id) })
+				: resolve(browseRoute(kind))
+	);
+	const title = $derived(heading ?? (kind === 'series' ? m.nav_series() : m.nav_films()));
+	/** Query kept on every link, choosing the series of a studio. */
+	const fixed = $derived(target.page === 'studio' && kind === 'series' ? 'kind=series' : '');
 	const decade = $derived(filter.year === null ? filter.decade : Math.floor(filter.year / 10) * 10);
 	const firstDecade = browseDecades().at(-1) ?? 0;
 	const lastDecade = browseDecades()[0] ?? 0;
@@ -55,7 +85,8 @@
 	type Change = Partial<BrowseFilter> & { show?: ListVisibility };
 
 	function query(change: Change): string {
-		return browseQuery({ ...filter, show: visibility, ...change, page: change.page ?? 1 });
+		const rest = browseQuery({ ...filter, show: visibility, ...change, page: change.page ?? 1 });
+		return [fixed, rest].filter(Boolean).join('&');
 	}
 
 	function entry(label: string, change: Change, current: boolean): FilterEntry {
@@ -125,7 +156,10 @@
 </script>
 
 <header class="head">
-	<h1>{title}</h1>
+	<h1 class:named={kicker !== undefined}>
+		{#if kicker}<span class="kicker">{kicker}</span>{/if}
+		{title}
+	</h1>
 	<FilterMenus {menus}>
 		{#snippet link(item: FilterEntry)}
 			<a
@@ -181,6 +215,8 @@
 	</nav>
 {/if}
 
+{@render children?.()}
+
 <p class="count">{count}</p>
 
 {#if works.length === 0}
@@ -227,6 +263,26 @@
 		font-weight: 400;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
+	}
+
+	h1.named {
+		color: var(--color-heading);
+		font-family: var(--font-display);
+		font-size: var(--font-size-title);
+		font-weight: 700;
+		letter-spacing: normal;
+		line-height: 1.1;
+		text-transform: none;
+	}
+
+	.kicker {
+		display: block;
+		font-family: var(--font-body);
+		font-weight: 400;
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+		color: var(--color-text);
+		font-size: var(--font-size-small);
 	}
 
 	.years {

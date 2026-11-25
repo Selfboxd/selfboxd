@@ -1,15 +1,16 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { formatDate } from '#lib/i18n/dates.js';
 	import { countryName, languageName } from '#lib/i18n/names.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import { releaseTypes, type Film, type ReleaseType } from '#lib/catalog/film.js';
+	import { releaseTypes, type Company, type Film, type ReleaseType } from '#lib/catalog/film.js';
 
 	interface Props {
 		/** The film or series whose details are shown; a series has networks and no releases. */
 		film: Pick<
 			Film,
 			'cast' | 'crew' | 'genres' | 'studios' | 'countries' | 'originalLanguage' | 'spokenLanguages'
-		> & { releases?: Film['releases']; networks?: string[] };
+		> & { releases?: Film['releases']; networks?: Company[] };
 	}
 
 	let { film }: Props = $props();
@@ -47,8 +48,6 @@
 
 	const details = $derived(
 		[
-			{ label: m.series_networks(), values: film.networks ?? [] },
-			{ label: m.film_studios(), values: film.studios },
 			{ label: m.film_countries(), values: film.countries.map(countryName) },
 			{ label: m.film_original_language(), values: [languageName(film.originalLanguage)] },
 			{ label: m.film_spoken_languages(), values: film.spokenLanguages.map(languageName) }
@@ -83,7 +82,9 @@
 	{#if active === 'cast'}
 		<ul class="chips">
 			{#each visibleCast as member (member.id)}
-				<li title={member.character}>{member.name}</li>
+				<li title={member.character}>
+					<a href={resolve('/(app)/person/[id]', { id: String(member.id) })}>{member.name}</a>
+				</li>
 			{/each}
 			{#if film.cast.length > castPreview && !castExpanded}
 				<li class="more">
@@ -97,13 +98,43 @@
 				<dt>{group.job}</dt>
 				<dd>
 					<ul class="chips">
-						{#each group.people as person (person.id)}<li>{person.name}</li>{/each}
+						{#each group.people as person (person.id)}
+							<li>
+								<a href={resolve('/(app)/person/[id]', { id: String(person.id) })}>{person.name}</a>
+							</li>
+						{/each}
 					</ul>
 				</dd>
 			{/each}
 		</dl>
 	{:else if active === 'details'}
 		<dl>
+			{#if (film.networks ?? []).length > 0}
+				<dt>{m.series_networks()}</dt>
+				<dd>
+					<ul class="chips">
+						{#each film.networks ?? [] as network (network.id)}
+							<li>
+								<a href={resolve('/(app)/network/[id]', { id: String(network.id) })}>
+									{network.name}
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</dd>
+			{/if}
+			{#if film.studios.length > 0}
+				<dt>{m.film_studios()}</dt>
+				<dd>
+					<ul class="chips">
+						{#each film.studios as studio (studio.id)}
+							<li>
+								<a href={resolve('/(app)/studio/[id]', { id: String(studio.id) })}>{studio.name}</a>
+							</li>
+						{/each}
+					</ul>
+				</dd>
+			{/if}
 			{#each details as row (row.label)}
 				<dt>{row.label}</dt>
 				<dd>
@@ -185,8 +216,21 @@
 		line-height: 1.4;
 	}
 
-	.chips .more {
+	.chips .more,
+	.chips li:has(> a) {
 		padding: 0;
+	}
+
+	.chips a {
+		display: block;
+		padding: var(--space-1) var(--space-2);
+		border-radius: var(--radius-small);
+		color: inherit;
+	}
+
+	.chips a:hover {
+		background: var(--color-chip-hover);
+		color: var(--color-text-strong);
 	}
 
 	.more button {

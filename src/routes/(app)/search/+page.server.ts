@@ -19,6 +19,7 @@ function parsePage(value: string | null): number {
 function parseScope(value: string | null): SearchScope {
 	if (value === 'films') return 'film';
 	if (value === 'series') return 'series';
+	if (value === 'people') return 'person';
 	return 'all';
 }
 
