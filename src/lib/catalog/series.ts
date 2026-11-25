@@ -1,4 +1,4 @@
-import type { CastMember, CrewGroup, FilmSummary, Person, WatchProviders } from './film';
+import type { CastMember, Company, CrewGroup, FilmSummary, Person, WatchProviders } from './film';
 
 /** A series as listed among others; its name is given as `title`, like a film. */
 export type SeriesSummary = FilmSummary;
@@ -23,8 +23,8 @@ export interface Series extends SeriesSummary {
 	crew: CrewGroup[];
 	genres: string[];
 	/** Channels or platforms that first aired the series. */
-	networks: string[];
-	studios: string[];
+	networks: Company[];
+	studios: Company[];
 	/** ISO 3166-1 codes of the countries of origin. */
 	countries: string[];
 	/** ISO 639-1 code of the original language. */

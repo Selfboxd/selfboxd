@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { DiaryEntry } from '#lib/catalog/library.js';
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
@@ -62,7 +63,11 @@
 						<span class="directed">
 							{m.film_directed_by()}
 							<span class="directors">
-								{film.directors.map((person) => person.name).join(', ')}
+								{#each film.directors as person, index (person.id)}{#if index > 0}<span class="sep">
+											,
+										</span>{/if}<a href={resolve('/(app)/person/[id]', { id: String(person.id) })}>
+										{person.name}
+									</a>{/each}
 							</span>
 						</span>
 					{/if}
@@ -228,6 +233,18 @@
 
 	.directors {
 		color: var(--color-text-strong);
+	}
+
+	.sep {
+		margin-inline-end: 0.25em;
+	}
+
+	.byline a {
+		color: inherit;
+	}
+
+	.byline a:hover {
+		color: var(--color-heading);
 	}
 
 	.original {

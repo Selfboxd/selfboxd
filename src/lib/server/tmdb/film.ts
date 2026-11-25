@@ -126,7 +126,7 @@ export function toFilm(raw: RawFilmDetails, region: string): Film {
 		})),
 		crew: groupCrew(raw.credits.crew),
 		genres: raw.genres.map((genre) => genre.name),
-		studios: raw.production_companies.map((company) => company.name),
+		studios: raw.production_companies.map(({ id, name }) => ({ id, name })),
 		countries: raw.production_countries.map((country) => country.iso_3166_1),
 		originalLanguage: raw.original_language,
 		spokenLanguages: raw.spoken_languages.map((language) => language.iso_639_1),

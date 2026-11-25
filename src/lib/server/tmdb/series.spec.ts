@@ -19,7 +19,7 @@ describe('toSeries', () => {
 			title: 'Neon Precinct',
 			year: 2019,
 			creators: [{ id: 501, name: 'Ada Rivers' }],
-			networks: ['Night Channel'],
+			networks: [{ id: 49, name: 'Night Channel' }],
 			seasonCount: 2,
 			episodeCount: 18,
 			trailerKey: 'neonprecinct'

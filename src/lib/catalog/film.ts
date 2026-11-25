@@ -16,6 +16,12 @@ export interface Person {
 	name: string;
 }
 
+/** A production company or a television network. */
+export interface Company {
+	id: number;
+	name: string;
+}
+
 export interface CastMember extends Person {
 	character: string;
 }
@@ -71,7 +77,7 @@ export interface Film extends FilmSummary {
 	cast: CastMember[];
 	crew: CrewGroup[];
 	genres: string[];
-	studios: string[];
+	studios: Company[];
 	/** ISO 3166-1 codes of the production countries. */
 	countries: string[];
 	/** ISO 639-1 code of the original language. */

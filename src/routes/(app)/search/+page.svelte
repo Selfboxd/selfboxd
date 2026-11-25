@@ -6,17 +6,21 @@
 	import { workRoute } from '#lib/paths.js';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
+	import { roleName } from '#lib/i18n/person.js';
+	import { departmentRole } from '#lib/catalog/person.js';
+	import { tmdbImage } from '#lib/images.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	type Section = 'all' | 'films' | 'series' | 'lists';
+	type Section = 'all' | 'films' | 'series' | 'people' | 'lists';
 
 	const section = $derived.by((): Section => {
 		if (data.state === 'lists' || data.state === 'lists_error') return 'lists';
 		if (data.state !== 'ready') return 'all';
-		return data.scope === 'film' ? 'films' : data.scope === 'series' ? 'series' : 'all';
+		const sections = { all: 'all', film: 'films', series: 'series', person: 'people' } as const;
+		return sections[data.scope];
 	});
 
 	function sectionQuery(target: Section, page = 1): string {
@@ -29,6 +33,7 @@
 		{ id: 'all' as const, label: m.search_section_all() },
 		{ id: 'films' as const, label: m.search_section_films() },
 		{ id: 'series' as const, label: m.search_section_series() },
+		{ id: 'people' as const, label: m.search_section_people() },
 		...(data.hasLists ? [{ id: 'lists' as const, label: m.search_section_lists() }] : [])
 	]);
 </script>
@@ -64,34 +69,60 @@
 			{:else}
 				<ul class="results">
 					{#each data.results as result (`${result.kind}:${String(result.id)}`)}
-						<li>
-							<FilmPoster film={result} size="small" />
-							<div class="details">
-								<h2>
-									<a href={resolve(workRoute(result.kind), { id: String(result.id) })}>
-										{result.title}
-									</a>
-									{#if result.year}<span class="year">{result.year}</span>{/if}
-								</h2>
-								{#if result.originalTitle !== result.title}
-									<p class="meta">{m.film_original_title()}: {result.originalTitle}</p>
-								{/if}
-								{#if result.alternativeTitles.length > 0}
-									<p class="meta alternative">
-										{m.search_alternative_titles()}
-										{result.alternativeTitles.join(', ')}
-									</p>
-								{/if}
-								{#if result.people.length > 0}
-									<p class="meta directed">
-										{result.kind === 'series' ? m.series_created_by() : m.film_directed_by()}
-										{#each result.people as person (person.id)}
-											<span class="chip">{person.name}</span>
-										{/each}
-									</p>
-								{/if}
-							</div>
-						</li>
+						{#if result.kind === 'person'}
+							{@const role = departmentRole(result.department)}
+							<li>
+								<a class="photo" href={resolve('/(app)/person/[id]', { id: String(result.id) })}>
+									{#if result.profilePath}
+										<img
+											src={tmdbImage(result.profilePath, 'w154')}
+											alt={result.name}
+											loading="lazy"
+										/>
+									{/if}
+								</a>
+								<div class="details">
+									<h2>
+										<a href={resolve('/(app)/person/[id]', { id: String(result.id) })}>
+											{result.name}
+										</a>
+									</h2>
+									{#if role}<p class="meta">{roleName(role)}</p>{/if}
+									{#if result.knownFor.length > 0}
+										<p class="meta">{m.search_known_for()} {result.knownFor.join(', ')}</p>
+									{/if}
+								</div>
+							</li>
+						{:else}
+							<li>
+								<FilmPoster film={result} size="small" />
+								<div class="details">
+									<h2>
+										<a href={resolve(workRoute(result.kind), { id: String(result.id) })}>
+											{result.title}
+										</a>
+										{#if result.year}<span class="year">{result.year}</span>{/if}
+									</h2>
+									{#if result.originalTitle !== result.title}
+										<p class="meta">{m.film_original_title()}: {result.originalTitle}</p>
+									{/if}
+									{#if result.alternativeTitles.length > 0}
+										<p class="meta alternative">
+											{m.search_alternative_titles()}
+											{result.alternativeTitles.join(', ')}
+										</p>
+									{/if}
+									{#if result.people.length > 0}
+										<p class="meta directed">
+											{result.kind === 'series' ? m.series_created_by() : m.film_directed_by()}
+											{#each result.people as person (person.id)}
+												<span class="chip">{person.name}</span>
+											{/each}
+										</p>
+									{/if}
+								</div>
+							</li>
+						{/if}
 					{/each}
 				</ul>
 				{#if data.totalPages > 1}
@@ -163,6 +194,22 @@
 
 	.results li:first-child {
 		padding-top: var(--space-1);
+	}
+
+	.photo {
+		overflow: hidden;
+		flex: none;
+		width: var(--poster-small);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: var(--color-chip);
+		box-shadow: var(--shadow-poster);
+	}
+
+	.photo img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
 	.details {

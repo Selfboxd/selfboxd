@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { DiaryEntry } from '#lib/catalog/library.js';
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
@@ -113,7 +114,13 @@
 						<span class="directed">
 							{m.series_created_by()}
 							<span class="directors">
-								{series.creators.map((person) => person.name).join(', ')}
+								{#each series.creators as person, index (person.id)}{#if index > 0}<span
+											class="sep"
+										>
+											,
+										</span>{/if}<a href={resolve('/(app)/person/[id]', { id: String(person.id) })}>
+										{person.name}
+									</a>{/each}
 							</span>
 						</span>
 					{/if}
@@ -125,7 +132,17 @@
 					<span class="state">{series.ended ? m.series_ended() : m.series_ongoing()}</span>
 					<span>{m.series_season_count({ count: series.seasonCount })}</span>
 					<span>{m.series_episode_count({ count: series.episodeCount })}</span>
-					{#if series.networks.length > 0}<span>{series.networks.join(', ')}</span>{/if}
+					{#if series.networks.length > 0}
+						<span>
+							{#each series.networks as network, index (network.id)}{#if index > 0}<span
+										class="sep"
+									>
+										,
+									</span>{/if}<a href={resolve('/(app)/network/[id]', { id: String(network.id) })}>
+									{network.name}
+								</a>{/each}
+						</span>
+					{/if}
 				</p>
 			</header>
 
@@ -299,6 +316,20 @@
 
 	.directors {
 		color: var(--color-text-strong);
+	}
+
+	.sep {
+		margin-inline-end: 0.25em;
+	}
+
+	.byline a,
+	.facts a {
+		color: inherit;
+	}
+
+	.byline a:hover,
+	.facts a:hover {
+		color: var(--color-heading);
 	}
 
 	.facts {

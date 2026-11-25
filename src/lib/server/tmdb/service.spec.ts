@@ -2,8 +2,11 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
 import {
+	browseFilms,
 	browseSeries,
 	getChart,
+	getPerson,
+	getStudio,
 	getFilm,
 	getSeries,
 	searchFilms,
@@ -224,7 +227,7 @@ describe('TMDB service', () => {
 			expect(requests.map((url) => url.pathname)).toEqual(['/3/tv/78', '/3/movie/78']);
 		});
 
-		it('searches films and series together, most relevant first', async () => {
+		it('searches films, series and people together, most relevant first', async () => {
 			respond = (url) => {
 				if (url.pathname === '/3/search/multi') {
 					return Response.json({
@@ -233,7 +236,13 @@ describe('TMDB service', () => {
 						total_results: 3,
 						results: [
 							{ id: 1400, media_type: 'tv', name: 'Neon Precinct', original_name: 'Neon Precinct' },
-							{ id: 9, media_type: 'person', name: 'Someone' },
+							{
+								id: 9,
+								media_type: 'person',
+								name: 'Someone',
+								known_for_department: 'Directing',
+								known_for: [{ title: 'Blade Runner' }, { name: 'Neon Precinct' }]
+							},
 							{ id: 78, media_type: 'movie', title: 'Blade Runner', release_date: '1982-06-25' }
 						]
 					});
@@ -248,11 +257,37 @@ describe('TMDB service', () => {
 				value: {
 					results: [
 						{ kind: 'series', id: 1400, people: [{ name: 'Ada Rivers' }] },
+						{
+							kind: 'person',
+							id: 9,
+							name: 'Someone',
+							department: 'Directing',
+							knownFor: ['Blade Runner', 'Neon Precinct']
+						},
 						{ kind: 'film', id: 78, year: 1982, people: [{ name: 'Ridley Scott' }] }
 					]
 				}
 			});
 			expect(requests[0]?.pathname).toBe('/3/search/multi');
+			expect(requests.map((url) => url.pathname)).not.toContain('/3/person/9');
+		});
+
+		it('searches people only', async () => {
+			respond = () =>
+				Response.json({
+					page: 1,
+					total_pages: 1,
+					total_results: 1,
+					results: [{ id: 578, name: 'Ridley Scott', profile_path: '/r.jpg' }]
+				});
+
+			const found = await searchWorks(context, 'ridley', 'en-US', 1, 'person');
+
+			expect(requests.map((url) => url.pathname)).toEqual(['/3/search/person']);
+			expect(found).toMatchObject({
+				ok: true,
+				value: { results: [{ kind: 'person', id: 578, profilePath: '/r.jpg', knownFor: [] }] }
+			});
 		});
 
 		it('searches series only, and skips the request for an empty query', async () => {
@@ -292,6 +327,73 @@ describe('TMDB service', () => {
 			expect(requests[0]?.pathname).toBe('/3/discover/tv');
 			expect(requests[0]?.searchParams.get('with_genres')).toBe('80');
 			expect(result).toMatchObject({ ok: true, value: { totalPages: 500 } });
+		});
+	});
+
+	describe('people and companies', () => {
+		const person = {
+			id: 578,
+			name: 'Ridley Scott',
+			biography: '',
+			known_for_department: 'Directing',
+			combined_credits: {
+				cast: [],
+				crew: [{ id: 78, media_type: 'movie', title: 'Blade Runner', job: 'Director' }]
+			}
+		};
+
+		it('loads a person with their credits', async () => {
+			respond = () => Response.json({ ...person, biography: 'A director.' });
+
+			const result = await getPerson(context, 578, 'en-US');
+
+			expect(requests[0]?.pathname).toBe('/3/person/578');
+			expect(requests[0]?.searchParams.get('append_to_response')).toBe('combined_credits');
+			expect(result).toMatchObject({
+				ok: true,
+				value: { name: 'Ridley Scott', credits: [{ id: 78, role: 'director' }] }
+			});
+			expect(requests).toHaveLength(1);
+		});
+
+		it('takes the English biography when none exists in the language', async () => {
+			respond = (url) =>
+				Response.json(
+					url.searchParams.get('language') === 'en-US'
+						? { ...person, biography: 'A director.' }
+						: person
+				);
+
+			const result = await getPerson(context, 578, 'fr-FR');
+
+			expect(result).toMatchObject({ ok: true, value: { biography: 'A director.' } });
+			expect(requests.map((url) => url.searchParams.get('language'))).toEqual(['fr-FR', 'en-US']);
+		});
+
+		it('loads a studio and a network from their own paths', async () => {
+			respond = (url) => Response.json({ id: 1, name: url.pathname });
+
+			expect(await getStudio(context, 'studio', 174)).toMatchObject({
+				ok: true,
+				value: { name: '/3/company/174' }
+			});
+			expect(await getStudio(context, 'network', 49)).toMatchObject({
+				ok: true,
+				value: { name: '/3/network/49' }
+			});
+		});
+
+		it('narrows a browse to a studio or a network', async () => {
+			respond = () => Response.json({ page: 1, total_pages: 1, results: [] });
+			const filter = { sort: 'popular', decade: null, year: null, genre: null, page: 1 } as const;
+
+			await browseFilms(context, filter, 'en-US', { studio: 174 });
+			await browseSeries(context, filter, 'en-US', { network: 49 });
+			await browseFilms(context, filter, 'en-US');
+
+			expect(requests[0]?.searchParams.get('with_companies')).toBe('174');
+			expect(requests[1]?.searchParams.get('with_networks')).toBe('49');
+			expect(requests[2]?.searchParams.has('with_companies')).toBe(false);
 		});
 	});
 });

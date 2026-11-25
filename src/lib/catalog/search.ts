@@ -10,9 +10,22 @@ export interface WorkSearchResult extends FilmSummary {
 	alternativeTitles: string[];
 }
 
+/** A person found by a search, with the works TMDB knows them best for. */
+export interface PersonSearchResult {
+	kind: 'person';
+	id: number;
+	name: string;
+	profilePath: string | null;
+	/** Department TMDB knows the person for, such as `Acting`. */
+	department: string;
+	knownFor: string[];
+}
+
+export type SearchResult = WorkSearchResult | PersonSearchResult;
+
 /** One page of search results. */
 export interface WorkSearch {
-	results: WorkSearchResult[];
+	results: SearchResult[];
 	total: number;
 	page: number;
 	totalPages: number;
