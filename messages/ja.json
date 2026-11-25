@@ -51,5 +51,16 @@
 	"accounts_password_title": "新しいパスワードの設定",
 	"accounts_password_submit": "パスワードを設定",
 	"accounts_password_set": "{username} のパスワードを変更しました。",
-	"accounts_field_account": "アカウント"
+	"accounts_field_account": "アカウント",
+	"nav_home": "ホーム",
+	"settings_tab_avatar": "アバター",
+	"avatar_title": "アバター",
+	"avatar_intro": "画像は正方形に切り抜かれ、リサイズされ、メタデータを削除してから保存されます。",
+	"avatar_field": "画像",
+	"avatar_submit": "アップロード",
+	"avatar_remove": "アバターを削除",
+	"avatar_updated": "アバターを更新しました。",
+	"avatar_removed": "アバターを削除しました。",
+	"error_image_invalid": "このファイルは対応している画像ではありません。",
+	"error_image_too_large": "画像が大きすぎます。上限は10 MBです。"
 }

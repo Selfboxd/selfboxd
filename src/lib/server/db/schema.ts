@@ -6,6 +6,7 @@ export const users = sqliteTable('users', {
 	username: text('username').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
 	isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
+	avatarVersion: integer('avatar_version'),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.default(sql`(unixepoch())`)

@@ -23,7 +23,8 @@ export default defineConfig({
 		env: {
 			PORT: String(port),
 			ORIGIN: baseURL,
-			DATA_DIR: dataDir
+			DATA_DIR: dataDir,
+			BODY_SIZE_LIMIT: '12M'
 		}
 	}
 });

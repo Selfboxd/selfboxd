@@ -140,7 +140,8 @@ test.describe('/api/v1/accounts', () => {
 
 		expect(response.status()).toBe(200);
 		const body = (await response.json()) as { accounts: Record<string, unknown>[] };
-		expect(body.accounts[0]).toEqual({ id: 1, username: 'admin', isAdmin: true });
+		expect(body.accounts[0]).toMatchObject({ id: 1, username: 'admin', isAdmin: true });
+		expect(JSON.stringify(body)).not.toMatch(/password|hash/i);
 	});
 
 	test('refuses a duplicate username', async ({ request }) => {

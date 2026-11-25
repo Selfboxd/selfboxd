@@ -8,7 +8,8 @@ RUN npm run i18n && npm run build && npm prune --omit=dev
 FROM node:26-alpine
 ENV NODE_ENV=production \
     DATA_DIR=/data \
-    PORT=3000
+    PORT=3000 \
+    BODY_SIZE_LIMIT=12M
 WORKDIR /app
 RUN mkdir /data && chown node:node /data
 COPY --from=build --chown=node:node /app/package.json ./

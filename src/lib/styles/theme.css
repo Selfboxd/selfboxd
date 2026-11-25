@@ -37,6 +37,7 @@
 	--color-menu: #8899aa;
 	--color-menu-text: #2c3440;
 	--color-menu-hover: #667788;
+	--color-menu-divider: rgb(0 0 0 / 15%);
 
 	--shadow-button: inset 0 1px 0 rgb(255 255 255 / 30%);
 	--shadow-input: inset 0 -1px 0 #445566;
@@ -70,6 +71,10 @@
 	--radius-small: 3px;
 	--radius-medium: 4px;
 
+	--avatar-small: 1.5rem;
+	--avatar-large: 7rem;
+	--menu-width: 10.5rem;
+	--menu-row-height: 2.5rem;
 	--header-height: 4.5rem;
 	--content-width: 59.375rem;
 	--narrow-width: 22rem;
