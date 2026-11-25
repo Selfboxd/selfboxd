@@ -7,9 +7,19 @@ export const ratingScales: readonly RatingScale[] = ['stars', 'ten'];
 export const ratingMin = 1;
 export const ratingMax = 10;
 
-export type WorkKind = 'film';
+export const workKinds = ['film', 'series'] as const;
 
-/** A film, as stored on the instance once an account has interacted with it. */
+export type WorkKind = (typeof workKinds)[number];
+
+/** Where an account stands with a series, set when it logs a season. */
+export const seriesStatuses = ['watching', 'finished', 'abandoned'] as const;
+
+export type SeriesStatus = (typeof seriesStatuses)[number];
+
+/** Highest season number accepted in a diary entry. */
+export const seasonMax = 999;
+
+/** A film or a series, as stored on the instance once an account has interacted with it. */
 export interface Work {
 	id: number;
 	kind: WorkKind;
@@ -28,6 +38,8 @@ export interface WorkState {
 	inWatchlist: boolean;
 	/** Number of diary entries of the account for the work. */
 	logCount: number;
+	/** Where the account stands with a series; always `null` for a film. */
+	status: SeriesStatus | null;
 }
 
 export interface DiaryEntry {
@@ -35,6 +47,8 @@ export interface DiaryEntry {
 	work: Work;
 	/** Day of the viewing, as an ISO date. */
 	watchedOn: string;
+	/** Season of a series the entry is about, or `null` for a film or a whole series. */
+	season: number | null;
 	rating: number | null;
 	liked: boolean;
 	rewatch: boolean;

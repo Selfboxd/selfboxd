@@ -7,13 +7,19 @@ import type { Film, FilmCollection, FilmSearchResult, FilmSummary } from '../../
 import { toCollection, toFilm, toFilmSummary } from './film';
 import { browsePageMax, type BrowseFilter, type Genre } from '../../catalog/browse';
 import { discoverParams } from './browse';
+import type { Series, SeriesSummary } from '../../catalog/series';
+import { toSeries, toSeriesSummary } from './series';
 import {
 	collectionSchema,
 	filmDetailsSchema,
 	filmListSchema,
 	filmPageSchema,
 	filmSearchSchema,
-	genreListSchema
+	genreListSchema,
+	seriesDetailsSchema,
+	seriesListSchema,
+	seriesPageSchema,
+	seriesSearchSchema
 } from './schemas';
 
 export interface TmdbContext {
@@ -250,6 +256,125 @@ export async function getChart(
 			backdropPath: result.value.results.find((film) => film.backdrop_path)?.backdrop_path ?? null,
 			page: result.value.page,
 			totalPages: Math.min(result.value.total_pages, chartPageMax)
+		}
+	};
+}
+
+export async function getSeries(
+	context: TmdbContext,
+	id: number,
+	language: string,
+	region: string
+): Promise<Loaded<Series>> {
+	const result = await load(
+		context,
+		`series:${String(id)}:${language}`,
+		lifetimes.film,
+		seriesDetailsSchema,
+		`/tv/${String(id)}`,
+		{ language, append_to_response: 'credits,videos,watch/providers' }
+	);
+	return result.ok ? { ok: true, value: toSeries(result.value, region) } : result;
+}
+
+/** Returns the series that are the most popular this week. */
+export async function getPopularSeries(
+	context: TmdbContext,
+	language: string
+): Promise<Loaded<SeriesSummary[]>> {
+	const result = await load(
+		context,
+		`popular:series:${language}`,
+		lifetimes.popular,
+		seriesListSchema,
+		'/trending/tv/week',
+		{ language }
+	);
+	if (!result.ok) return result;
+	return { ok: true, value: result.value.results.map(toSeriesSummary) };
+}
+
+/** Returns the series genres, named in the given language. */
+export async function getSeriesGenres(
+	context: TmdbContext,
+	language: string
+): Promise<Loaded<Genre[]>> {
+	const result = await load(
+		context,
+		`genres:series:${language}`,
+		lifetimes.genres,
+		genreListSchema,
+		'/genre/tv/list',
+		{ language }
+	);
+	if (!result.ok) return result;
+	return { ok: true, value: result.value.genres };
+}
+
+/** Returns one page of the series matching a browse filter. */
+export async function browseSeries(
+	context: TmdbContext,
+	filter: BrowseFilter,
+	language: string
+): Promise<Loaded<FilmPage>> {
+	const params = { language, ...discoverParams(filter, new Date(), 'series') };
+	const key = Object.entries(params)
+		.map(([name, value]) => `${name}=${value}`)
+		.join('&');
+	const result = await load(
+		context,
+		`browse:series:${key}`,
+		lifetimes.popular,
+		seriesPageSchema,
+		'/discover/tv',
+		params
+	);
+	if (!result.ok) return result;
+	return {
+		ok: true,
+		value: {
+			films: result.value.results.map(toSeriesSummary),
+			page: result.value.page,
+			totalPages: Math.min(result.value.total_pages, browsePageMax)
+		}
+	};
+}
+
+export interface SeriesSearch {
+	series: (SeriesSummary & { originalTitle: string })[];
+	total: number;
+	page: number;
+	totalPages: number;
+}
+
+/** Returns one page of series matching the query. */
+export async function searchSeries(
+	context: TmdbContext,
+	rawQuery: string,
+	language: string,
+	page = 1
+): Promise<Loaded<SeriesSearch>> {
+	const query = rawQuery.trim().slice(0, searchQueryMaxLength);
+	if (!query) return { ok: true, value: { series: [], total: 0, page: 1, totalPages: 0 } };
+	const result = await load(
+		context,
+		`search:series:${language}:${String(page)}:${query.toLowerCase()}`,
+		lifetimes.search,
+		seriesSearchSchema,
+		'/search/tv',
+		{ language, query, page: String(page), include_adult: 'false' }
+	);
+	if (!result.ok) return result;
+	return {
+		ok: true,
+		value: {
+			series: result.value.results.map((entry) => ({
+				...toSeriesSummary(entry),
+				originalTitle: entry.original_name
+			})),
+			total: result.value.total_results,
+			page: result.value.page,
+			totalPages: Math.min(result.value.total_pages, searchPageMax)
 		}
 	};
 }

@@ -156,6 +156,13 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - Menus opening on hover are a single block holding the trigger and its entries, like the
   account menu of the header. The trigger never moves when the menu opens.
 - The catalogue has no search of its own. Everything is found from the search of the header.
+- Works are films or series (`WorkKind`). Links to a work go through `workRoute(kind)` of
+  `src/lib/paths.ts`, given to `resolve`. A series summary uses `title` for its name, so posters
+  and lists treat both kinds alike.
+- A series is logged by season: a diary entry holds an optional season, and logging may set the
+  status of the series (watching, finished or abandoned). There is no tracking by episode.
+- The form actions of the pages of a film and a series come from `work-actions.ts`, and their
+  state API from `src/lib/server/api/work-state.ts`.
 
 ### External APIs
 

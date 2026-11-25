@@ -32,6 +32,9 @@ export function parseBrowseFilter(params: URLSearchParams, now = new Date()): Br
 	};
 }
 
+/** Kinds of works the catalogue can be browsed for. */
+export type BrowseKind = 'film' | 'series';
+
 const sortParams: Record<BrowseSort, Record<string, string>> = {
 	popular: { sort_by: 'popularity.desc' },
 	rating: { sort_by: 'vote_average.desc', 'vote_count.gte': String(ratingVoteMinimum) },
@@ -40,20 +43,26 @@ const sortParams: Record<BrowseSort, Record<string, string>> = {
 	upcoming: { sort_by: 'popularity.desc' }
 };
 
-/** Parameters of the TMDB discover endpoint for a filter. */
-export function discoverParams(filter: BrowseFilter, now = new Date()): Record<string, string> {
+/** Parameters of the TMDB discover endpoint for a filter, for films or for series. */
+export function discoverParams(
+	filter: BrowseFilter,
+	now = new Date(),
+	kind: BrowseKind = 'film'
+): Record<string, string> {
+	const date = kind === 'film' ? 'primary_release_date' : 'first_air_date';
 	const params: Record<string, string> = {
 		include_adult: 'false',
 		page: String(filter.page),
 		...sortParams[filter.sort]
 	};
+	if (kind === 'series' && filter.sort === 'name') params.sort_by = 'name.asc';
 	if (filter.sort === 'upcoming') {
-		params['primary_release_date.gte'] = now.toISOString().slice(0, 10);
+		params[`${date}.gte`] = now.toISOString().slice(0, 10);
 	} else if (filter.year !== null) {
-		params.primary_release_year = String(filter.year);
+		params[kind === 'film' ? 'primary_release_year' : 'first_air_date_year'] = String(filter.year);
 	} else if (filter.decade !== null) {
-		params['primary_release_date.gte'] = `${String(filter.decade)}-01-01`;
-		params['primary_release_date.lte'] = `${String(filter.decade + 9)}-12-31`;
+		params[`${date}.gte`] = `${String(filter.decade)}-01-01`;
+		params[`${date}.lte`] = `${String(filter.decade + 9)}-12-31`;
 	}
 	if (filter.genre !== null) params.with_genres = String(filter.genre);
 	return params;

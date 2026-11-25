@@ -7,11 +7,15 @@
 		type BrowseFilter,
 		type Genre
 	} from '#lib/catalog/browse.js';
+	import type { WorkKind } from '#lib/catalog/library.js';
 	import Icon from '#lib/components/Icon.svelte';
+	import { browseRoute } from '#lib/paths.js';
 	import { m } from '#lib/paraglide/messages.js';
 
 	interface Props {
 		genres: Genre[];
+		/** What is browsed; films by default. */
+		kind?: WorkKind;
 		/** The filter in effect, when the bar heads a list of results. */
 		filter?: BrowseFilter;
 	}
@@ -22,7 +26,7 @@
 		current?: boolean;
 	}
 
-	let { genres, filter }: Props = $props();
+	let { genres, kind = 'film', filter }: Props = $props();
 
 	let root: HTMLElement | undefined = $state();
 	let suppressed = $state(false);
@@ -128,7 +132,7 @@
 						{#each menu.entries as entry (entry.label)}
 							<li>
 								<a
-									href="{resolve('/(app)/films/browse')}{entry.query ? `?${entry.query}` : ''}"
+									href="{resolve(browseRoute(kind))}{entry.query ? `?${entry.query}` : ''}"
 									aria-current={entry.current ? 'true' : undefined}
 								>
 									{entry.label}

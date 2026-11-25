@@ -38,6 +38,10 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_has_diary_entries();
 		case 'date_invalid':
 			return m.error_date_invalid();
+		case 'season_invalid':
+			return m.error_season_invalid();
+		case 'status_invalid':
+			return m.error_status_invalid();
 		case 'rating_invalid':
 			return m.error_rating_invalid();
 		case 'review_too_long':

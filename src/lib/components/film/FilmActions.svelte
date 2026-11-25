@@ -8,6 +8,8 @@
 		/** What the signed-in account did with the film. */
 		state: WorkState;
 		scale: RatingScale;
+		/** Whether the page is about a series rather than a film. */
+		series?: boolean;
 		/** Opens the log dialog for a new viewing. */
 		onlog: () => void;
 		/** Opens the log dialog on the latest diary entry. */
@@ -18,7 +20,7 @@
 		onlists: () => void;
 	}
 
-	let { state, scale, onlog, onedit, onwatchlist, onlists }: Props = $props();
+	let { state, scale, series = false, onlog, onedit, onwatchlist, onlists }: Props = $props();
 
 	const logged = $derived(state.logCount > 0);
 	const watchLabel = $derived(
@@ -96,7 +98,9 @@
 	{#if state.inWatchlist}
 		<button class="row" type="button" onclick={onwatchlist}>{m.action_watchlist_edit()}</button>
 	{/if}
-	<button class="row" type="button" onclick={onlists}>{m.action_add_to_lists()}</button>
+	<button class="row" type="button" onclick={onlists}>
+		{series ? m.action_add_series_to_lists() : m.action_add_to_lists()}
+	</button>
 </section>
 
 <style>

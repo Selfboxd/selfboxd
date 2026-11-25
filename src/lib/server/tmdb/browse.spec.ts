@@ -43,6 +43,18 @@ describe('discoverParams', () => {
 		});
 	});
 
+	it('uses the air dates and names of series', () => {
+		expect(discoverParams(parse('decade=1980&sort=name'), now, 'series')).toMatchObject({
+			sort_by: 'name.asc',
+			'first_air_date.gte': '1980-01-01',
+			'first_air_date.lte': '1989-12-31'
+		});
+		expect(discoverParams(parse('year=1999'), now, 'series').first_air_date_year).toBe('1999');
+		expect(discoverParams(parse('sort=upcoming'), now, 'series')['first_air_date.gte']).toBe(
+			now.toISOString().slice(0, 10)
+		);
+	});
+
 	it('limits a decade to its ten years', () => {
 		expect(discoverParams(parse('decade=1980'), now)).toMatchObject({
 			'primary_release_date.gte': '1980-01-01',

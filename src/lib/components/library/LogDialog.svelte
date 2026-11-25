@@ -5,12 +5,15 @@
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import FormError from '#lib/components/FormError.svelte';
-	import type { DiaryEntry, RatingScale } from '#lib/catalog/library.js';
+	import type { DiaryEntry, RatingScale, SeriesStatus } from '#lib/catalog/library.js';
+	import { seriesStatuses } from '#lib/catalog/library.js';
+	import { seasonName, seriesStatusName } from '#lib/i18n/series.js';
+	import { workRoute } from '#lib/paths.js';
 	import { reviewMaxLength } from '#lib/catalog/library.js';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { ratingLabel } from '#lib/i18n/ratings.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import type { LogFilm, LogTarget } from './log-target.js';
+	import type { LogFilm, LogSeason, LogTarget } from './log-target.js';
 	import RatingInput from './RatingInput.svelte';
 
 	interface Props {
@@ -23,7 +26,7 @@
 
 	type ActionData = Record<string, unknown> | undefined;
 
-	const noFilm: LogFilm = { id: '0', title: '', year: null, posterPath: null };
+	const noFilm: LogFilm = { id: '0', kind: 'film', title: '', year: null, posterPath: null };
 
 	let dialog: HTMLDialogElement | undefined = $state();
 	let entryId = $state<number | null>(null);
@@ -35,10 +38,19 @@
 	let review = $state('');
 	let containsSpoilers = $state(false);
 	let tags = $state('');
+	let season = $state('');
+	let status = $state<SeriesStatus | ''>('');
+	let seasons = $state<LogSeason[]>([]);
 	let error = $state<string | undefined>();
 
 	const id = $props.id();
-	const filmPath = $derived(resolve('/(app)/film/[id]', { id: film.id }));
+	const filmPath = $derived(resolve(workRoute(film.kind), { id: film.id }));
+	const isSeries = $derived(film.kind === 'series');
+	const seasonChoices = $derived(
+		season === '' || seasons.some((entry) => String(entry.number) === season)
+			? seasons
+			: [...seasons, { number: Number(season), name: seasonName(Number(season)) }]
+	);
 
 	function today(): string {
 		const now = new Date();
@@ -51,17 +63,21 @@
 		film = { ...entry.work, id: entry.work.externalId };
 		({ watchedOn, rating, liked, rewatch, review, containsSpoilers } = entry);
 		tags = entry.tags.join(', ');
+		season = entry.season === null ? '' : String(entry.season);
 	}
 
 	$effect(() => {
 		if (!target || !dialog || dialog.open) return;
 		error = undefined;
+		seasons = target.seasons ?? [];
+		status = '';
 		if (target.kind === 'edit') {
 			load(target.entry);
 		} else {
 			entryId = null;
 			film = target.film;
 			({ rating, liked, rewatch } = target.defaults);
+			season = target.defaults.season == null ? '' : String(target.defaults.season);
 			watchedOn = today();
 			review = '';
 			containsSpoilers = false;
@@ -134,6 +150,29 @@
 					{m.log_rewatch()}
 				</label>
 			</div>
+
+			{#if isSeries}
+				<div class="series">
+					<label class="select-label">
+						{m.log_season()}
+						<select class="select" name="season" bind:value={season}>
+							<option value="">{m.log_season_all()}</option>
+							{#each seasonChoices as choice (choice.number)}
+								<option value={String(choice.number)}>{choice.name}</option>
+							{/each}
+						</select>
+					</label>
+					<label class="select-label">
+						{m.log_status()}
+						<select class="select" name="status" bind:value={status}>
+							<option value="">{m.log_status_unchanged()}</option>
+							{#each seriesStatuses as choice (choice)}
+								<option value={choice}>{seriesStatusName(choice)}</option>
+							{/each}
+						</select>
+					</label>
+				</div>
+			{/if}
 
 			<div class="review-box">
 				<label class="sr-only" for="{id}-review">{m.log_review()}</label>
@@ -291,6 +330,13 @@
 		justify-content: space-between;
 	}
 
+	.series {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3) var(--space-8);
+	}
+
+	.select-label,
 	.date-label,
 	.check {
 		display: flex;
@@ -299,6 +345,7 @@
 		color: var(--color-text-strong);
 	}
 
+	.select,
 	.date {
 		padding: var(--space-1) var(--space-2);
 		border: 0;

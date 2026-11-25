@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { workRoute } from '#lib/paths.js';
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
@@ -31,7 +32,7 @@
 			<li>
 				<FilmPoster film={{ ...event.work, id: event.work.externalId }} size="tiny" />
 				<p class="sentence">
-					{before}<a href={resolve('/(app)/film/[id]', { id: event.work.externalId })}>
+					{before}<a href={resolve(workRoute(event.work.kind), { id: event.work.externalId })}>
 						{event.work.title}
 					</a>{after}
 					{#if event.rating !== null}<RatingDisplay rating={event.rating} {scale} />{/if}

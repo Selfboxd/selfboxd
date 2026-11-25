@@ -2,7 +2,12 @@ import { getMdblistContext } from '#lib/server/mdblist/index.js';
 import { searchLists } from '#lib/server/mdblist/service.js';
 import { getTmdbContext } from '#lib/server/tmdb/index.js';
 import { requestLanguage } from '#lib/server/tmdb/page.js';
-import { searchFilms, searchPageMax, searchQueryMaxLength } from '#lib/server/tmdb/service.js';
+import {
+	searchFilms,
+	searchPageMax,
+	searchQueryMaxLength,
+	searchSeries
+} from '#lib/server/tmdb/service.js';
 import type { PageServerLoad } from './$types';
 
 function parsePage(value: string | null): number {
@@ -25,7 +30,20 @@ export const load: PageServerLoad = async ({ url }) => {
 	if (!context) return { query, hasLists, state: 'not_configured' as const };
 
 	const page = parsePage(url.searchParams.get('page'));
+	if (url.searchParams.get('type') === 'series') {
+		const result = await searchSeries(context, query, requestLanguage(), page);
+		if (!result.ok) return { query, hasLists, state: 'error' as const, error: result.error };
+		const { series, ...pages } = result.value;
+		return {
+			query,
+			hasLists,
+			state: 'ready' as const,
+			kind: 'series' as const,
+			films: series.map((entry) => ({ ...entry, directors: [] })),
+			...pages
+		};
+	}
 	const result = await searchFilms(context, query, requestLanguage(), page);
 	if (!result.ok) return { query, hasLists, state: 'error' as const, error: result.error };
-	return { query, hasLists, state: 'ready' as const, ...result.value };
+	return { query, hasLists, state: 'ready' as const, kind: 'film' as const, ...result.value };
 };

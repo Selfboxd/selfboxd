@@ -9,6 +9,28 @@ const bladeRunner = JSON.parse(
 	readFileSync(join(import.meta.dirname, 'film-78.json'), 'utf8')
 ) as Record<string, unknown>;
 
+const neonPrecinct = JSON.parse(
+	readFileSync(join(import.meta.dirname, 'series-1400.json'), 'utf8')
+) as Record<string, unknown>;
+
+const harbour = {
+	...neonPrecinct,
+	id: 1401,
+	name: 'Harbour Lights',
+	original_name: 'Harbour Lights',
+	first_air_date: '2024-09-10',
+	status: 'Returning Series'
+};
+
+const seriesSummaries = [neonPrecinct, harbour].map((entry: Record<string, unknown>) => ({
+	id: entry.id,
+	name: entry.name,
+	original_name: entry.original_name,
+	first_air_date: entry.first_air_date,
+	poster_path: entry.poster_path,
+	backdrop_path: entry.backdrop_path
+}));
+
 const journalFeed = readFileSync(join(import.meta.dirname, '../journal/feed.xml'), 'utf8');
 
 const sequel = {
@@ -140,6 +162,7 @@ const server = createServer((request, response) => {
 
 	const language = url.searchParams.get('language') ?? '';
 	const movie = /^\/3\/movie\/(\d+)$/.exec(url.pathname);
+	const tv = /^\/3\/tv\/(\d+)$/.exec(url.pathname);
 	if (url.pathname === '/3/configuration') {
 		send(response, 200, {});
 	} else if (url.pathname === '/3/movie/500') {
@@ -149,6 +172,28 @@ const server = createServer((request, response) => {
 	} else if (movie) {
 		const body = film(Number(movie[1]), language);
 		send(response, body ? 200 : 404, body ?? { status_code: 34 });
+	} else if (tv) {
+		const found = [neonPrecinct, harbour].find((entry) => entry.id === Number(tv[1]));
+		send(response, found ? 200 : 404, found ?? { status_code: 34 });
+	} else if (url.pathname === '/3/trending/tv/week') {
+		send(response, 200, { page: 1, results: seriesSummaries });
+	} else if (url.pathname === '/3/genre/tv/list') {
+		send(response, 200, {
+			genres: [
+				{ id: 80, name: 'Crime' },
+				{ id: 18, name: 'Drama' }
+			]
+		});
+	} else if (url.pathname === '/3/discover/tv') {
+		const genre = url.searchParams.get('with_genres');
+		const results = genre === '80' ? seriesSummaries.slice(0, 1) : seriesSummaries;
+		send(response, 200, { page: 1, total_pages: 1, results });
+	} else if (url.pathname === '/3/search/tv') {
+		const query = (url.searchParams.get('query') ?? '').toLowerCase();
+		const results = seriesSummaries.filter((entry) =>
+			String(entry.name).toLowerCase().includes(query)
+		);
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else if (url.pathname === '/3/collection/422837') {
 		send(response, 200, { id: 422837, name: 'Blade Runner Collection', parts: summaries });
 	} else if (url.pathname === '/3/genre/movie/list') {
