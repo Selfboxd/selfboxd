@@ -10,18 +10,19 @@ export const listSchema = v.object({
 
 export const listArraySchema = v.array(listSchema);
 
+const listItemSchema = v.object({
+	id: v.number(),
+	title: v.string(),
+	rank: v.nullish(v.number()),
+	release_year: v.nullish(v.number()),
+	ids: v.nullish(v.object({ tmdb: v.nullish(v.number()) }))
+});
+
+export type ListItemRaw = v.InferOutput<typeof listItemSchema>;
+
 export const listItemsSchema = v.object({
-	movies: v.optional(
-		v.array(
-			v.object({
-				id: v.number(),
-				title: v.string(),
-				release_year: v.nullish(v.number()),
-				ids: v.nullish(v.object({ tmdb: v.nullish(v.number()) }))
-			})
-		),
-		[]
-	)
+	movies: v.optional(v.array(listItemSchema), []),
+	shows: v.optional(v.array(listItemSchema), [])
 });
 
 /** Shape of a cached MDBList response: the body and whether more pages follow. */

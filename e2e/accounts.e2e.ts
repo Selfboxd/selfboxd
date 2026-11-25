@@ -5,7 +5,8 @@ import {
 	bearer,
 	createAccount,
 	signIn,
-	uniqueUsername
+	uniqueUsername,
+	chooseOption
 } from './support/accounts';
 
 test.describe('account administration', () => {
@@ -61,7 +62,7 @@ test.describe('account administration', () => {
 
 		await page.goto('/settings/accounts');
 		const form = page.locator('form[action="?/password"]');
-		await form.getByLabel('Account').selectOption({ label: account.username });
+		await chooseOption(form, 'Account', account.username);
 		await form.getByLabel('New password').fill('reset-password-1');
 		await form.getByRole('button', { name: 'Set password' }).click();
 

@@ -15,6 +15,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import type { LogFilm, LogSeason, LogTarget } from './log-target.js';
 	import RatingInput from './RatingInput.svelte';
+	import Select from '#lib/components/Select.svelte';
 
 	interface Props {
 		/** Set to open the dialog; reset to `null` when the dialog closes. */
@@ -39,7 +40,7 @@
 	let containsSpoilers = $state(false);
 	let tags = $state('');
 	let season = $state('');
-	let status = $state<SeriesStatus | ''>('');
+	let status = $state<SeriesStatus>('finished');
 	let seasons = $state<LogSeason[]>([]);
 	let error = $state<string | undefined>();
 
@@ -70,7 +71,7 @@
 		if (!target || !dialog || dialog.open) return;
 		error = undefined;
 		seasons = target.seasons ?? [];
-		status = '';
+		status = target.status ?? 'finished';
 		if (target.kind === 'edit') {
 			load(target.entry);
 		} else {
@@ -153,24 +154,35 @@
 
 			{#if isSeries}
 				<div class="series">
-					<label class="select-label">
-						{m.log_season()}
-						<select class="select" name="season" bind:value={season}>
-							<option value="">{m.log_season_all()}</option>
-							{#each seasonChoices as choice (choice.number)}
-								<option value={String(choice.number)}>{choice.name}</option>
-							{/each}
-						</select>
-					</label>
-					<label class="select-label">
-						{m.log_status()}
-						<select class="select" name="status" bind:value={status}>
-							<option value="">{m.log_status_unchanged()}</option>
-							{#each seriesStatuses as choice (choice)}
-								<option value={choice}>{seriesStatusName(choice)}</option>
-							{/each}
-						</select>
-					</label>
+					<div class="select-label">
+						<label for="{id}-season">{m.log_season()}</label>
+						<Select
+							id="{id}-season"
+							name="season"
+							variant="well"
+							bind:value={season}
+							options={[
+								{ value: '', label: m.log_season_all() },
+								...seasonChoices.map((choice) => ({
+									value: String(choice.number),
+									label: choice.name
+								}))
+							]}
+						/>
+					</div>
+					<div class="select-label">
+						<label for="{id}-status">{m.log_status()}</label>
+						<Select
+							id="{id}-status"
+							name="status"
+							variant="well"
+							bind:value={status}
+							options={seriesStatuses.map((choice) => ({
+								value: choice,
+								label: seriesStatusName(choice)
+							}))}
+						/>
+					</div>
 				</div>
 			{/if}
 
@@ -345,7 +357,6 @@
 		color: var(--color-text-strong);
 	}
 
-	.select,
 	.date {
 		padding: var(--space-1) var(--space-2);
 		border: 0;

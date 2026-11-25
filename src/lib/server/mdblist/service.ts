@@ -1,18 +1,25 @@
 import * as v from 'valibot';
-import type { FilmSummary } from '../../catalog/film';
 import {
 	publicListPageSize,
 	publicListPreviewSize,
 	publicListProgressMax,
 	type PublicList,
 	type PublicListFilms,
-	type PublicListPreview
+	type PublicListPreview,
+	type PublicListWork
 } from '../../catalog/lists';
 import type { AppDatabase } from '../db/connection';
 import { readCache, writeCache } from '../tmdb/cache';
-import { getFilm, type TmdbContext } from '../tmdb/service';
+import { getFilm, getSeries, type TmdbContext } from '../tmdb/service';
+import type { WorkKind } from '../../catalog/library';
 import { mdblistGet, type MdblistConfig, type MdblistError } from './client';
-import { cachedSchema, listArraySchema, listItemsSchema, listSchema } from './schemas';
+import {
+	cachedSchema,
+	listArraySchema,
+	listItemsSchema,
+	listSchema,
+	type ListItemRaw
+} from './schemas';
 
 export interface MdblistContext {
 	db: AppDatabase;
@@ -74,7 +81,26 @@ function toPublicList(raw: v.InferOutput<typeof listSchema>): PublicList {
 	};
 }
 
-/** Returns one page of the films of a public list, each with its TMDB poster when available. */
+interface RankedItem {
+	kind: WorkKind;
+	item: ListItemRaw;
+}
+
+/** Films and series of a response, in the order of the list. */
+function rankedItems(body: { movies: ListItemRaw[]; shows: ListItemRaw[] }): RankedItem[] {
+	const items: RankedItem[] = [
+		...body.movies.map((item) => ({ kind: 'film' as const, item })),
+		...body.shows.map((item) => ({ kind: 'series' as const, item }))
+	];
+	return items
+		.map((entry, index) => ({ entry, index }))
+		.sort(
+			(a, b) => (a.entry.item.rank ?? a.index) - (b.entry.item.rank ?? b.index) || a.index - b.index
+		)
+		.map(({ entry }) => entry);
+}
+
+/** Returns one page of the films and series of a public list, with their TMDB posters. */
 export async function getListFilms(
 	context: MdblistContext,
 	listId: number,
@@ -87,24 +113,26 @@ export async function getListFilms(
 		lifetimes.items,
 		listItemsSchema,
 		`/lists/${String(listId)}/items`,
-		{ mediatype: 'movie', limit: String(pageSize), offset: String((page - 1) * pageSize) }
+		{ limit: String(pageSize), offset: String((page - 1) * pageSize) }
 	);
 	if (!result.ok) return result;
 
 	const { tmdb } = context;
+	const items = rankedItems(result.value.body);
 	const loaded = await Promise.all(
-		result.value.body.movies.map(
-			async (movie): Promise<{ film: FilmSummary; backdropPath: string | null }> => {
-				const id = movie.ids?.tmdb ?? movie.id;
+		items.map(
+			async ({ kind, item }): Promise<{ film: PublicListWork; backdropPath: string | null }> => {
+				const id = item.ids?.tmdb ?? item.id;
 				const fallback = {
-					film: { id, title: movie.title, year: movie.release_year ?? null, posterPath: null },
+					film: { id, kind, title: item.title, year: item.release_year ?? null, posterPath: null },
 					backdropPath: null
 				};
 				if (!tmdb) return fallback;
-				const details = await getFilm(tmdb, id, context.language, '');
+				const load = kind === 'series' ? getSeries : getFilm;
+				const details = await load(tmdb, id, context.language, '');
 				if (!details.ok) return fallback;
 				const { title, year, posterPath, backdropPath } = details.value;
-				return { film: { id, title, year, posterPath }, backdropPath };
+				return { film: { id, kind, title, year, posterPath }, backdropPath };
 			}
 		)
 	);
@@ -114,31 +142,36 @@ export async function getListFilms(
 			films: loaded.map((entry) => entry.film),
 			backdropPath: loaded.find((entry) => entry.backdropPath)?.backdropPath ?? null,
 			page,
-			hasMore: result.value.hasMore || result.value.body.movies.length === pageSize
+			hasMore: result.value.hasMore || items.length === pageSize
 		}
 	};
 }
 
 /**
- * Returns the TMDB identifiers of every film of a public list,
- * or `null` when the list holds more films than can be checked at once.
+ * Returns the kind and TMDB identifier of every work of a public list,
+ * or `null` when the list holds more works than can be checked at once.
  */
 export async function getListFilmIds(
 	context: MdblistContext,
 	listId: number
-): Promise<Listed<number[] | null>> {
+): Promise<Listed<{ kind: WorkKind; id: number }[] | null>> {
 	const result = await load(
 		context,
 		`mdblist:ids:${String(listId)}`,
 		lifetimes.items,
 		listItemsSchema,
 		`/lists/${String(listId)}/items`,
-		{ mediatype: 'movie', limit: String(publicListProgressMax), offset: '0' }
+		{ limit: String(publicListProgressMax), offset: '0' }
 	);
 	if (!result.ok) return result;
-	const { movies } = result.value.body;
-	const complete = !result.value.hasMore && movies.length < publicListProgressMax;
-	return { ok: true, value: complete ? movies.map((movie) => movie.ids?.tmdb ?? movie.id) : null };
+	const items = rankedItems(result.value.body);
+	const complete = !result.value.hasMore && items.length < publicListProgressMax;
+	return {
+		ok: true,
+		value: complete
+			? items.map(({ kind, item }) => ({ kind, id: item.ids?.tmdb ?? item.id }))
+			: null
+	};
 }
 
 async function withPreview(

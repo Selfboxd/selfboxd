@@ -4,12 +4,14 @@
 	interface Props {
 		/** Path of the TMDB backdrop shown behind the header and the top of the page. */
 		path: string;
+		/** Whether the banner is the shorter one of list pages. */
+		short?: boolean;
 	}
 
-	let { path }: Props = $props();
+	let { path, short = false }: Props = $props();
 </script>
 
-<div class="backdrop">
+<div class="backdrop" class:short>
 	<img src={tmdbImage(path, 'w1280')} alt="" />
 </div>
 
@@ -23,6 +25,10 @@
 		width: min(100%, var(--backdrop-width));
 		height: var(--backdrop-height);
 		transform: translateX(-50%);
+	}
+
+	.short {
+		height: var(--backdrop-short-height);
 	}
 
 	img {

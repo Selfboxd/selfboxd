@@ -90,7 +90,8 @@ const publicLists = [
 	{ id: 102, name: 'Rainy Cities', user_name: 'curator', items: 2, likes: null },
 	{ id: 103, name: '<img src=x onerror=alert(1)>', user_name: null, items: 0, likes: 0 },
 	{ id: 104, name: 'Slow Burners', user_name: 'curator', items: 1, likes: 12 },
-	{ id: 105, name: 'Replicants', user_name: 'deckard', items: 1, likes: 3 }
+	{ id: 105, name: 'Replicants', user_name: 'deckard', items: 1, likes: 3 },
+	{ id: 106, name: 'Latest TV Shows', user_name: 'curator', items: 2, likes: 1 }
 ];
 
 function mdblist(url: URL, response: ServerResponse) {
@@ -124,6 +125,14 @@ function mdblist(url: URL, response: ServerResponse) {
 				{ id: 1, title: 'Blade Runner 2049', release_year: 2017, ids: { tmdb: 335984 } },
 				{ id: 424242, title: 'Unknown at TMDB', release_year: 1999, ids: { tmdb: 424242 } }
 			];
+			if (found.id === 106) {
+				const show = { id: 7, title: 'Neon Precinct', rank: 1, release_year: 2019 };
+				send(response, 200, {
+					movies: [{ id: 78, title: 'Blade Runner', rank: 2, ids: { tmdb: 78 } }],
+					shows: [{ ...show, ids: { tmdb: 1400 } }]
+				});
+				return;
+			}
 			const first = found.id === 101 && offset === 0;
 			send(
 				response,

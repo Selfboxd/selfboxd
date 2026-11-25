@@ -1,4 +1,5 @@
 import type { FilmSummary } from './film';
+import type { WorkKind } from './library';
 
 /** A public list of films published on MDBList. */
 export interface PublicList {
@@ -13,12 +14,15 @@ export interface PublicList {
 
 /** A public list with the first films it holds. */
 export interface PublicListPreview extends PublicList {
-	preview: FilmSummary[];
+	preview: PublicListWork[];
 }
 
-/** One page of the films of a public list. */
+/** A film or a series of a public list. */
+export type PublicListWork = FilmSummary & { kind: WorkKind };
+
+/** One page of the films and series of a public list. */
 export interface PublicListFilms {
-	films: FilmSummary[];
+	films: PublicListWork[];
 	/** Path of the TMDB backdrop of the first film of the page that has one. */
 	backdropPath: string | null;
 	page: number;

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createAccount, signIn } from './support/accounts';
+import { createAccount, signIn, chooseOption } from './support/accounts';
 
 function actions(page: Page) {
 	return page.getByRole('region', { name: 'Your actions' });
@@ -357,7 +357,7 @@ test.describe('rating scale', () => {
 		await expect(actions(page).getByText('Rated')).toBeVisible();
 
 		await page.goto('/settings/preferences');
-		await page.getByLabel('Rating scale').selectOption('ten');
+		await chooseOption(page, 'Rating scale', 'Mark out of 10');
 		await page.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByRole('status')).toHaveText('Your preferences have been saved.');
 

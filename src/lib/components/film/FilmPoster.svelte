@@ -5,6 +5,7 @@
 	import type { WorkKind } from '#lib/catalog/library.js';
 	import { workRoute } from '#lib/paths.js';
 	import PosterActions from './PosterActions.svelte';
+	import type { PosterSeason } from '#lib/components/library/log-target.js';
 
 	interface Props {
 		/** The film or series whose poster is shown; a film unless `kind` says otherwise. */
@@ -18,9 +19,11 @@
 		linked?: boolean;
 		/** Whether hovering the poster offers the quick actions; follows `linked` by default. */
 		actions?: boolean;
+		/** The season of a series the poster shows, for the quick actions. */
+		season?: PosterSeason | undefined;
 	}
 
-	let { film, size = 'medium', linked = true, actions = linked }: Props = $props();
+	let { film, size = 'medium', linked = true, actions = linked, season }: Props = $props();
 
 	const imageSizes: Record<NonNullable<Props['size']>, TmdbImageSize> = {
 		tiny: 'w92',
@@ -48,7 +51,7 @@
 	{:else}
 		{@render picture()}
 	{/if}
-	{#if actions && size !== 'tiny'}<PosterActions {film} />{/if}
+	{#if actions && size !== 'tiny'}<PosterActions {film} {season} />{/if}
 </div>
 
 <style>

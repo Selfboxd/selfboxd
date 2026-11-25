@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Select from '#lib/components/Select.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/FormError.svelte';
 	import FormNotice from '#lib/components/FormNotice.svelte';
@@ -8,6 +9,8 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	const id = $props.id();
 </script>
 
 <svelte:head>
@@ -51,14 +54,18 @@
 				{:else if form?.action === 'password'}
 					<FormNotice message={m.accounts_password_set({ username: form.username })} />
 				{/if}
-				<label class="field">
-					<span class="field-label">{m.accounts_field_account()}</span>
-					<select name="userId" class="field-input" required>
-						{#each data.accounts as account (account.id)}
-							<option value={account.id}>{account.username}</option>
-						{/each}
-					</select>
-				</label>
+				<div class="field">
+					<label class="field-label" for="{id}-account">{m.accounts_field_account()}</label>
+					<Select
+						id="{id}-account"
+						name="userId"
+						value={String(data.accounts[0]?.id ?? '')}
+						options={data.accounts.map((account) => ({
+							value: String(account.id),
+							label: account.username
+						}))}
+					/>
+				</div>
 				<TextField
 					name="password"
 					type="password"

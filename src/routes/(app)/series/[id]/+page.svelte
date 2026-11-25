@@ -1,13 +1,11 @@
 <script lang="ts">
 	import type { DiaryEntry } from '#lib/catalog/library.js';
-	import type { Season } from '#lib/catalog/series.js';
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
 	import FilmDetails from '#lib/components/film/FilmDetails.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FilmWatch from '#lib/components/film/FilmWatch.svelte';
 	import FormError from '#lib/components/FormError.svelte';
-	import Icon from '#lib/components/Icon.svelte';
 	import EntrySummary from '#lib/components/library/EntrySummary.svelte';
 	import LogDialog from '#lib/components/library/LogDialog.svelte';
 	import type { LogTarget } from '#lib/components/library/log-target.js';
@@ -34,6 +32,15 @@
 		new Set(data.state === 'ready' ? data.library.entries.map((entry) => entry.season) : [])
 	);
 
+	const seasonChoices = $derived(
+		data.state === 'ready'
+			? data.series.seasons.map((season) => ({
+					number: season.number,
+					name: seasonName(season.number)
+				}))
+			: []
+	);
+
 	function formatCount(count: number): string {
 		return new Intl.NumberFormat(getLocale()).format(count);
 	}
@@ -57,10 +64,8 @@
 				rewatch: loggedSeasons.has(season),
 				season
 			},
-			seasons: series.seasons.map((entry) => ({
-				number: entry.number,
-				name: seasonName(entry.number)
-			}))
+			status: library.state.status,
+			seasons: seasonChoices
 		};
 	}
 
@@ -69,20 +74,8 @@
 		logTarget = {
 			kind: 'edit',
 			entry,
-			seasons: data.series.seasons.map((season) => ({
-				number: season.number,
-				name: seasonName(season.number)
-			}))
-		};
-	}
-
-	function seasonPoster(season: Season) {
-		if (data.state !== 'ready') return null;
-		return {
-			id: `${String(data.series.id)}-${String(season.number)}`,
-			title: season.name,
-			year: season.year,
-			posterPath: season.posterPath ?? data.series.posterPath
+			status: data.library.state.status,
+			seasons: seasonChoices
 		};
 	}
 </script>
@@ -204,26 +197,28 @@
 					<h2 class="section-title">{m.series_seasons()}</h2>
 					<ul>
 						{#each series.seasons as season (season.number)}
-							{@const poster = seasonPoster(season)}
 							<li>
-								{#if poster}<FilmPoster film={poster} size="small" linked={false} />{/if}
-								<span class="season-name">{seasonName(season.number)}</span>
-								<span class="season-meta">
-									{#if season.year}<span>{season.year}</span>{/if}
-									<span>{m.series_episode_count({ count: season.episodeCount })}</span>
-								</span>
-								<button
-									class="season-log"
-									class:logged={loggedSeasons.has(season.number)}
-									type="button"
-									aria-label={m.series_log_season({ name: seasonName(season.number) })}
-									onclick={() => {
-										log(season.number);
+								<FilmPoster
+									film={{
+										id: series.id,
+										kind: 'series',
+										title: seasonName(season.number),
+										year: season.year,
+										posterPath: season.posterPath ?? series.posterPath
 									}}
-								>
-									<Icon name={loggedSeasons.has(season.number) ? 'eye' : 'plus'} />
-									{m.nav_log()}
-								</button>
+									size="small"
+									linked={false}
+									actions
+									season={{
+										number: season.number,
+										title: series.title,
+										seasons: seasonChoices
+									}}
+								/>
+								<span class="season-name" class:logged={loggedSeasons.has(season.number)}>
+									{seasonName(season.number)}
+								</span>
+								{#if season.year}<span class="season-year">{season.year}</span>{/if}
 							</li>
 						{/each}
 					</ul>
@@ -338,8 +333,12 @@
 	.seasons li {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-1);
 		font-size: var(--font-size-small);
+		line-height: 1.3;
+	}
+
+	.seasons li :global(.poster) {
+		margin-bottom: var(--space-1);
 	}
 
 	.seasons li :global(.poster) {
@@ -351,30 +350,12 @@
 		font-weight: 700;
 	}
 
-	.season-meta {
-		display: flex;
-		flex-direction: column;
+	.season-year {
 		color: var(--color-text-muted);
+		font-size: var(--font-size-micro);
 	}
 
-	.season-log {
-		display: flex;
-		gap: var(--space-1);
-		align-items: center;
-		align-self: flex-start;
-		padding: 0;
-		border: 0;
-		background: none;
-		color: var(--color-text);
-		font: inherit;
-		cursor: pointer;
-	}
-
-	.season-log:hover {
-		color: var(--color-heading);
-	}
-
-	.season-log.logged {
+	.season-name.logged {
 		color: var(--color-highlight);
 	}
 

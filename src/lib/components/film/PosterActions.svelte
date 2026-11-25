@@ -7,6 +7,7 @@
 	import RatingInput from '#lib/components/library/RatingInput.svelte';
 	import type { PublicUser } from '#lib/server/auth/users.js';
 	import { sharedDialogs } from '#lib/components/library/shared-dialogs.svelte.js';
+	import type { PosterSeason } from '#lib/components/library/log-target.js';
 	import { m } from '#lib/paraglide/messages.js';
 
 	interface Props {
@@ -18,6 +19,8 @@
 			year: number | null;
 			posterPath: string | null;
 		};
+		/** The season of a series the poster shows, which the log dialog starts from. */
+		season?: PosterSeason | undefined;
 	}
 
 	interface FilmStatus {
@@ -26,7 +29,7 @@
 		listMembership: number[];
 	}
 
-	let { film }: Props = $props();
+	let { film, season }: Props = $props();
 
 	/** Width kept free beside the poster for the menu, in pixels. */
 	const menuRoom = 260;
@@ -98,12 +101,21 @@
 		menuOpen = false;
 		sharedDialogs.log = {
 			kind: 'new',
-			film: { id: filmId, kind, title: film.title, year: film.year, posterPath: film.posterPath },
+			film: {
+				id: filmId,
+				kind,
+				title: season?.title ?? film.title,
+				year: film.year,
+				posterPath: film.posterPath
+			},
 			defaults: {
 				rating: status.state.rating,
 				liked: status.state.liked,
-				rewatch: status.state.watched
-			}
+				rewatch: status.state.watched,
+				season: season?.number ?? null
+			},
+			seasons: season?.seasons ?? [],
+			status: status.state.status
 		};
 	}
 

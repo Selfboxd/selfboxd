@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { admin, apiSignIn, bearer, createAccount, signIn } from './support/accounts';
+import { admin, apiSignIn, bearer, createAccount, signIn, chooseOption } from './support/accounts';
 
 function actions(page: Page) {
 	return page.getByRole('region', { name: 'Your actions' });
@@ -66,7 +66,8 @@ test.describe('series page', () => {
 
 		await expect(seasons(page)).toHaveCount(3);
 		await expect(seasons(page).nth(0)).toContainText('Season 1');
-		await expect(seasons(page).nth(0)).toContainText('Episodes: 8');
+		await expect(seasons(page).nth(0)).toContainText('2019');
+		await expect(seasons(page).nth(0)).not.toContainText('Episodes');
 		await expect(seasons(page).nth(2)).toContainText('Specials');
 	});
 
@@ -78,10 +79,14 @@ test.describe('series page', () => {
 	});
 
 	test('logs a season with a status', async ({ page }) => {
-		await page.getByRole('button', { name: 'Log Season 2' }).click();
+		const poster = seasons(page).nth(1).locator('.poster');
+		await poster.hover();
+		await poster.getByRole('button', { name: 'More actions' }).click();
+		await poster.getByRole('button', { name: 'Review or log…' }).click();
 		const dialog = page.getByRole('dialog');
-		await expect(dialog.getByLabel('Season')).toHaveValue('2');
-		await dialog.getByLabel('Status').selectOption('watching');
+		await expect(dialog.getByLabel('Season', { exact: true })).toHaveText('Season 2');
+		await expect(dialog.getByLabel('Status', { exact: true })).toHaveText('Finished');
+		await chooseOption(dialog, 'Status', 'Watching');
 		await dialog.getByRole('button', { name: 'Save' }).click();
 		await expect(dialog).toBeHidden();
 
@@ -104,8 +109,8 @@ test.describe('series page', () => {
 			.getByRole('button', { name: /Review or log/ })
 			.click();
 		const dialog = page.getByRole('dialog');
-		await expect(dialog.getByLabel('Season')).toHaveValue('');
-		await dialog.getByLabel('Status').selectOption('finished');
+		await expect(dialog.getByLabel('Season', { exact: true })).toHaveText('Whole series');
+		await expect(dialog.getByLabel('Status', { exact: true })).toHaveText('Finished');
 		await dialog.getByRole('button', { name: 'Save' }).click();
 		await expect(dialog).toBeHidden();
 

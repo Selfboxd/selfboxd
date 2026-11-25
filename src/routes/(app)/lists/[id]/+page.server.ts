@@ -57,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (ids.ok && ids.value && ids.value.length > 0) {
 		const marks = listMarks(context.db, user.id);
 		progress = {
-			watched: ids.value.filter((film) => marks.get(markKey('film', film))?.watched).length,
+			watched: ids.value.filter((work) => marks.get(markKey(work.kind, work.id))?.watched).length,
 			total: ids.value.length
 		};
 	}

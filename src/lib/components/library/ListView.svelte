@@ -167,7 +167,7 @@
 	</li>
 {/snippet}
 
-{#if backdropPath}<Backdrop path={backdropPath} />{/if}
+{#if backdropPath}<Backdrop path={backdropPath} short />{/if}
 
 <div class="list" class:with-backdrop={backdropPath}>
 	<div class="content">
@@ -309,8 +309,8 @@
 	}
 
 	header {
-		margin-bottom: var(--space-6);
-		font-size: var(--font-size-control);
+		margin-bottom: var(--space-4);
+		font-size: var(--font-size-small);
 	}
 
 	.byline {
@@ -318,8 +318,7 @@
 		gap: var(--space-3);
 		align-items: center;
 		justify-content: space-between;
-		min-height: var(--avatar-medium);
-		margin-bottom: var(--space-3);
+		margin-bottom: var(--space-2);
 	}
 
 	.owner {
@@ -345,9 +344,9 @@
 
 	.bar {
 		display: flex;
-		gap: var(--space-2);
+		gap: var(--space-1);
 		align-items: center;
-		padding: var(--space-2) 0;
+		min-height: var(--list-bar-height);
 		border-top: 1px solid var(--color-border);
 		border-bottom: 1px solid var(--color-border);
 	}
@@ -377,8 +376,8 @@
 		display: flex;
 		gap: var(--space-1);
 		align-items: center;
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-control);
+		padding: 2px var(--space-2);
+		font-size: var(--font-size-small);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 		white-space: nowrap;
@@ -403,9 +402,13 @@
 		justify-content: flex-end;
 		border: 0;
 		background: none;
-		color: var(--color-text);
+		color: var(--color-text-muted);
 		font-family: inherit;
 		cursor: pointer;
+	}
+
+	.trigger:hover {
+		color: var(--color-text-strong);
 	}
 
 	.entries {
@@ -439,6 +442,7 @@
 		display: block;
 		padding: var(--space-1) var(--space-3);
 		color: var(--color-menu-text);
+		font-size: var(--font-size-control);
 		white-space: nowrap;
 	}
 
@@ -458,7 +462,7 @@
 		padding: var(--space-1);
 		border-radius: var(--radius-small);
 		color: var(--color-text-muted);
-		font-size: var(--font-size-large);
+		font-size: var(--font-size-body);
 	}
 
 	.modes a:hover,
