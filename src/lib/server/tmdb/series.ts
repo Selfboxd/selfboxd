@@ -1,5 +1,5 @@
 import type { Season, Series, SeriesSummary } from '../../catalog/series';
-import { findTrailer, groupCrew, toWatch, yearOf } from './film';
+import { findTrailer, groupCrew, otherTitles, toWatch, yearOf } from './film';
 import type { RawSeriesDetails, RawSeriesSummary } from './schemas';
 
 /** TMDB statuses of a series that will air no new episode. */
@@ -59,6 +59,10 @@ export function toSeries(raw: RawSeriesDetails, region: string): Series {
 		ended,
 		endYear: ended ? yearOf(raw.last_air_date) : null,
 		episodeRuntime: runtime ?? null,
-		seasons: toSeasons(raw.seasons)
+		seasons: toSeasons(raw.seasons),
+		alternativeTitles: otherTitles(
+			raw.alternative_titles.results.map((entry) => entry.title),
+			[raw.name, raw.original_name]
+		)
 	};
 }

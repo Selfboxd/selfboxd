@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Select from '#lib/components/Select.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/FormError.svelte';
 	import FormNotice from '#lib/components/FormNotice.svelte';
@@ -27,10 +28,15 @@
 				{/if}
 				<div class="field">
 					<label class="field-label" for={id}>{m.preferences_rating_field()}</label>
-					<select class="field-input" {id} name="ratingScale" value={data.user?.ratingScale}>
-						<option value="stars">{m.preferences_rating_stars()}</option>
-						<option value="ten">{m.preferences_rating_ten()}</option>
-					</select>
+					<Select
+						{id}
+						name="ratingScale"
+						value={data.user?.ratingScale ?? 'stars'}
+						options={[
+							{ value: 'stars', label: m.preferences_rating_stars() },
+							{ value: 'ten', label: m.preferences_rating_ten() }
+						]}
+					/>
 				</div>
 				<button class="button button-primary">{m.log_save()}</button>
 			</form>

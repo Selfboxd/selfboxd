@@ -36,6 +36,10 @@ export const filmDetailsSchema = v.object({
 	production_countries: v.array(v.object({ iso_3166_1: v.string() })),
 	spoken_languages: v.array(v.object({ iso_639_1: v.string() })),
 	belongs_to_collection: v.nullish(v.object({ id: v.number(), name: v.string() })),
+	alternative_titles: v.optional(
+		v.object({ titles: v.optional(v.array(v.object({ title: v.string() })), []) }),
+		{ titles: [] }
+	),
 	credits: v.object({
 		cast: v.array(
 			v.object({
@@ -106,6 +110,7 @@ export const filmListSchema = v.object({ results: v.array(filmSummarySchema) });
 export const filmPageSchema = v.object({
 	page: v.number(),
 	total_pages: v.number(),
+	total_results: v.optional(v.number(), 0),
 	results: v.array(filmSummarySchema)
 });
 
@@ -128,14 +133,8 @@ export const seriesListSchema = v.object({ results: v.array(seriesSummarySchema)
 export const seriesPageSchema = v.object({
 	page: v.number(),
 	total_pages: v.number(),
+	total_results: v.optional(v.number(), 0),
 	results: v.array(seriesSummarySchema)
-});
-
-export const seriesSearchSchema = v.object({
-	page: v.number(),
-	total_pages: v.number(),
-	total_results: v.number(),
-	results: v.array(v.object({ ...seriesSummarySchema.entries, original_name: v.string() }))
 });
 
 export const seriesDetailsSchema = v.object({
@@ -173,9 +172,32 @@ export const seriesDetailsSchema = v.object({
 		),
 		[]
 	),
+	alternative_titles: v.optional(
+		v.object({ results: v.optional(v.array(v.object({ title: v.string() })), []) }),
+		{ results: [] }
+	),
 	credits: filmDetailsSchema.entries.credits,
 	videos: filmDetailsSchema.entries.videos,
 	'watch/providers': filmDetailsSchema.entries['watch/providers']
 });
 
 export type RawSeriesDetails = v.InferOutput<typeof seriesDetailsSchema>;
+
+export const multiSearchSchema = v.object({
+	page: v.number(),
+	total_pages: v.number(),
+	total_results: v.number(),
+	results: v.array(
+		v.object({
+			id: v.number(),
+			media_type: v.optional(v.string(), ''),
+			title: optionalText,
+			name: optionalText,
+			original_title: optionalText,
+			original_name: optionalText,
+			release_date: optionalText,
+			first_air_date: optionalText,
+			poster_path: optionalText
+		})
+	)
+});

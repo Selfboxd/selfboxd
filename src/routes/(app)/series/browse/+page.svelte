@@ -22,8 +22,10 @@
 		kind="series"
 		genres={data.genres}
 		filter={data.filter}
-		works={data.films}
+		visibility={data.visibility}
+		works={data.works}
 		page={data.page}
 		totalPages={data.totalPages}
+		total={data.total}
 	/>
 {/if}

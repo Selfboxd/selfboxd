@@ -90,7 +90,8 @@ const publicLists = [
 	{ id: 102, name: 'Rainy Cities', user_name: 'curator', items: 2, likes: null },
 	{ id: 103, name: '<img src=x onerror=alert(1)>', user_name: null, items: 0, likes: 0 },
 	{ id: 104, name: 'Slow Burners', user_name: 'curator', items: 1, likes: 12 },
-	{ id: 105, name: 'Replicants', user_name: 'deckard', items: 1, likes: 3 }
+	{ id: 105, name: 'Replicants', user_name: 'deckard', items: 1, likes: 3 },
+	{ id: 106, name: 'Latest TV Shows', user_name: 'curator', items: 2, likes: 1 }
 ];
 
 function mdblist(url: URL, response: ServerResponse) {
@@ -124,6 +125,14 @@ function mdblist(url: URL, response: ServerResponse) {
 				{ id: 1, title: 'Blade Runner 2049', release_year: 2017, ids: { tmdb: 335984 } },
 				{ id: 424242, title: 'Unknown at TMDB', release_year: 1999, ids: { tmdb: 424242 } }
 			];
+			if (found.id === 106) {
+				const show = { id: 7, title: 'Neon Precinct', rank: 1, release_year: 2019 };
+				send(response, 200, {
+					movies: [{ id: 78, title: 'Blade Runner', rank: 2, ids: { tmdb: 78 } }],
+					shows: [{ ...show, ids: { tmdb: 1400 } }]
+				});
+				return;
+			}
 			const first = found.id === 101 && offset === 0;
 			send(
 				response,
@@ -187,7 +196,28 @@ const server = createServer((request, response) => {
 	} else if (url.pathname === '/3/discover/tv') {
 		const genre = url.searchParams.get('with_genres');
 		const results = genre === '80' ? seriesSummaries.slice(0, 1) : seriesSummaries;
-		send(response, 200, { page: 1, total_pages: 1, results });
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
+	} else if (url.pathname === '/3/search/multi') {
+		const query = (url.searchParams.get('query') ?? '').toLowerCase();
+		const page = Number(url.searchParams.get('page') ?? '1');
+		if (query === 'many') {
+			const title = `Many ${String(page)}`;
+			const results = [
+				{ ...summaries[0], id: 7000 + page, title, original_title: title, media_type: 'movie' }
+			];
+			send(response, 200, { page, total_pages: 2, total_results: 2, results });
+			return;
+		}
+		const results = [
+			...seriesSummaries
+				.filter((entry) => String(entry.name).toLowerCase().includes(query))
+				.map((entry) => ({ ...entry, media_type: 'tv' })),
+			{ id: 501, name: 'Ada Rivers', media_type: 'person' },
+			...summaries
+				.filter((entry) => String(entry.title).toLowerCase().includes(query))
+				.map((entry) => ({ ...entry, media_type: 'movie' }))
+		];
+		send(response, 200, { page: 1, total_pages: 1, total_results: results.length, results });
 	} else if (url.pathname === '/3/search/tv') {
 		const query = (url.searchParams.get('query') ?? '').toLowerCase();
 		const results = seriesSummaries.filter((entry) =>
@@ -221,6 +251,7 @@ const server = createServer((request, response) => {
 		send(response, 200, {
 			page,
 			total_pages: genre === '878' ? 3 : 1,
+			total_results: genre === '878' ? 41 : matching.length,
 			results: page === 1 ? ordered : ordered.slice(0, 1)
 		});
 	} else if (/^\/3\/movie\/(popular|top_rated|now_playing|upcoming)$/.test(url.pathname)) {

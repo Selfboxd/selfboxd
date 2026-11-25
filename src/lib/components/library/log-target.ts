@@ -1,4 +1,4 @@
-import type { DiaryEntry, WorkKind } from '#lib/catalog/library.js';
+import type { DiaryEntry, SeriesStatus, WorkKind } from '#lib/catalog/library.js';
 
 /** The film or series a new viewing is logged for. */
 export interface LogFilm {
@@ -31,4 +31,15 @@ export type LogTarget = (
 ) & {
 	/** Seasons offered when the work is a series. */
 	seasons?: LogSeason[];
+	/** Status of the series chosen first; finished when it has none yet. */
+	status?: SeriesStatus | null;
 };
+
+/** A season shown as a poster, logged as part of its series. */
+export interface PosterSeason {
+	number: number;
+	/** Title of the series. */
+	title: string;
+	/** Every season of the series, offered by the log dialog. */
+	seasons: LogSeason[];
+}

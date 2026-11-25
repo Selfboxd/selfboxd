@@ -134,6 +134,8 @@
 	--profile-bar-height: 2.75rem;
 	--menu-width: 10.5rem;
 	--search-width: 11rem;
+	--select-min-width: 9rem;
+	--select-max-height: 18rem;
 	--search-open-width: 13.5rem;
 	--search-height: 1.875rem;
 	--menu-row-height: 2.5rem;
@@ -142,7 +144,10 @@
 	--poster-medium: 9.375rem;
 	--poster-large: 14.375rem;
 	--poster-list: 7.5rem;
-	--list-offset: 17rem;
+	--poster-browse: 6.25rem;
+	--list-offset: 24rem;
+	--list-bar-height: 2rem;
+	--backdrop-short-height: 30rem;
 	--backdrop-width: 75rem;
 	--backdrop-height: 35rem;
 	--backdrop-offset: 26rem;

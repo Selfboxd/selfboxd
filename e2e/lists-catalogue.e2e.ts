@@ -41,7 +41,7 @@ test.describe('lists catalogue', () => {
 	test('shows the other popular lists after the featured ones', async ({ page }) => {
 		const popular = page.getByRole('region', { name: 'Popular lists' });
 
-		await expect(popular.getByRole('article')).toHaveCount(2);
+		await expect(popular.getByRole('article')).toHaveCount(3);
 		await expect(popular.getByRole('link', { name: 'Replicants' })).toHaveAttribute(
 			'href',
 			'/lists/105'
@@ -275,6 +275,19 @@ test.describe('list page', () => {
 		await page.goto('/watchlist');
 		await expect(page.locator('main a[href="/film/78"]').first()).toBeVisible();
 		await expect(page.locator('main a[href="/film/335984"]').first()).toBeVisible();
+	});
+
+	test('shows the series of a public list with the films, in the order of the list', async ({
+		page
+	}) => {
+		await page.goto('/lists/106');
+
+		await expect(listEntries(page)).toHaveCount(2);
+		await expect(listEntries(page).nth(0).locator('a[title]')).toHaveAttribute(
+			'href',
+			'/series/1400'
+		);
+		await expect(listEntries(page).nth(1).locator('a[title]')).toHaveAttribute('href', '/film/78');
 	});
 
 	test('offers the same panel on an official chart', async ({ page }) => {

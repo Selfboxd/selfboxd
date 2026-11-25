@@ -8,6 +8,7 @@ export interface FilmSummary {
 export interface FilmSearchResult extends FilmSummary {
 	originalTitle: string;
 	directors: Person[];
+	alternativeTitles: string[];
 }
 
 export interface Person {
@@ -83,6 +84,8 @@ export interface Film extends FilmSummary {
 	/** Offers in the country of the user, when TMDB knows any. */
 	watch: WatchProviders | null;
 	collection: { id: number; name: string } | null;
+	/** Other titles of the film, in other countries or languages. */
+	alternativeTitles: string[];
 }
 
 export interface FilmCollection {

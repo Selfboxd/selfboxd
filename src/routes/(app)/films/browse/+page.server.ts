@@ -1,22 +1,8 @@
-import { parseBrowseFilter } from '#lib/server/tmdb/browse.js';
-import { getTmdbContext } from '#lib/server/tmdb/index.js';
-import { requestLanguage } from '#lib/server/tmdb/page.js';
-import { browseFilms, getGenres } from '#lib/server/tmdb/service.js';
+import { requireUser } from '#lib/server/auth/guards.js';
+import { loadBrowse } from '#lib/server/library/browse-page.js';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
-	const context = getTmdbContext();
-	if (!context) return { state: 'not_configured' as const };
-
-	const language = requestLanguage();
-	const genres = await getGenres(context, language);
-	const known = genres.ok ? genres.value : [];
-	const parsed = parseBrowseFilter(url.searchParams);
-	const filter = {
-		...parsed,
-		genre: known.some((genre) => genre.id === parsed.genre) ? parsed.genre : null
-	};
-	const result = await browseFilms(context, filter, language);
-	if (!result.ok) return { state: 'error' as const, error: result.error };
-	return { state: 'ready' as const, genres: known, filter, ...result.value };
+export const load: PageServerLoad = ({ locals, url }) => {
+	const { user } = requireUser(locals);
+	return loadBrowse('film', user.id, url.searchParams);
 };

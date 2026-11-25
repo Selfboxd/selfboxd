@@ -26,6 +26,10 @@ describe('toSeries', () => {
 		});
 	});
 
+	it('keeps the other titles of the series', () => {
+		expect(series.alternativeTitles).toEqual(['Precinto de Neón']);
+	});
+
 	it('marks an ended series and gives the year of its last episode', () => {
 		expect(series).toMatchObject({ ended: true, endYear: 2022 });
 		const running = toSeries({ ...raw, status: 'Returning Series' }, 'US');

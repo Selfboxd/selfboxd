@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
 
 export interface Account {
 	username: string;
@@ -63,4 +63,10 @@ export async function createAccount(request: APIRequestContext): Promise<Account
 	});
 	expect(response.status()).toBe(201);
 	return account;
+}
+
+/** Picks an option of a custom select, found by the text of its label. */
+export async function chooseOption(scope: Page | Locator, label: string, option: string) {
+	await scope.getByLabel(label, { exact: true }).click();
+	await scope.getByRole('option', { name: option, exact: true }).click();
 }

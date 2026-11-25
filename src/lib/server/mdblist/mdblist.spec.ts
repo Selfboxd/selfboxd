@@ -145,6 +145,24 @@ describe('MDBList service', () => {
 		]);
 	});
 
+	it('lists series with films in the order of their rank', async () => {
+		context.config.fetch = () =>
+			Promise.resolve(
+				json({
+					movies: [{ id: 1, title: 'Film', rank: 2, ids: { tmdb: 78 } }],
+					shows: [{ id: 2, title: 'Show', rank: 1, ids: { tmdb: 1400 } }]
+				})
+			);
+		context.tmdb = undefined;
+
+		const films = await getListFilms(context, 101);
+
+		expect(films.ok && films.value.films).toEqual([
+			{ id: 1400, kind: 'series', title: 'Show', year: null, posterPath: null },
+			{ id: 78, kind: 'film', title: 'Film', year: null, posterPath: null }
+		]);
+	});
+
 	it('gives the backdrop of the first film that has one', async () => {
 		const films = await getListFilms(context, 101);
 
@@ -152,7 +170,13 @@ describe('MDBList service', () => {
 	});
 
 	it('gives the identifiers of every film of a list that fits in one request', async () => {
-		expect(await getListFilmIds(context, 101)).toEqual({ ok: true, value: [78, 5] });
+		expect(await getListFilmIds(context, 101)).toEqual({
+			ok: true,
+			value: [
+				{ kind: 'film', id: 78 },
+				{ kind: 'film', id: 5 }
+			]
+		});
 	});
 
 	it('gives no identifiers when the list continues after the request', async () => {
@@ -168,6 +192,7 @@ describe('MDBList service', () => {
 
 		expect(films.ok && films.value.films[0]).toEqual({
 			id: 78,
+			kind: 'film',
 			title: 'Blade Runner',
 			year: 1982,
 			posterPath: null

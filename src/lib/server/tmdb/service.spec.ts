@@ -7,7 +7,7 @@ import {
 	getFilm,
 	getSeries,
 	searchFilms,
-	searchSeries,
+	searchWorks,
 	type TmdbContext
 } from './service';
 
@@ -120,7 +120,8 @@ describe('TMDB service', () => {
 							originalTitle: 'Blade Runner',
 							year: 1982,
 							posterPath: null,
-							directors: [{ id: 578, name: 'Ridley Scott' }]
+							directors: [{ id: 578, name: 'Ridley Scott' }],
+							alternativeTitles: ['Der Blade Runner', 'ブレードランナー']
 						}
 					],
 					total: 41,
@@ -210,7 +211,7 @@ describe('TMDB service', () => {
 			expect(result).toMatchObject({ ok: true, value: { title: 'Neon Precinct' } });
 			expect(requests[0]?.pathname).toBe('/3/tv/1400');
 			expect(requests[0]?.searchParams.get('append_to_response')).toBe(
-				'credits,videos,watch/providers'
+				'credits,videos,watch/providers,alternative_titles'
 			);
 		});
 
@@ -223,26 +224,59 @@ describe('TMDB service', () => {
 			expect(requests.map((url) => url.pathname)).toEqual(['/3/tv/78', '/3/movie/78']);
 		});
 
-		it('searches series and skips the request for an empty query', async () => {
-			respond = () =>
-				Response.json({
-					page: 1,
-					total_pages: 1,
-					total_results: 1,
-					results: [{ id: 1400, name: 'Neon Precinct', original_name: 'Neon Precinct' }]
-				});
+		it('searches films and series together, most relevant first', async () => {
+			respond = (url) => {
+				if (url.pathname === '/3/search/multi') {
+					return Response.json({
+						page: 1,
+						total_pages: 1,
+						total_results: 3,
+						results: [
+							{ id: 1400, media_type: 'tv', name: 'Neon Precinct', original_name: 'Neon Precinct' },
+							{ id: 9, media_type: 'person', name: 'Someone' },
+							{ id: 78, media_type: 'movie', title: 'Blade Runner', release_date: '1982-06-25' }
+						]
+					});
+				}
+				return new Response(url.pathname.includes('/tv/') ? seriesBody : filmBody);
+			};
 
-			expect(await searchSeries(context, '  ', 'en-US')).toMatchObject({
+			const found = await searchWorks(context, 'neon', 'en-US');
+
+			expect(found).toMatchObject({
 				ok: true,
-				value: { series: [] }
+				value: {
+					results: [
+						{ kind: 'series', id: 1400, people: [{ name: 'Ada Rivers' }] },
+						{ kind: 'film', id: 78, year: 1982, people: [{ name: 'Ridley Scott' }] }
+					]
+				}
+			});
+			expect(requests[0]?.pathname).toBe('/3/search/multi');
+		});
+
+		it('searches series only, and skips the request for an empty query', async () => {
+			respond = (url) =>
+				url.pathname === '/3/search/tv'
+					? Response.json({
+							page: 1,
+							total_pages: 1,
+							total_results: 1,
+							results: [{ id: 1400, name: 'Neon Precinct', original_name: 'Neon Precinct' }]
+						})
+					: new Response(seriesBody);
+
+			expect(await searchWorks(context, '  ', 'en-US', 1, 'series')).toMatchObject({
+				ok: true,
+				value: { results: [] }
 			});
 			expect(requests).toHaveLength(0);
 
-			const found = await searchSeries(context, 'neon', 'en-US');
+			const found = await searchWorks(context, 'neon', 'en-US', 1, 'series');
 			expect(requests[0]?.pathname).toBe('/3/search/tv');
 			expect(found).toMatchObject({
 				ok: true,
-				value: { series: [{ id: 1400, title: 'Neon Precinct', originalTitle: 'Neon Precinct' }] }
+				value: { results: [{ kind: 'series', title: 'Neon Precinct' }] }
 			});
 		});
 

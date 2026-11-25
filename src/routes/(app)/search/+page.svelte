@@ -11,17 +11,26 @@
 
 	let { data }: PageProps = $props();
 
-	const kind = $derived(data.state === 'ready' ? data.kind : 'film');
+	type Section = 'all' | 'films' | 'series' | 'lists';
 
-	function pageQuery(page: number): string {
-		const type = kind === 'series' ? { type: 'series' } : {};
-		return new URLSearchParams({ q: data.query, ...type, page: String(page) }).toString();
+	const section = $derived.by((): Section => {
+		if (data.state === 'lists' || data.state === 'lists_error') return 'lists';
+		if (data.state !== 'ready') return 'all';
+		return data.scope === 'film' ? 'films' : data.scope === 'series' ? 'series' : 'all';
+	});
+
+	function sectionQuery(target: Section, page = 1): string {
+		const type = target === 'all' ? {} : { type: target };
+		const pages = page > 1 ? { page: String(page) } : {};
+		return new URLSearchParams({ q: data.query, ...type, ...pages }).toString();
 	}
 
-	const filmsQuery = $derived(new URLSearchParams({ q: data.query }).toString());
-	const seriesQuery = $derived(new URLSearchParams({ q: data.query, type: 'series' }).toString());
-	const listsQuery = $derived(new URLSearchParams({ q: data.query, type: 'lists' }).toString());
-	const showsLists = $derived(data.state === 'lists' || data.state === 'lists_error');
+	const sections = $derived([
+		{ id: 'all' as const, label: m.search_section_all() },
+		{ id: 'films' as const, label: m.search_section_films() },
+		{ id: 'series' as const, label: m.search_section_series() },
+		...(data.hasLists ? [{ id: 'lists' as const, label: m.search_section_lists() }] : [])
+	]);
 </script>
 
 <svelte:head>
@@ -50,26 +59,34 @@
 						{/each}
 					</div>
 				{/if}
-			{:else if data.films.length === 0}
+			{:else if data.results.length === 0}
 				<p class="empty">{m.search_empty()}</p>
 			{:else}
 				<ul class="results">
-					{#each data.films as film (film.id)}
+					{#each data.results as result (`${result.kind}:${String(result.id)}`)}
 						<li>
-							<FilmPoster film={{ ...film, kind }} size="small" />
+							<FilmPoster film={result} size="small" />
 							<div class="details">
 								<h2>
-									<a href={resolve(workRoute(kind), { id: String(film.id) })}>{film.title}</a>
-									{#if film.year}<span class="year">{film.year}</span>{/if}
+									<a href={resolve(workRoute(result.kind), { id: String(result.id) })}>
+										{result.title}
+									</a>
+									{#if result.year}<span class="year">{result.year}</span>{/if}
 								</h2>
-								{#if film.originalTitle !== film.title}
-									<p class="meta">{m.film_original_title()}: {film.originalTitle}</p>
+								{#if result.originalTitle !== result.title}
+									<p class="meta">{m.film_original_title()}: {result.originalTitle}</p>
 								{/if}
-								{#if film.directors.length > 0}
+								{#if result.alternativeTitles.length > 0}
+									<p class="meta alternative">
+										{m.search_alternative_titles()}
+										{result.alternativeTitles.join(', ')}
+									</p>
+								{/if}
+								{#if result.people.length > 0}
 									<p class="meta directed">
-										{m.film_directed_by()}
-										{#each film.directors as director (director.id)}
-											<span class="chip">{director.name}</span>
+										{result.kind === 'series' ? m.series_created_by() : m.film_directed_by()}
+										{#each result.people as person (person.id)}
+											<span class="chip">{person.name}</span>
 										{/each}
 									</p>
 								{/if}
@@ -82,7 +99,7 @@
 						{#if data.page > 1}
 							<a
 								class="button button-secondary"
-								href="{resolve('/(app)/search')}?{pageQuery(data.page - 1)}"
+								href="{resolve('/(app)/search')}?{sectionQuery(section, data.page - 1)}"
 							>
 								{m.search_previous()}
 							</a>
@@ -90,7 +107,7 @@
 						{#if data.page < data.totalPages}
 							<a
 								class="button button-secondary next"
-								href="{resolve('/(app)/search')}?{pageQuery(data.page + 1)}"
+								href="{resolve('/(app)/search')}?{sectionQuery(section, data.page + 1)}"
 							>
 								{m.search_next()}
 							</a>
@@ -103,32 +120,16 @@
 		<aside>
 			<h2 class="section-title">{m.search_filter_title()}</h2>
 			<ul class="filters">
-				<li>
-					<a
-						href="{resolve('/(app)/search')}?{filmsQuery}"
-						aria-current={showsLists || kind === 'series' ? undefined : 'true'}
-					>
-						{m.search_section_films()}
-					</a>
-				</li>
-				<li>
-					<a
-						href="{resolve('/(app)/search')}?{seriesQuery}"
-						aria-current={!showsLists && kind === 'series' ? 'true' : undefined}
-					>
-						{m.search_section_series()}
-					</a>
-				</li>
-				{#if data.hasLists}
+				{#each sections as item (item.id)}
 					<li>
 						<a
-							href="{resolve('/(app)/search')}?{listsQuery}"
-							aria-current={showsLists ? 'true' : undefined}
+							href="{resolve('/(app)/search')}?{sectionQuery(item.id)}"
+							aria-current={section === item.id ? 'true' : undefined}
 						>
-							{m.search_section_lists()}
+							{item.label}
 						</a>
 					</li>
-				{/if}
+				{/each}
 			</ul>
 		</aside>
 	</div>
@@ -194,6 +195,12 @@
 
 	.meta {
 		color: var(--color-text);
+	}
+
+	.alternative {
+		color: var(--color-text-muted);
+		font-size: var(--font-size-control);
+		overflow-wrap: anywhere;
 	}
 
 	.directed {

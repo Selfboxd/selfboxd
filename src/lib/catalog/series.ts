@@ -45,4 +45,6 @@ export interface Series extends SeriesSummary {
 	episodeRuntime: number | null;
 	/** Seasons in order, specials last. */
 	seasons: Season[];
+	/** Other titles of the series, in other countries or languages. */
+	alternativeTitles: string[];
 }

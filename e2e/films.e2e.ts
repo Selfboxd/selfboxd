@@ -19,6 +19,34 @@ test.describe('search', () => {
 		await expect(page).toHaveURL('/film/78');
 	});
 
+	test('shows films and series together by default, with their other titles', async ({
+		page,
+		request
+	}) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/search?q=r');
+
+		const filters = page.getByRole('complementary');
+		await expect(filters.getByRole('link', { name: 'All' })).toHaveAttribute(
+			'aria-current',
+			'true'
+		);
+		const results = page.locator('main ul.results > li');
+		await expect(results).toHaveCount(4);
+		await expect(results.nth(0)).toContainText('Neon Precinct');
+		await expect(results.nth(0)).toContainText('Created by Ada Rivers');
+		await expect(results.nth(0)).toContainText('Alternative titles: Precinto de Neón');
+		await expect(results.nth(1)).toContainText('Harbour Lights');
+		await expect(results.nth(2)).toContainText('Blade Runner');
+		await expect(results.nth(2)).toContainText(
+			'Alternative titles: Der Blade Runner, ブレードランナー'
+		);
+
+		await filters.getByRole('link', { name: 'Films' }).click();
+		await expect(page).toHaveURL('/search?q=r&type=films');
+		await expect(page.getByRole('link', { name: 'Neon Precinct', exact: true })).toHaveCount(0);
+	});
+
 	test('pages through long result lists', async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
 
@@ -249,7 +277,8 @@ test.describe('film API', () => {
 					originalTitle: 'Blade Runner 2049',
 					year: 2017,
 					posterPath: '/blade-runner-poster.jpg',
-					directors: [{ id: 578, name: 'Ridley Scott' }]
+					directors: [{ id: 578, name: 'Ridley Scott' }],
+					alternativeTitles: ['Blade Runner', 'Der Blade Runner', 'ブレードランナー']
 				}
 			],
 			total: 1,

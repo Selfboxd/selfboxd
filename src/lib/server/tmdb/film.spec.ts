@@ -23,6 +23,10 @@ describe('toFilm', () => {
 		});
 	});
 
+	it('keeps the other titles, without the title and duplicates', () => {
+		expect(film.alternativeTitles).toEqual(['Der Blade Runner', 'ブレードランナー']);
+	});
+
 	it('separates the directors from the rest of the crew', () => {
 		expect(film.directors).toEqual([{ id: 578, name: 'Ridley Scott' }]);
 		expect(film.crew.map((group) => group.job)).not.toContain('Director');

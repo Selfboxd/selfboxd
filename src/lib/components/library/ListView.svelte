@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
@@ -16,6 +15,8 @@
 	import Avatar from '#lib/components/Avatar.svelte';
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
+	import FilterMenus from '#lib/components/FilterMenus.svelte';
+	import type { FilterEntry } from '#lib/components/filter-menus.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import { relativeTime } from '#lib/i18n/dates.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -71,15 +72,6 @@
 		children
 	}: Props = $props();
 
-	interface Entry {
-		label: string;
-		query: string;
-		current: boolean;
-	}
-
-	let menus: HTMLElement | undefined = $state();
-	let suppressed = $state(false);
-
 	const path = $derived(
 		'personal' in target
 			? resolve('/(app)/profile/lists/[id]', { id: String(target.personal) })
@@ -107,7 +99,7 @@
 		watched: m.list_show_watched
 	};
 
-	function entry(label: string, change: Partial<ListOptions>, current: boolean): Entry {
+	function entry(label: string, change: Partial<ListOptions>, current: boolean): FilterEntry {
 		return { label, query: listOptionsQuery({ ...options, ...change }), current };
 	}
 
@@ -131,43 +123,9 @@
 			entry(visibilityLabels[visibility](), { visibility }, options.visibility === visibility)
 		)
 	);
-
-	afterNavigate(() => {
-		suppressed = menus?.matches(':hover') ?? false;
-		if (document.activeElement instanceof HTMLElement && menus?.contains(document.activeElement)) {
-			document.activeElement.blur();
-		}
-	});
 </script>
 
-{#snippet menu(label: string, items: Entry[], icon: boolean)}
-	<li>
-		<span class="sizer" aria-hidden="true">
-			{#if icon}<Icon name="eye" filled />{:else}{label}{/if}
-			<Icon name="chevron" />
-		</span>
-		<div class="menu" role="group">
-			<button class="trigger" type="button" aria-haspopup="true" aria-label={label}>
-				{#if icon}<Icon name="eye" filled />{:else}{label}{/if}
-				<Icon name="chevron" />
-			</button>
-			<ul class="entries">
-				{#each items as item (item.label)}
-					<li>
-						<a
-							href="{path}{item.query ? `?${item.query}` : ''}"
-							aria-current={item.current ? 'true' : undefined}
-						>
-							{item.label}
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</li>
-{/snippet}
-
-{#if backdropPath}<Backdrop path={backdropPath} />{/if}
+{#if backdropPath}<Backdrop path={backdropPath} short />{/if}
 
 <div class="list" class:with-backdrop={backdropPath}>
 	<div class="content">
@@ -186,17 +144,23 @@
 				<p class="updated">
 					{#if updatedAt}{m.list_updated({ when: relativeTime(new Date(updatedAt)) })}{/if}
 				</p>
-				<ul
-					class="menus"
-					class:suppressed
-					bind:this={menus}
-					onmouseleave={() => (suppressed = false)}
+				<FilterMenus
+					menus={[
+						{ label: m.list_decade(), entries: decadeMenu },
+						...(genres.length > 0 ? [{ label: m.list_genre(), entries: genreMenu }] : []),
+						{ label: `${m.list_sort_by()} ${sortLabels[options.sort]()}`, entries: sortMenu },
+						{ label: m.list_visibility(), icon: 'eye' as const, entries: visibilityMenu }
+					]}
 				>
-					{@render menu(m.list_decade(), decadeMenu, false)}
-					{#if genres.length > 0}{@render menu(m.list_genre(), genreMenu, false)}{/if}
-					{@render menu(`${m.list_sort_by()} ${sortLabels[options.sort]()}`, sortMenu, false)}
-					{@render menu(m.list_visibility(), visibilityMenu, true)}
-				</ul>
+					{#snippet link(item: FilterEntry)}
+						<a
+							href="{path}{item.query ? `?${item.query}` : ''}"
+							aria-current={item.current ? 'true' : undefined}
+						>
+							{item.label}
+						</a>
+					{/snippet}
+				</FilterMenus>
 				<div class="modes">
 					<a
 						href="{path}{listOptionsQuery({ ...options, mode: 'grid' })
@@ -309,8 +273,8 @@
 	}
 
 	header {
-		margin-bottom: var(--space-6);
-		font-size: var(--font-size-control);
+		margin-bottom: var(--space-4);
+		font-size: var(--font-size-small);
 	}
 
 	.byline {
@@ -318,8 +282,7 @@
 		gap: var(--space-3);
 		align-items: center;
 		justify-content: space-between;
-		min-height: var(--avatar-medium);
-		margin-bottom: var(--space-3);
+		margin-bottom: var(--space-2);
 	}
 
 	.owner {
@@ -345,9 +308,9 @@
 
 	.bar {
 		display: flex;
-		gap: var(--space-2);
+		gap: var(--space-1);
 		align-items: center;
-		padding: var(--space-2) 0;
+		min-height: var(--list-bar-height);
 		border-top: 1px solid var(--color-border);
 		border-bottom: 1px solid var(--color-border);
 	}
@@ -361,93 +324,6 @@
 		white-space: nowrap;
 	}
 
-	.menus {
-		display: flex;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.menus > li {
-		position: relative;
-	}
-
-	.sizer,
-	.trigger {
-		display: flex;
-		gap: var(--space-1);
-		align-items: center;
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-control);
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-
-	.sizer {
-		visibility: hidden;
-	}
-
-	.menu {
-		position: absolute;
-		z-index: 15;
-		top: 0;
-		right: 0;
-		overflow: hidden;
-		min-width: 100%;
-		border-radius: var(--radius-small);
-	}
-
-	.trigger {
-		width: 100%;
-		justify-content: flex-end;
-		border: 0;
-		background: none;
-		color: var(--color-text);
-		font-family: inherit;
-		cursor: pointer;
-	}
-
-	.entries {
-		display: none;
-		overflow-y: auto;
-		max-height: 22rem;
-		margin: 0;
-		padding: var(--space-1) 0;
-		border-top: 1px solid var(--color-menu-divider);
-		list-style: none;
-	}
-
-	.menus:not(.suppressed) .menu:hover,
-	.menus:not(.suppressed) .menu:focus-within {
-		z-index: 16;
-		background: var(--color-menu);
-		box-shadow: var(--shadow-button), var(--shadow-menu);
-	}
-
-	.menus:not(.suppressed) .menu:hover .trigger,
-	.menus:not(.suppressed) .menu:focus-within .trigger {
-		color: var(--color-heading);
-	}
-
-	.menus:not(.suppressed) .menu:hover .entries,
-	.menus:not(.suppressed) .menu:focus-within .entries {
-		display: block;
-	}
-
-	.entries a {
-		display: block;
-		padding: var(--space-1) var(--space-3);
-		color: var(--color-menu-text);
-		white-space: nowrap;
-	}
-
-	.entries a:hover,
-	.entries a[aria-current] {
-		background: var(--color-menu-hover);
-		color: var(--color-heading);
-	}
-
 	.modes {
 		display: flex;
 		gap: var(--space-1);
@@ -458,7 +334,7 @@
 		padding: var(--space-1);
 		border-radius: var(--radius-small);
 		color: var(--color-text-muted);
-		font-size: var(--font-size-large);
+		font-size: var(--font-size-body);
 	}
 
 	.modes a:hover,
