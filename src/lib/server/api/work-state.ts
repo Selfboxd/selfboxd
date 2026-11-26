@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import type { Work, WorkKind } from '../../catalog/library';
+import type { Work, WorkKind, WorkState } from '../../catalog/library';
 import { apiError, apiJson, readJsonObject } from './responses';
 import { requireUser } from '../auth/guards';
 import { getDatabase } from '../db/index';
@@ -88,4 +88,27 @@ export async function patchState(
 	}
 	if (change.inWatchlist === false) deleteFromWatchlist(db, user.id, work.id);
 	return apiJson(describe(user.id, work));
+}
+
+/** Most works one request may ask the state of. */
+const statesLimit = 100;
+const workKeyPattern = /^(film|series):(\d{1,9})$/;
+
+/** Answers with the states of several works, given as `kind:id` in the `works` parameter. */
+export function getStates({ locals, url }: Pick<RequestEvent, 'locals' | 'url'>): Response {
+	const { user } = requireUser(locals);
+	const keys = [...new Set((url.searchParams.get('works') ?? '').split(',').filter(Boolean))];
+	if (keys.length === 0 || keys.length > statesLimit) return apiError(400, 'invalid_request');
+	const db = getDatabase();
+	const states: Record<string, { state: WorkState; listMembership: number[] }> = {};
+	for (const key of keys) {
+		const match = workKeyPattern.exec(key);
+		if (!match) return apiError(400, 'invalid_request');
+		const work = findWork(db, match[1] as WorkKind, match[2] as string);
+		states[key] = {
+			state: work ? getWorkState(db, user.id, work.id) : emptyWorkState,
+			listMembership: work ? listMembership(db, user.id, work.id) : []
+		};
+	}
+	return apiJson({ states, lists: listLists(db, user.id).map(({ id, name }) => ({ id, name })) });
 }

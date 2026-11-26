@@ -4,7 +4,9 @@ import { pickDate } from './support/fields';
 
 /** Hovers the poster of a film on the Films page and returns its quick actions. */
 async function hoverPoster(page: Page, title: string) {
-	const poster = page.locator('.poster', { has: page.locator(`a[title^="${title} ("]`) }).first();
+	const poster = page
+		.locator('.poster', { has: page.locator(`a[aria-label^="${title} ("]`) })
+		.first();
 	await poster.hover();
 	const actions = poster.getByRole('group', { name: title, exact: true });
 	await expect(actions.getByRole('button', { name: 'More actions' })).toBeEnabled();
@@ -15,6 +17,17 @@ test.describe('poster quick actions', () => {
 	test.beforeEach(async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
 		await page.goto('/films');
+	});
+
+	test('names the film in a tooltip that waits a moment', async ({ page }) => {
+		const poster = page
+			.locator('.poster', { has: page.locator('a[aria-label="Blade Runner 2049 (2017)"]') })
+			.first();
+		await poster.hover();
+		const tooltip = poster.locator('.tooltip');
+		await expect(tooltip).toHaveText('Blade Runner 2049 (2017)');
+		await page.mouse.move(0, 0);
+		await expect(tooltip).toHaveCount(0);
 	});
 
 	test('marks a film as watched and liked from its poster', async ({ page }) => {
@@ -184,5 +197,57 @@ test.describe('film state API', () => {
 
 		expect(response.status()).toBe(409);
 		expect(await response.json()).toMatchObject({ error: 'has_diary_entries' });
+	});
+
+	test('goes back when the server refuses a change', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/film/78');
+		await page.getByRole('button', { name: 'Review or log…' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+		await expect(page.getByRole('dialog')).toBeHidden();
+
+		await page.goto('/films');
+		const actions = await hoverPoster(page, 'Blade Runner');
+		await expect(actions.getByRole('button', { name: 'Watched' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		const refused = page.waitForResponse(
+			(response) => response.url().endsWith('/api/v1/films/78/state') && response.status() === 409
+		);
+		await actions.getByRole('button', { name: 'Watched' }).click();
+		await refused;
+		await expect(actions.getByRole('button', { name: 'Watched' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+	});
+
+	test('reads the states of many works in one request', async ({ request }) => {
+		const account = await createAccount(request);
+		const headers = bearer(await apiSignIn(request, account));
+		await request.patch('/api/v1/films/78/state', { headers, data: { liked: true } });
+
+		const response = await request.get('/api/v1/states?works=film:78,series:1400,film:999', {
+			headers
+		});
+		expect(response.status()).toBe(200);
+		const body = (await response.json()) as {
+			states: Record<string, { state: { liked: boolean; watched: boolean } }>;
+		};
+		expect(body.states['film:78']?.state.liked).toBe(true);
+		expect(body.states['series:1400']?.state.watched).toBe(false);
+		expect(body.states['film:999']?.state.liked).toBe(false);
+
+		for (const works of [
+			'',
+			'book:1',
+			'film:abc',
+			Array.from({ length: 101 }, (_, i) => `film:${String(i + 1)}`).join(',')
+		]) {
+			const refused = await request.get(`/api/v1/states?works=${works}`, { headers });
+			expect(refused.status()).toBe(400);
+		}
+		expect((await request.get('/api/v1/states?works=film:78')).status()).toBe(401);
 	});
 });

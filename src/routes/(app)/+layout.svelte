@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { posterStates } from '#lib/components/film/poster-states.svelte.js';
 	import ImageDialog from '#lib/components/library/ImageDialog.svelte';
 	import ListsDialog from '#lib/components/library/ListsDialog.svelte';
 	import LogDialog from '#lib/components/library/LogDialog.svelte';
@@ -7,6 +9,13 @@
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
+
+	let shownData: unknown = page.data;
+	$effect(() => {
+		if (page.data === shownData) return;
+		shownData = page.data;
+		posterStates.reset();
+	});
 </script>
 
 {#if data.user}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
+	import ListStack from '#lib/components/library/ListStack.svelte';
 	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
@@ -25,15 +25,12 @@
 	<ul>
 		{#each data.lists as list (list.id)}
 			<li>
-				<a
-					class="stack"
-					href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
-					tabindex="-1"
-				>
-					{#each list.preview as work (work.id)}
-						<FilmPoster film={{ ...work, id: work.externalId }} size="small" linked={false} />
-					{/each}
-				</a>
+				<div class="stack">
+					<ListStack
+						works={list.preview.map((work) => ({ ...work, id: work.externalId }))}
+						href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
+					/>
+				</div>
 				<div class="text">
 					<h2>
 						<a href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>{list.name}</a>
@@ -72,21 +69,8 @@
 	}
 
 	.stack {
-		display: flex;
-		flex-shrink: 0;
 		width: var(--list-stack-width);
-		min-height: var(--list-stack-height);
-		border-radius: var(--radius-medium);
-		background: var(--color-chip);
-	}
-
-	.stack :global(.poster) {
 		flex-shrink: 0;
-		box-shadow: var(--shadow-poster-stack);
-	}
-
-	.stack :global(.poster + .poster) {
-		margin-inline-start: calc(-1 * var(--list-stack-overlap));
 	}
 
 	h2 {

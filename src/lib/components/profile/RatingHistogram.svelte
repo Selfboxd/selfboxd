@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	import Icon from '#lib/components/Icon.svelte';
 	import type { RatingScale } from '#lib/catalog/library.js';
 	import { ratingLabel } from '#lib/i18n/ratings.js';
@@ -13,10 +14,10 @@
 
 	let { counts, scale }: Props = $props();
 
-	const barWidth = 9;
+	const barWidth = 8;
 	const barGap = 1;
 	const height = 40;
-	const minimum = 1;
+	const minimum = 3;
 
 	let active = $state<number | null>(null);
 
@@ -72,7 +73,7 @@
 						onblur={() => (active = null)}
 					></button>
 					{#if active === bar.index}
-						<span class="tip" aria-hidden="true">
+						<span class="tip" aria-hidden="true" in:fade={{ delay: 380, duration: 160 }}>
 							<strong>{bar.count}</strong>
 							{#if scale === 'stars'}
 								<span class="stars">
@@ -98,10 +99,10 @@
 <style>
 	.histogram {
 		display: flex;
-		gap: var(--space-1);
+		gap: var(--space-2);
 		align-items: flex-end;
 		color: var(--color-rating);
-		font-size: var(--font-size-micro);
+		font-size: var(--font-size-small);
 	}
 
 	.low,
@@ -124,12 +125,12 @@
 	}
 
 	rect {
-		fill: var(--color-surface-raised);
+		fill: var(--color-histogram);
 		transition: fill var(--duration-fast);
 	}
 
 	rect.active {
-		fill: var(--color-text-muted);
+		fill: var(--color-histogram-hover);
 	}
 
 	.columns {

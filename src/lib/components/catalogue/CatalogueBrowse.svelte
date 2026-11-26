@@ -256,7 +256,7 @@
 {:else}
 	<ul class="grid">
 		{#each pages.items as work (work.id)}
-			<li class:watched={work.watched}><FilmPoster film={{ ...work, kind }} size="medium" /></li>
+			<li><FilmPoster film={{ ...work, kind }} size="medium" /></li>
 		{/each}
 	</ul>
 {/if}
@@ -378,15 +378,6 @@
 
 	.grid :global(.poster) {
 		width: 100%;
-	}
-
-	.grid .watched :global(.poster img) {
-		opacity: 0.5;
-		transition: opacity var(--duration-fast);
-	}
-
-	.grid .watched:hover :global(.poster img) {
-		opacity: 1;
 	}
 
 	@media (max-width: 48rem) {

@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
 
 function posters(page: Page) {
-	return page.locator('main ul.grid a[title]');
+	return page.locator('main ul.grid a[aria-label]');
 }
 
 function roles(page: Page) {
@@ -57,6 +57,8 @@ test.describe('person pages', () => {
 		await expect(page.getByRole('heading', { level: 1 })).toContainText('Starring');
 		await expect(posters(page)).toHaveCount(1);
 		await expect(posters(page).first()).toHaveAttribute('href', '/series/1401');
+		await posters(page).first().hover();
+		await expect(page.locator('main .tooltip')).toContainText('Narrator');
 
 		await chooseRole(page, 'Actor', 'Executive producer (1)');
 		await expect(posters(page).first()).toHaveAttribute('href', '/series/1400');

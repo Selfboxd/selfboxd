@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { WorkKind, WorkState } from '#lib/catalog/library.js';
+	import { posterStates, type PosterStatus } from './poster-states.svelte.js';
 	import { stateRoute, workRoute } from '#lib/paths.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import RatingInput from '#lib/components/library/RatingInput.svelte';
@@ -23,67 +24,74 @@
 		season?: PosterSeason | undefined;
 	}
 
-	interface FilmStatus {
-		state: WorkState;
-		lists: { id: number; name: string }[];
-		listMembership: number[];
-	}
-
 	let { film, season }: Props = $props();
 
 	/** Width kept free beside the poster for the menu, in pixels. */
 	const menuRoom = 260;
 
-	let status = $state<FilmStatus | null>(null);
-	let loading = false;
 	let menuOpen = $state(false);
 	let menuOnLeft = $state(false);
 	let root: HTMLElement | undefined = $state();
 
 	const filmId = $derived(String(film.id));
 	const kind = $derived(film.kind ?? 'film');
+	const key = $derived(posterStates.key(kind, filmId));
+	const status = $derived(posterStates.statuses.get(key));
 	const address = $derived(resolve(stateRoute(kind), { id: filmId }));
 	const filmPath = $derived(resolve(workRoute(kind), { id: filmId }));
 	const scale = $derived((page.data.user as PublicUser | null | undefined)?.ratingScale ?? 'stars');
 
-	async function load() {
-		if (status || loading) return;
-		loading = true;
-		try {
-			const response = await fetch(address);
-			if (response.ok) status = (await response.json()) as FilmStatus;
-		} catch {
-			status = null;
-		} finally {
-			loading = false;
-		}
-	}
+	$effect(() => {
+		const round = posterStates.generation;
+		const wanted = key;
+		const poster = root?.parentElement;
+		if (!poster) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) {
+					if (round === posterStates.generation) posterStates.want(wanted);
+					observer.disconnect();
+				}
+			},
+			{ rootMargin: '400px' }
+		);
+		observer.observe(poster);
+		return () => {
+			observer.disconnect();
+		};
+	});
 
-	async function change(body: Record<string, boolean | number | null>) {
+	type Change = Partial<Pick<WorkState, 'watched' | 'liked' | 'rating' | 'inWatchlist'>>;
+
+	/** Shows the change at once, then saves it, going back when the server refuses it. */
+	async function change(make: (state: WorkState) => Change) {
+		await posterStates.ready(key);
+		const before = posterStates.statuses.get(key);
+		if (!before) return;
+		const body = make(before.state);
+		const optimistic = { ...before.state, ...body };
+		if (body.watched === false) optimistic.rating = null;
+		if (body.watched === true || body.rating != null) {
+			optimistic.watched = true;
+			optimistic.inWatchlist = false;
+		}
+		posterStates.set(key, { ...before, state: optimistic });
 		try {
 			const response = await fetch(address, {
 				method: 'PATCH',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body)
 			});
-			if (response.ok) status = (await response.json()) as FilmStatus;
+			if (!response.ok) throw new Error(String(response.status));
+			const saved = (await response.json()) as PosterStatus & { lists: unknown };
+			posterStates.set(key, { state: saved.state, listMembership: saved.listMembership });
 		} catch {
-			return;
+			posterStates.set(key, before);
 		}
 	}
 
-	$effect(() => {
-		const poster = root?.parentElement;
-		if (!poster) return;
-		const start = () => void load();
-		const events = ['mouseenter', 'mousemove', 'focusin'];
-		for (const name of events) poster.addEventListener(name, start);
-		return () => {
-			for (const name of events) poster.removeEventListener(name, start);
-		};
-	});
-
 	function toggleMenu() {
+		if (!status) void posterStates.ready(key);
 		if (!menuOpen && root) {
 			menuOnLeft = root.getBoundingClientRect().right + menuRoom > window.innerWidth;
 		}
@@ -127,7 +135,12 @@
 	function openLists() {
 		if (!status) return;
 		menuOpen = false;
-		sharedDialogs.lists = { filmId, kind, lists: status.lists, member: status.listMembership };
+		sharedDialogs.lists = {
+			filmId,
+			kind,
+			lists: posterStates.lists,
+			member: status.listMembership
+		};
 	}
 </script>
 
@@ -140,8 +153,7 @@
 			class:watched={status?.state.watched}
 			aria-pressed={status?.state.watched ?? false}
 			aria-label={status?.state.watched ? m.action_watched() : m.action_watch()}
-			disabled={!status}
-			onclick={() => change({ watched: !status?.state.watched })}
+			onclick={() => change((state) => ({ watched: !state.watched }))}
 		>
 			<svg class="eye" viewBox="0 0 52 32" aria-hidden="true">
 				<path
@@ -154,8 +166,7 @@
 			class:liked={status?.state.liked}
 			aria-pressed={status?.state.liked ?? false}
 			aria-label={status?.state.liked ? m.action_liked() : m.action_like()}
-			disabled={!status}
-			onclick={() => change({ liked: !status?.state.liked })}
+			onclick={() => change((state) => ({ liked: !state.liked }))}
 		>
 			<Icon name="heart" filled />
 		</button>
@@ -163,7 +174,6 @@
 			type="button"
 			aria-label={m.poster_more()}
 			aria-expanded={menuOpen}
-			disabled={!status}
 			onclick={toggleMenu}
 		>
 			<Icon name="more" filled />
@@ -177,7 +187,7 @@
 					value={status.state.rating}
 					{scale}
 					mode="field"
-					onchoose={(rating: number | null) => change({ rating })}
+					onchoose={(rating: number | null) => change(() => ({ rating }))}
 				/>
 			</div>
 			{#if status.state.logCount > 0}
@@ -186,7 +196,10 @@
 			<button type="button" onclick={openLog}>
 				{status.state.watched ? m.poster_log_again() : m.action_log()}
 			</button>
-			<button type="button" onclick={() => change({ inWatchlist: !status?.state.inWatchlist })}>
+			<button
+				type="button"
+				onclick={() => change((state) => ({ inWatchlist: !state.inWatchlist }))}
+			>
 				{status.state.inWatchlist ? m.watchlist_remove() : m.poster_watchlist_add()}
 			</button>
 			<button type="button" onclick={openLists}>{m.poster_lists_add()}</button>
@@ -223,7 +236,7 @@
 		inset: auto 0 0;
 		display: flex;
 		justify-content: center;
-		padding-bottom: var(--space-1);
+		padding-bottom: 6%;
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity var(--duration-fast);
@@ -238,20 +251,21 @@
 
 	.bar {
 		display: flex;
-		gap: 0.45em;
+		gap: 0.7em;
 		align-items: center;
-		padding: 0.3em 0.5em;
-		border-radius: var(--radius-medium);
+		padding: 0.45em 0.75em;
+		border-radius: 0.4em;
 		background: var(--color-poster-bar);
 		font-size: var(--font-size-poster-action);
 	}
 
 	.bar button {
 		display: flex;
+		align-items: center;
 		padding: 0;
 		border: 0;
 		background: none;
-		color: var(--color-heading);
+		color: var(--color-poster-action);
 		font-size: inherit;
 		cursor: pointer;
 		transition:
@@ -259,43 +273,31 @@
 			transform var(--duration-fast);
 	}
 
-	.bar button:hover:not(:disabled) {
-		transform: scale(1.12);
-	}
-
-	.bar button:disabled {
-		opacity: 0.5;
-		cursor: default;
+	.bar button:hover {
+		color: var(--color-heading);
+		transform: scale(1.1);
 	}
 
 	.eye {
-		height: 0.8em;
+		height: 1em;
 		fill: currentcolor;
 		fill-rule: evenodd;
 	}
 
 	.bar :global(.icon) {
+		width: 1.15em;
+		height: 1.15em;
 		stroke-width: 0;
 	}
 
-	.bar .watched {
+	.bar .watched,
+	.bar .watched:hover {
 		color: var(--color-highlight);
 	}
 
-	.bar .liked {
+	.bar .liked,
+	.bar .liked:hover {
 		color: var(--color-like);
-	}
-
-	:global(.poster.small) > .actions {
-		padding-bottom: 2px;
-	}
-
-	:global(.poster.small) > .actions .bar {
-		font-size: var(--font-size-poster-action-small);
-	}
-
-	:global(.poster.large) > .actions .bar {
-		font-size: var(--font-size-poster-action-large);
 	}
 
 	.menu {

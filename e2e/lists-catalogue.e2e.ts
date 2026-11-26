@@ -200,7 +200,7 @@ test.describe('list page', () => {
 	}
 
 	function titles(page: Page) {
-		return listEntries(page).locator('a[title]');
+		return listEntries(page).locator('a[aria-label]');
 	}
 
 	test('orders the films from the bar of the list', async ({ page }) => {
@@ -208,12 +208,12 @@ test.describe('list page', () => {
 
 		await expect(page).toHaveURL('/lists/101?sort=name');
 		await expect(titles(page)).toHaveCount(3);
-		await expect(titles(page).nth(0)).toHaveAttribute('title', 'Blade Runner (1982)');
-		await expect(titles(page).nth(2)).toHaveAttribute('title', 'Unknown at TMDB (1999)');
+		await expect(titles(page).nth(0)).toHaveAttribute('aria-label', 'Blade Runner (1982)');
+		await expect(titles(page).nth(2)).toHaveAttribute('aria-label', 'Unknown at TMDB (1999)');
 		await expect(bar(page).getByRole('button', { name: 'Sort by Name' })).toBeVisible();
 
 		await choose(page, /^Sort by/, 'Reverse order');
-		await expect(titles(page).nth(0)).toHaveAttribute('title', 'Unknown at TMDB (1999)');
+		await expect(titles(page).nth(0)).toHaveAttribute('aria-label', 'Unknown at TMDB (1999)');
 	});
 
 	test('narrows the films by decade and genre', async ({ page }) => {
@@ -277,11 +277,14 @@ test.describe('list page', () => {
 		await page.goto('/lists/106');
 
 		await expect(listEntries(page)).toHaveCount(2);
-		await expect(listEntries(page).nth(0).locator('a[title]')).toHaveAttribute(
+		await expect(listEntries(page).nth(0).locator('a[aria-label]')).toHaveAttribute(
 			'href',
 			'/series/1400'
 		);
-		await expect(listEntries(page).nth(1).locator('a[title]')).toHaveAttribute('href', '/film/78');
+		await expect(listEntries(page).nth(1).locator('a[aria-label]')).toHaveAttribute(
+			'href',
+			'/film/78'
+		);
 	});
 
 	test('likes a list, which then shows among the likes of the account', async ({ page }) => {

@@ -87,7 +87,7 @@ test.describe('film catalogue', () => {
 		await head.getByRole('button', { name: /^Sort by/ }).hover();
 		await head.getByRole('link', { name: 'Lowest rated', exact: true }).click();
 		await expect(page).toHaveURL('/films/browse?sort=rating_lowest&genre=878');
-		const posters = page.locator('main ul.grid a[title]');
+		const posters = page.locator('main ul.grid a[aria-label]');
 		await expect(posters.first()).toHaveAttribute('href', '/film/335984');
 
 		await expect(posters).toHaveCount(4);
