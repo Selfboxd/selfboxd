@@ -24,7 +24,7 @@
 		name="username"
 		label={m.field_username()}
 		hint={m.hint_username()}
-		value={form?.username}
+		defaultValue={form?.username}
 		autocomplete="username"
 		autocapitalize="none"
 	/>

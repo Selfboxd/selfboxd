@@ -21,7 +21,14 @@
 	let revealed = $state(false);
 
 	const date = $derived(formatDate(new Date(entry.watchedOn)));
-	const paragraphs = $derived(entry.review.split(/\n{2,}/).filter((text) => text.trim() !== ''));
+	/** Length of review shown before the rest moves to the page of the review. */
+	const excerptLength = 450;
+
+	const long = $derived(entry.review.length > excerptLength);
+	const shown = $derived(
+		long ? `${entry.review.slice(0, excerptLength).trimEnd()}…` : entry.review
+	);
+	const paragraphs = $derived(shown.split(/\n{2,}/).filter((text) => text.trim() !== ''));
 </script>
 
 <article>
@@ -52,6 +59,11 @@
 				{#each paragraphs as paragraph, index (index)}
 					<p>{paragraph}</p>
 				{/each}
+				{#if long}
+					<a class="more" href={resolve('/(app)/reviews/[id]', { id: String(entry.id) })}>
+						{m.journal_more()}
+					</a>
+				{/if}
 			</div>
 		{/if}
 		{#if actions}<div class="actions">{@render actions()}</div>{/if}
@@ -62,6 +74,7 @@
 	article {
 		display: flex;
 		gap: var(--space-4);
+		align-items: flex-start;
 		padding: var(--space-4) 0;
 		border-bottom: 1px solid var(--color-border-subtle);
 	}
@@ -115,6 +128,19 @@
 		font-family: var(--font-heading);
 		font-size: var(--font-size-prose);
 		line-height: 1.55;
+	}
+
+	.more {
+		align-self: flex-start;
+		color: var(--color-text-muted);
+		font-family: var(--font-body);
+		font-size: var(--font-size-small);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.more:hover {
+		color: var(--color-heading);
 	}
 
 	.text p {

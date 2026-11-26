@@ -68,7 +68,7 @@
 					<input
 						id="{id}-handle"
 						name="handle"
-						value={form && 'handle' in form ? form.handle : data.suggested}
+						defaultValue={form && 'handle' in form ? form.handle : data.suggested}
 						pattern={'[a-z0-9_]{2,30}'}
 						maxlength="30"
 						autocomplete="off"

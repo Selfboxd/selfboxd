@@ -19,7 +19,7 @@
 		id="{id}-name"
 		type="text"
 		name="name"
-		value={initial.name}
+		defaultValue={initial.name}
 		maxlength={listNameMaxLength}
 		autocomplete="off"
 		required
@@ -33,10 +33,10 @@
 		name="description"
 		rows="5"
 		maxlength={listDescriptionMaxLength}
-		value={initial.description}></textarea>
+		defaultValue={initial.description}></textarea>
 </div>
 <label class="ranked">
-	<input type="checkbox" name="ranked" checked={initial.ranked} />
+	<input type="checkbox" name="ranked" defaultChecked={initial.ranked} />
 	<span>
 		{m.list_field_ranked()}
 		<span class="field-hint">{m.list_ranked_hint()}</span>

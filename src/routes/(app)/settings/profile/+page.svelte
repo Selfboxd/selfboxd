@@ -123,7 +123,7 @@
 						id="{id}-location"
 						type="text"
 						name="location"
-						value={data.profile.location}
+						defaultValue={data.profile.location}
 						maxlength={locationMaxLength}
 						autocomplete="off"
 					/>
@@ -136,7 +136,7 @@
 						name="bio"
 						rows="6"
 						maxlength={bioMaxLength}
-						value={data.profile.bio}></textarea>
+						defaultValue={data.profile.bio}></textarea>
 				</div>
 				<fieldset class="links">
 					<legend class="field-label">{m.profile_links()}</legend>
@@ -147,7 +147,7 @@
 							<input
 								class="field-input"
 								name={field.name}
-								value={data.profile.links[field.key]}
+								defaultValue={data.profile.links[field.key]}
 								placeholder={field.placeholder}
 								autocomplete="off"
 								spellcheck="false"
