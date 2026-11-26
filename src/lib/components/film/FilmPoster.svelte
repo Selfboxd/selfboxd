@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { imageKey, type ImageChoices } from '#lib/catalog/images.js';
 	import { tmdbImage, type TmdbImageSize } from '#lib/images.js';
 	import type { FilmSummary } from '#lib/catalog/film.js';
 	import type { WorkKind } from '#lib/catalog/library.js';
@@ -32,12 +34,21 @@
 		large: 'w500'
 	};
 
+	/** Poster the account chose for the work; a season keeps its own. */
+	const chosen = $derived(
+		season
+			? null
+			: (page.data.images as ImageChoices | undefined)?.[imageKey(film.kind ?? 'film', film.id)]
+					?.poster
+	);
+	const posterPath = $derived(chosen ?? film.posterPath);
+
 	const label = $derived(film.year ? `${film.title} (${String(film.year)})` : film.title);
 </script>
 
 {#snippet picture()}
-	{#if film.posterPath}
-		<img src={tmdbImage(film.posterPath, imageSizes[size])} alt={label} loading="lazy" />
+	{#if posterPath}
+		<img src={tmdbImage(posterPath, imageSizes[size])} alt={label} loading="lazy" />
 	{:else}
 		<span class="placeholder">{film.title}</span>
 	{/if}
@@ -51,7 +62,7 @@
 	{:else}
 		{@render picture()}
 	{/if}
-	{#if actions && size !== 'tiny'}<PosterActions {film} {season} />{/if}
+	{#if actions && size !== 'tiny'}<PosterActions film={{ ...film, posterPath }} {season} />{/if}
 </div>
 
 <style>

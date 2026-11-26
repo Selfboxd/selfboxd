@@ -265,3 +265,14 @@ export const providerListSchema = v.object({
 		})
 	)
 });
+
+const imageSchema = v.object({
+	file_path: v.string(),
+	width: v.optional(v.number(), 0),
+	height: v.optional(v.number(), 0)
+});
+
+export const imagesSchema = v.object({
+	posters: v.optional(v.array(imageSchema), []),
+	backdrops: v.optional(v.array(imageSchema), [])
+});

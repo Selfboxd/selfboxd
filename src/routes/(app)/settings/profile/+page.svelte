@@ -16,17 +16,14 @@
 	let { data, form }: PageProps = $props();
 
 	let searchOpen = $state(false);
-	let target = $state<{ action: 'favourite' | 'banner'; slot: number }>({
-		action: 'favourite',
-		slot: 1
-	});
+	let slot = $state(1);
 	let filmId = $state('');
 	let pickForm: HTMLFormElement | undefined = $state();
 
 	const id = $props.id();
 
-	function choose(action: 'favourite' | 'banner', slot = 1) {
-		target = { action, slot };
+	function choose(chosen: number) {
+		slot = chosen;
 		searchOpen = true;
 	}
 
@@ -108,7 +105,7 @@
 								type="button"
 								aria-label={m.profile_favourite_add({ slot: index + 1 })}
 								onclick={() => {
-									choose('favourite', index + 1);
+									choose(index + 1);
 								}}
 							>
 								<Icon name="plus" />
@@ -125,36 +122,21 @@
 				<img class="banner" src={tmdbImage(data.profile.bannerPath, 'w500')} alt="" />
 			{/if}
 			<p class="field-hint">{m.profile_banner_hint()}</p>
-			<div class="banner-actions">
-				<button
-					class="button button-secondary"
-					type="button"
-					onclick={() => {
-						choose('banner');
-					}}
-				>
-					{m.profile_banner_choose()}
-				</button>
-				{#if data.profile.bannerPath}
-					<form method="POST" action="?/removeBanner" use:enhance>
-						<button class="button button-danger">{m.profile_banner_remove()}</button>
-					</form>
-				{/if}
-			</div>
+			{#if data.profile.bannerPath}
+				<form method="POST" action="?/removeBanner" use:enhance>
+					<button class="button button-danger">{m.profile_banner_remove()}</button>
+				</form>
+			{/if}
 		</section>
 	</aside>
 </div>
 
-<form method="POST" action="?/{target.action}" bind:this={pickForm} use:enhance>
-	<input type="hidden" name="slot" value={target.slot} />
+<form method="POST" action="?/favourite" bind:this={pickForm} use:enhance>
+	<input type="hidden" name="slot" value={slot} />
 	<input type="hidden" name="filmId" value={filmId} />
 </form>
 
-<FilmSearchDialog
-	bind:open={searchOpen}
-	title={target.action === 'banner' ? m.profile_banner_choose() : m.profile_favourites()}
-	onpick={pick}
-/>
+<FilmSearchDialog bind:open={searchOpen} title={m.profile_favourites()} onpick={pick} />
 
 <style>
 	.split {
@@ -225,12 +207,6 @@
 		width: 100%;
 		margin-bottom: var(--space-2);
 		border-radius: var(--radius-medium);
-	}
-
-	.banner-actions {
-		display: flex;
-		gap: var(--space-2);
-		margin-top: var(--space-3);
 	}
 
 	@media (max-width: 40rem) {

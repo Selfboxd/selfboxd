@@ -14,6 +14,7 @@ import { toSeries, toSeriesSummary } from './series';
 import type { PersonDetails } from '../../catalog/person';
 import type { CompanyKind, Studio } from '../../catalog/studio';
 import type { Region, Service } from '../../catalog/streaming';
+import type { WorkImages } from '../../catalog/images';
 import { toPerson, toStudio } from './person';
 import {
 	collectionSchema,
@@ -29,7 +30,8 @@ import {
 	personSchema,
 	companySchema,
 	regionListSchema,
-	providerListSchema
+	providerListSchema,
+	imagesSchema
 } from './schemas';
 
 export interface TmdbContext {
@@ -626,5 +628,38 @@ export async function getServices(
 		value: [...services.values()]
 			.sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
 			.map(({ id, name, logoPath }) => ({ id, name, logoPath }))
+	};
+}
+
+/** Most pictures of each kind offered for a work. */
+const imageMax = 60;
+
+/** Posters and backdrops of a film or a series, in the language of the user, English or none. */
+export async function getImages(
+	context: TmdbContext,
+	kind: WorkKind,
+	id: number,
+	language: string
+): Promise<Loaded<WorkImages>> {
+	const languages = [...new Set([language.slice(0, 2), 'en', 'null'])].join(',');
+	const path = `/${kind === 'series' ? 'tv' : 'movie'}/${String(id)}/images`;
+	const result = await load(
+		context,
+		`images:${kind}:${String(id)}:${languages}`,
+		lifetimes.film,
+		imagesSchema,
+		path,
+		{ include_image_language: languages }
+	);
+	if (!result.ok) return result;
+	const toImages = (images: typeof result.value.posters) =>
+		images.slice(0, imageMax).map((image) => ({
+			path: image.file_path,
+			width: image.width,
+			height: image.height
+		}));
+	return {
+		ok: true,
+		value: { posters: toImages(result.value.posters), backdrops: toImages(result.value.backdrops) }
 	};
 }

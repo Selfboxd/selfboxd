@@ -255,3 +255,19 @@ export const userServices = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.userId, table.providerId] })]
 );
+
+/** Poster and backdrop an account chose for a work in place of those of TMDB. */
+export const workImages = sqliteTable(
+	'work_images',
+	{
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		workId: integer('work_id')
+			.notNull()
+			.references(() => works.id, { onDelete: 'cascade' }),
+		posterPath: text('poster_path'),
+		backdropPath: text('backdrop_path')
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.workId] })]
+);

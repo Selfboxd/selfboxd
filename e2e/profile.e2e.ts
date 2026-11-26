@@ -103,14 +103,24 @@ test.describe('profile', () => {
 		await expect(page.getByRole('button', { name: 'Choose favorite film 2' })).toBeVisible();
 	});
 
-	test('uses the backdrop of a film as banner and removes it', async ({ page }) => {
+	test('takes the banner from a film and removes it in the settings', async ({ page }) => {
 		await page.goto('/settings/profile');
-		await page.getByRole('button', { name: 'Choose a film' }).click();
-		await pickFilm(page, 'Blade Runner 2049');
-		await expect(page.getByRole('button', { name: 'Remove banner' })).toBeVisible();
+		await expect(page.getByText('Choose the banner from any film')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Remove banner' })).toHaveCount(0);
+
+		await page.goto('/film/78');
+		await actions(page).getByRole('button', { name: 'Change backdrop…' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Select your preferred backdrop' });
+		await dialog.getByRole('option').last().getByRole('button').click();
+		await dialog.getByRole('button', { name: 'Use as profile banner' }).click();
+		await expect(dialog.getByRole('status')).toHaveText('Your profile banner has been changed.');
+		await dialog.getByRole('button', { name: 'Close' }).click();
 
 		await page.goto('/profile');
-		await expect(page.locator('.backdrop img')).toHaveAttribute('src', /\/w1280\//);
+		await expect(page.locator('.backdrop img')).toHaveAttribute(
+			'src',
+			/\/w1280\/alternate-backdrop\.jpg$/
+		);
 
 		await page.goto('/settings/profile');
 		await page.getByRole('button', { name: 'Remove banner' }).click();
