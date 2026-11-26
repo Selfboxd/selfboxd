@@ -19,7 +19,8 @@ import { loadWorkDetails } from './resolve';
 import { chosenServices, streamingOn } from './services';
 import { addAllToWatchlist } from './watchlist';
 import { saveWork, type WorkInput } from './works';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import { getRequestEvent } from '$app/server';
 import type { ShareRequest } from '../public/platform';
 import { sharedUrl, shareList, stopSharing } from '../public/shares';
 
@@ -160,18 +161,18 @@ export function likeList(userId: number, form: FormData, list: LikedList) {
 	return { action: 'like' as const, success: true };
 }
 
-/** Shares a list of the page on the platform and answers with its address. */
+/** Shares a list of the page on the platform, then goes back to the list, which shows the link. */
 export async function shareAction(userId: number, target: ListTarget, list: ShareRequest) {
 	const result = await shareList(getDatabase(), userId, target, list);
 	if (!result.ok) return fail(502, { action: 'share' as const, error: result.error });
-	return { action: 'share' as const, url: result.url };
+	redirect(303, getRequestEvent().url.pathname);
 }
 
 /** Stops sharing a list of the page. */
 export async function unshareAction(userId: number, target: ListTarget) {
 	const result = await stopSharing(getDatabase(), userId, target);
 	if (!result.ok) return fail(502, { action: 'unshare' as const, error: result.error });
-	return { action: 'unshare' as const };
+	redirect(303, getRequestEvent().url.pathname);
 }
 
 /** Address of the list of the page when the account shared it. */

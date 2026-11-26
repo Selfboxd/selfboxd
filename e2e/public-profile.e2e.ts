@@ -231,9 +231,9 @@ test.describe('shared lists', () => {
 		await page.goto(path);
 		const panel = page.getByRole('complementary');
 		await panel.getByRole('button', { name: 'Share', exact: true }).click();
-		const link = panel.getByRole('textbox', { name: 'Shared at' });
-		await expect(link).toHaveValue(/^http:\/\/sbxd\.test\/share\/[A-Za-z0-9]{6}$/);
-		const url = await link.inputValue();
+		const link = panel.getByRole('link', { name: /^sbxd\.test\/share\// });
+		await expect(link).toHaveAttribute('href', /^http:\/\/sbxd\.test\/share\/[A-Za-z0-9]{6}$/);
+		const url = (await link.getAttribute('href')) ?? '';
 		expect(await sharedList(request, url)).toMatchObject({
 			name: 'Rainy nights',
 			description: '',
@@ -242,9 +242,9 @@ test.describe('shared lists', () => {
 		});
 
 		await page.reload();
-		await expect(panel.getByRole('textbox', { name: 'Shared at' })).toHaveValue(url);
+		await expect(link).toHaveAttribute('href', url);
 		await panel.getByRole('button', { name: 'Update the shared list' }).click();
-		await expect(panel.getByRole('textbox', { name: 'Shared at' })).toHaveValue(url);
+		await expect(link).toHaveAttribute('href', url);
 
 		await panel.getByRole('button', { name: 'Stop sharing' }).click();
 		await expect(panel.getByRole('button', { name: 'Share', exact: true })).toBeVisible();
@@ -257,7 +257,11 @@ test.describe('shared lists', () => {
 			.getByRole('complementary')
 			.getByRole('button', { name: 'Share', exact: true })
 			.click();
-		const url = await page.getByRole('textbox', { name: 'Shared at' }).inputValue();
+		const url =
+			(await page
+				.getByRole('complementary')
+				.getByRole('link', { name: /^sbxd\.test\/share\// })
+				.getAttribute('href')) ?? '';
 		const list = await sharedList(request, url);
 		expect(list?.name).toBe('Popular films');
 		expect(list?.items.map((item) => item.id)).toContain(78);

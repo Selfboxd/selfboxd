@@ -83,6 +83,7 @@
 	.tabs a {
 		display: flex;
 		align-items: center;
+		margin-bottom: -1px;
 		border-bottom: 1px solid transparent;
 		color: var(--color-text);
 		font-size: var(--font-size-body);

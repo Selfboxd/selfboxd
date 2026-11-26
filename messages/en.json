@@ -525,9 +525,9 @@
 	"error_platform_error": "The Selfboxd platform refused the request.",
 	"error_code_invalid": "The access code must be four digits.",
 	"list_share": "Share",
-	"list_share_hint": "Anyone with the link can see the list; its films open on TMDB.",
 	"list_share_update": "Update the shared list",
 	"list_share_stop": "Stop sharing",
 	"list_shared": "Shared at",
-	"error_profile_not_found": "No public profile matches this key."
+	"error_profile_not_found": "No public profile matches this key.",
+	"list_sharing": "Sharing…"
 }

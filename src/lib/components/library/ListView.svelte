@@ -91,21 +91,15 @@
 				? resolve('/(app)/lists/[id]', { id: String(target.public) })
 				: resolve('/(app)/lists/official/[chart]', { chart: target.chart })
 	);
-	const action = $derived(page.form as { action?: string; url?: string; error?: string } | null);
-	const shareUrl = $derived(
-		action?.action === 'share' && action.url
-			? action.url
-			: action?.action === 'unshare'
-				? null
-				: shared
-	);
+	const action = $derived(page.form as { action?: string; error?: string } | null);
+	const shareUrl = $derived(shared);
+	let sharing = $state(false);
 	const shareError = $derived(
 		(action?.action === 'share' || action?.action === 'unshare') && action.error
 			? errorMessage(action.error)
 			: null
 	);
 	let copied = $state(false);
-	const id = $props.id();
 
 	const watchlisted = $derived(
 		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
@@ -289,28 +283,47 @@
 				<button>{m.list_add_all_watchlist()}</button>
 			</form>
 			{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
-			<form method="POST" action="{path}?/share" use:enhance>
-				<button>{shareUrl ? m.list_share_update() : m.list_share()}</button>
+			<form
+				method="POST"
+				action="{path}?/share"
+				use:enhance={() => {
+					sharing = true;
+					return async ({ update }) => {
+						await update();
+						sharing = false;
+					};
+				}}
+			>
+				<button disabled={sharing} aria-busy={sharing}>
+					{sharing ? m.list_sharing() : shareUrl ? m.list_share_update() : m.list_share()}
+				</button>
 			</form>
 			{#if shareUrl}
 				<div class="shared">
-					<label for="{id}-shared">{m.list_shared()}</label>
-					<input id="{id}-shared" readonly value={shareUrl} />
-					<div class="shared-actions">
+					<span class="shared-label">{m.list_shared()}</span>
+					<div class="shared-link">
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- the shared list lives on the platform -->
+						<a href={shareUrl} target="_blank" rel="noopener noreferrer">
+							{shareUrl.replace(/^https?:\/\//, '')}
+						</a>
 						<button
 							type="button"
+							class="tool"
+							aria-label={copied ? m.public_copied() : m.public_copy()}
+							title={copied ? m.public_copied() : m.public_copy()}
 							onclick={async () => {
 								await navigator.clipboard.writeText(shareUrl);
 								copied = true;
 							}}
 						>
-							{copied ? m.public_copied() : m.public_copy()}
+							<Icon name={copied ? 'check' : 'copy'} />
 						</button>
 						<form method="POST" action="{path}?/unshare" use:enhance>
-							<button>{m.list_share_stop()}</button>
+							<button class="tool" aria-label={m.list_share_stop()} title={m.list_share_stop()}>
+								<Icon name="close" />
+							</button>
 						</form>
 					</div>
-					<p>{m.list_share_hint()}</p>
 				</div>
 			{/if}
 			{#if shareError}<p class="failed" role="alert">{shareError}</p>{/if}
@@ -575,28 +588,54 @@
 	.shared {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
-		padding: var(--space-3);
+		gap: var(--space-1);
+		padding: var(--space-2) var(--space-3) var(--space-3);
 		border-top: 1px solid var(--color-dialog-divider);
+	}
+
+	.shared-label {
 		color: var(--color-text-panel);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-micro);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
 	}
 
-	.shared input {
-		width: 100%;
-		font-size: var(--font-size-small);
-	}
-
-	.shared-actions {
+	.shared-link {
 		display: flex;
-		gap: var(--space-2);
+		gap: var(--space-1);
+		align-items: center;
+		padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+		border-radius: var(--radius-small);
+		background: var(--color-panel);
 	}
 
-	.panel .shared-actions button {
-		padding: var(--space-1) var(--space-2);
-		border: 1px solid var(--color-dialog-divider);
-		border-radius: var(--radius-small);
+	.shared-link a {
+		overflow: hidden;
+		flex: 1;
+		min-width: 0;
+		color: var(--color-text-strong);
 		font-size: var(--font-size-small);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.shared-link a:hover {
+		color: var(--color-link-hover);
+	}
+
+	.panel .shared-link .tool {
+		display: flex;
+		width: auto;
+		padding: var(--space-1);
+		border: 0;
+		border-radius: var(--radius-small);
+		color: var(--color-text-panel);
+		font-size: var(--font-size-body);
+	}
+
+	.panel .shared-link .tool:hover {
+		background: var(--color-surface-raised);
+		color: var(--color-heading);
 	}
 
 	.failed {

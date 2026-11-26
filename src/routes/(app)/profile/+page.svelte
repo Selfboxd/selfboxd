@@ -326,7 +326,7 @@
 
 	dl div {
 		padding: 0 var(--space-3);
-		border-inline-start: 1px solid var(--color-border-subtle);
+		border-inline-start: 1px solid var(--color-border);
 		text-align: center;
 	}
 
@@ -340,7 +340,8 @@
 
 	dd {
 		margin: 0;
-		color: var(--color-text-strong);
+		color: var(--color-heading);
+		text-shadow: var(--shadow-header-text);
 		font-family: var(--font-display);
 		font-size: var(--font-size-heading);
 		font-weight: 900;
@@ -348,7 +349,8 @@
 	}
 
 	dt {
-		color: var(--color-text-muted);
+		color: var(--color-text);
+		text-shadow: var(--shadow-header-text);
 		font-size: var(--font-size-micro);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
