@@ -121,7 +121,7 @@
 									class="note"
 									type="text"
 									name="note"
-									value={note}
+									defaultValue={note}
 									maxlength={listNoteMaxLength}
 									aria-label={m.list_item_note({ title: work.title })}
 									placeholder={m.watchlist_note()}

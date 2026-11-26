@@ -631,5 +631,12 @@
 	"error_import_invalid": "此文件不是 Letterboxd 导出文件。请选择从 Letterboxd 下载的 .zip。",
 	"error_import_not_ready": "此导入尚未就绪。",
 	"error_tmdb_failed": "无法连接 TMDB 查找你的电影，请稍后重试。",
-	"profile_field_website": "网站"
+	"profile_field_website": "网站",
+	"home_tagline": "看看现在有什么。",
+	"home_watchlist_streaming": "你的片单中，可在你的平台观看",
+	"home_watchlist": "仍在你的片单中",
+	"home_recent": "最近的日记",
+	"home_journal": "来自期刊",
+	"home_lists": "值得探索的列表",
+	"home_empty_recent": "记录一部电影即可在此看到。"
 }

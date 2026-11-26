@@ -35,6 +35,7 @@ test.describe('journal', () => {
 
 	test('filters by section and lists every article in the archive', async ({ page }) => {
 		await page.goto('/journal');
+		await page.waitForLoadState('networkidle');
 		const sections = page.getByRole('navigation', { name: 'Sections' });
 		await sections.getByText('Sections', { exact: true }).click();
 		await sections.getByRole('link', { name: 'Community' }).click();

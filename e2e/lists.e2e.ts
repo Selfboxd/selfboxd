@@ -134,6 +134,7 @@ test.describe('lists', () => {
 		await addFilm(page, 78, 'Keyboard');
 		await addFilm(page, 335984, 'Keyboard');
 		await page.goto(`${path}/edit`);
+		await page.waitForLoadState('networkidle');
 
 		const saved = page.waitForResponse((response) => response.url().includes('?/reorder'));
 		await page

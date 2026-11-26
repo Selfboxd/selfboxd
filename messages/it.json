@@ -631,5 +631,12 @@
 	"error_import_invalid": "Questo file non è un’esportazione di Letterboxd. Scegli lo .zip scaricato da Letterboxd.",
 	"error_import_not_ready": "Questa importazione non è ancora pronta.",
 	"error_tmdb_failed": "Impossibile raggiungere TMDB per trovare i tuoi film. Riprova più tardi.",
-	"profile_field_website": "sito web"
+	"profile_field_website": "sito web",
+	"home_tagline": "Ecco cosa c’è.",
+	"home_watchlist_streaming": "Nella tua watchlist, sui tuoi servizi",
+	"home_watchlist": "Ancora nella tua watchlist",
+	"home_recent": "Di recente nel tuo diario",
+	"home_journal": "Dal giornale",
+	"home_lists": "Liste da esplorare",
+	"home_empty_recent": "Registra un film per vederlo qui."
 }

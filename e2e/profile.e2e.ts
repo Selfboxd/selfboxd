@@ -272,6 +272,20 @@ test.describe('review page', () => {
 		await expect(page).toHaveURL(address);
 	});
 
+	test('cuts a long review on the reviews page, with the rest on its own page', async ({
+		page
+	}) => {
+		const review = `${'A long thought. '.repeat(40)}The end.`;
+		await log(page, 78, { review });
+
+		await page.goto('/reviews');
+		const card = page.getByRole('article');
+		await expect(card.getByText('The end.')).toHaveCount(0);
+		await card.getByRole('link', { name: 'More' }).click();
+		await expect(page).toHaveURL(/\/reviews\/\d+$/);
+		await expect(page.getByText(/The end\.$/)).toBeVisible();
+	});
+
 	test('is not found for an entry of another account', async ({ page, request }) => {
 		await log(page, 78, { review: 'Mine.' });
 		await page.goto('/diary');

@@ -31,7 +31,7 @@
 					name="username"
 					label={m.field_username()}
 					hint={m.hint_username()}
-					value={form?.action === 'create' && 'error' in form ? form.username : undefined}
+					defaultValue={form?.action === 'create' && 'error' in form ? form.username : undefined}
 					autocomplete="off"
 					autocapitalize="none"
 				/>

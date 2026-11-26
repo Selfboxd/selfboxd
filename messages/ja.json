@@ -631,5 +631,12 @@
 	"error_import_invalid": "Letterboxdの書き出しファイルではありません。Letterboxdからダウンロードした.zipを選んでください。",
 	"error_import_not_ready": "この取り込みはまだ準備中です。",
 	"error_tmdb_failed": "映画を探すためにTMDBに接続できませんでした。後でもう一度お試しください。",
-	"profile_field_website": "ウェブサイト"
+	"profile_field_website": "ウェブサイト",
+	"home_tagline": "今の話題をどうぞ。",
+	"home_watchlist_streaming": "ウォッチリストの作品、あなたのサービスで配信中",
+	"home_watchlist": "ウォッチリストに残っている作品",
+	"home_recent": "最近の日記",
+	"home_journal": "ジャーナルから",
+	"home_lists": "おすすめのリスト",
+	"home_empty_recent": "映画を記録するとここに表示されます。"
 }
