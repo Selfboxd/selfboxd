@@ -125,20 +125,9 @@ function tagsByEntry(db: DatabaseExecutor, entryIds: number[]): Map<number, stri
 	return names;
 }
 
-/** Diary entries of an account, most recent viewing first, optionally for one work. */
-export function listDiaryEntries(
-	db: DatabaseExecutor,
-	userId: number,
-	workId?: number
-): DiaryEntry[] {
-	const ofUser = eq(diaryEntries.userId, userId);
-	const rows = db
-		.select({ entry: diaryEntries, work: works })
-		.from(diaryEntries)
-		.innerJoin(works, eq(diaryEntries.workId, works.id))
-		.where(workId === undefined ? ofUser : and(ofUser, eq(diaryEntries.workId, workId)))
-		.orderBy(desc(diaryEntries.watchedOn), desc(diaryEntries.id))
-		.all();
+type EntryRow = { entry: typeof diaryEntries.$inferSelect; work: typeof works.$inferSelect };
+
+function toEntries(db: DatabaseExecutor, rows: EntryRow[]): DiaryEntry[] {
 	const names = tagsByEntry(
 		db,
 		rows.map((row) => row.entry.id)
@@ -156,4 +145,36 @@ export function listDiaryEntries(
 		pinned: entry.pinned,
 		tags: names.get(entry.id) ?? []
 	}));
+}
+
+/** Diary entries of an account, most recent viewing first, optionally for one work. */
+export function listDiaryEntries(
+	db: DatabaseExecutor,
+	userId: number,
+	workId?: number
+): DiaryEntry[] {
+	const ofUser = eq(diaryEntries.userId, userId);
+	const rows = db
+		.select({ entry: diaryEntries, work: works })
+		.from(diaryEntries)
+		.innerJoin(works, eq(diaryEntries.workId, works.id))
+		.where(workId === undefined ? ofUser : and(ofUser, eq(diaryEntries.workId, workId)))
+		.orderBy(desc(diaryEntries.watchedOn), desc(diaryEntries.id))
+		.all();
+	return toEntries(db, rows);
+}
+
+/** One diary entry of an account, or `undefined` when the account has no such entry. */
+export function getDiaryEntry(
+	db: DatabaseExecutor,
+	userId: number,
+	entryId: number
+): DiaryEntry | undefined {
+	const rows = db
+		.select({ entry: diaryEntries, work: works })
+		.from(diaryEntries)
+		.innerJoin(works, eq(diaryEntries.workId, works.id))
+		.where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
+		.all();
+	return toEntries(db, rows)[0];
 }

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { apiSignIn, bearer, createAccount, signIn } from './support/accounts';
+import { pickDate } from './support/fields';
 
 /** Hovers the poster of a film on the Films page and returns its quick actions. */
 async function hoverPoster(page: Page, title: string) {
@@ -72,7 +73,7 @@ test.describe('poster quick actions', () => {
 
 		const dialog = page.getByRole('dialog', { name: 'I watched…' });
 		await expect(dialog.getByText('Blade Runner 2049')).toBeVisible();
-		await dialog.getByLabel('Watched on').fill('2026-05-05');
+		await pickDate(dialog, 'Watched on', '2026-05-05');
 		await dialog.getByRole('button', { name: 'Save' }).click();
 		await expect(dialog).toBeHidden();
 

@@ -110,8 +110,13 @@
 							{#if event.liked && event.kind !== 'liked'}
 								<span class="liked"><Icon name="heart" filled label={m.action_liked()} /></span>
 							{/if}
-							{#if event.reviewed}
-								<span class="reviewed"><Icon name="review" label={m.diary_column_review()} /></span>
+							{#if event.reviewed && event.entryId !== null}
+								<a
+									class="reviewed"
+									href={resolve('/(app)/reviews/[id]', { id: String(event.entryId) })}
+								>
+									<Icon name="review" label={m.review_open()} />
+								</a>
 							{/if}
 						</p>
 						<time datetime={event.at.toISOString()}>{timeFormat.format(event.at)}</time>
@@ -229,6 +234,10 @@
 
 	.reviewed {
 		color: var(--color-text-muted);
+	}
+
+	.reviewed:hover {
+		color: var(--color-heading);
 	}
 
 	time {

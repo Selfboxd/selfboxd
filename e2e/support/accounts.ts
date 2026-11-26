@@ -31,7 +31,7 @@ export async function signIn(page: Page, account: Account): Promise<void> {
 /** Opens the account menu of the header and signs out. */
 export async function signOut(page: Page): Promise<void> {
 	const navigation = page.getByRole('navigation', { name: 'Main navigation' });
-	await navigation.locator('button[aria-haspopup]').hover();
+	await navigation.locator('button[aria-haspopup="true"]').hover();
 	await navigation.getByRole('button', { name: 'Sign out' }).click();
 }
 

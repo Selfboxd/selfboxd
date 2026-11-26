@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
-	import type { FilmSearchResult } from '#lib/catalog/film.js';
 	import { bioMaxLength, locationMaxLength } from '#lib/catalog/library.js';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FormError from '#lib/components/FormError.svelte';
 	import FormNotice from '#lib/components/FormNotice.svelte';
 	import Icon from '#lib/components/Icon.svelte';
-	import FilmSearchDialog from '#lib/components/library/FilmSearchDialog.svelte';
+	import WorkSearchDialog from '#lib/components/library/WorkSearchDialog.svelte';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { tmdbImage } from '#lib/images.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -48,7 +47,7 @@
 		searchOpen = true;
 	}
 
-	async function pick(film: FilmSearchResult) {
+	async function pick(film: { id: number }) {
 		filmId = String(film.id);
 		await tick();
 		pickForm?.requestSubmit();
@@ -216,7 +215,7 @@
 	<input type="hidden" name="filmId" value={filmId} />
 </form>
 
-<FilmSearchDialog bind:open={searchOpen} title={m.profile_favourites()} onpick={pick} />
+<WorkSearchDialog bind:open={searchOpen} title={m.profile_favourites()} onpick={pick} />
 
 <style>
 	.split {

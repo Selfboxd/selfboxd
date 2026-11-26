@@ -110,7 +110,6 @@ export function parseId(value: string): number | undefined {
 	return /^[1-9]\d{0,11}$/.test(value) ? Number(value) : undefined;
 }
 
-/** Reads and validates the fields of the profile form. */
 /**
  * Reads a username of a network, given bare, with an `@` or as the address of the profile.
  * Returns `''` for nothing and `undefined` for a text that is not a username.
@@ -142,6 +141,7 @@ function website(value: string): string | undefined {
 	}
 }
 
+/** Reads and validates the fields of the profile form. */
 export function parseProfileForm(
 	form: FormData
 ): Parsed<{ bio: string; location: string; links: ProfileLinks }> {

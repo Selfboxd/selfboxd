@@ -36,6 +36,7 @@ export interface Snapshot {
 	works: SnapshotWork[];
 	favourites: { slot: number; work: number }[];
 	diary: {
+		id: number;
 		work: number;
 		watchedOn: string;
 		season: number | null;
@@ -105,6 +106,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		work ? [{ slot: slot + 1, work: index(work) }] : []
 	);
 	const diary = listDiaryEntries(db, userId).map((entry) => ({
+		id: entry.id,
 		work: index(entry.work),
 		watchedOn: entry.watchedOn,
 		season: entry.season,

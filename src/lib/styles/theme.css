@@ -51,9 +51,13 @@
 	--color-dialog-divider: #2c3440;
 	--color-dialog-footer: rgb(20 24 28 / 25%);
 	--color-well: #2c3440;
+	--color-well-hover: #364050;
+	--color-text-faint: #445566;
 	--color-field-light: #ccddee;
 	--color-field-light-text: #223344;
 	--color-field-light-placeholder: #778899;
+	--color-tag: #445566;
+	--color-tag-text: #eef3f8;
 	--color-watchlist: #40bcf4;
 	--color-nav: #99aabb;
 	--color-paper: #ffffff;
@@ -158,6 +162,7 @@
 	--backdrop-width: 75rem;
 	--backdrop-height: 35rem;
 	--backdrop-offset: 26rem;
+	--review-panel-width: 14rem;
 	--action-icon-height: 2rem;
 	--log-button-height: 1.625rem;
 	--header-scrim-height: 9rem;
@@ -172,9 +177,13 @@
 	--content-width: 59.375rem;
 	--narrow-width: 22rem;
 	--dialog-width: 36rem;
+	--dialog-search-width: 30rem;
+	--blur-backdrop: 6px;
 	--dialog-wide-width: 50rem;
 	--sidebar-width: 15rem;
 	--calendar-width: 3.25rem;
+	--date-picker-width: 18rem;
+	--tags-input-height: 2.5rem;
 	--service-tile: 11rem;
 	--services-height: 28rem;
 	--settings-wide: 52rem;
