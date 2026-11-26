@@ -78,7 +78,7 @@
 
 <ProfileNav />
 
-<div class="columns">
+<div class="columns profile-page">
 	<div class="main">
 		{#if data.favourites.some((work) => work !== null)}
 			<section>
@@ -250,6 +250,14 @@
 </div>
 
 <style>
+	:global(body:has(.profile-page)) {
+		--color-background: var(--color-background-profile);
+		--color-background-clear: var(--color-background-profile-clear);
+		--color-background-veil: var(--color-background-profile-veil);
+		--texture-grain: none;
+		background: var(--color-background-profile);
+	}
+
 	.head {
 		display: flex;
 		gap: var(--space-6);

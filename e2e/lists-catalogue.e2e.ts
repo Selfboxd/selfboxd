@@ -62,12 +62,10 @@ test.describe('lists catalogue', () => {
 			/blade-runner-backdrop\.jpg$/
 		);
 		const films = listEntries(page);
-		await expect(films).toHaveCount(2);
 		await expect(films.first().getByRole('link')).toHaveAttribute('href', '/film/78');
-		await page.getByRole('link', { name: 'Next page' }).click();
-		await expect(page).toHaveURL('/lists/official/top-rated?page=2');
-		await expect(films).toHaveCount(1);
-		await expect(films.first()).toContainText('21');
+		await expect(films).toHaveCount(3);
+		await expect(films.nth(2)).toContainText('21');
+		await expect(page).toHaveURL('/lists/official/top-rated');
 	});
 
 	test('answers 404 for a chart that does not exist', async ({ page }) => {
@@ -107,16 +105,13 @@ test.describe('lists catalogue', () => {
 		await expect(page).toHaveURL('/lists/101');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Neon Noir');
 		const films = listEntries(page);
-		await expect(films).toHaveCount(3);
 		await expect(films.nth(1).getByRole('link')).toHaveAttribute('href', '/film/335984');
 		await expect(films.nth(2)).toContainText('Unknown at TMDB');
 		await expect(page.getByText('List data from MDBList.')).toBeVisible();
 
-		await page.getByRole('link', { name: 'Next page' }).click();
-		await expect(page).toHaveURL('/lists/101?page=2');
-		await expect(films).toHaveCount(1);
-		await page.getByRole('link', { name: 'Previous page' }).click();
-		await expect(page).toHaveURL('/lists/101?page=1');
+		await expect(films).toHaveCount(4);
+		await expect(films.nth(3).getByRole('link')).toHaveAttribute('href', '/film/9001');
+		await expect(page).toHaveURL('/lists/101');
 	});
 
 	test('shows the backdrop of the first film, positions and who made the list', async ({
@@ -161,7 +156,7 @@ test.describe('lists catalogue', () => {
 	test('hides the progress of a list too long to check', async ({ page }) => {
 		await page.goto('/lists/101');
 
-		await expect(listEntries(page)).toHaveCount(3);
+		await expect(listEntries(page)).toHaveCount(4);
 		await expect(page.getByText('You’ve watched')).toHaveCount(0);
 	});
 
@@ -184,7 +179,8 @@ test.describe('lists catalogue', () => {
 	test('ignores an invalid page number', async ({ page }) => {
 		await page.goto('/lists/101?page=-4');
 
-		await expect(listEntries(page)).toHaveCount(3);
+		await expect(listEntries(page).first()).toContainText('1');
+		await expect(listEntries(page)).toHaveCount(4);
 	});
 });
 
@@ -228,7 +224,7 @@ test.describe('list page', () => {
 		await page.goto('/lists/101?genre=Drama');
 		await expect(listEntries(page)).toHaveCount(2);
 		await choose(page, 'Genre', 'Any genre');
-		await expect(listEntries(page)).toHaveCount(3);
+		await expect(listEntries(page)).toHaveCount(4);
 	});
 
 	test('hides or keeps only the films already watched', async ({ page }) => {
@@ -246,14 +242,12 @@ test.describe('list page', () => {
 		await bar(page).getByRole('link', { name: 'List view' }).click();
 
 		await expect(page).toHaveURL('/lists/101?view=detail');
-		await expect(page.locator('main ol.rows > li')).toHaveCount(3);
 		await expect(page.getByRole('link', { name: 'Blade Runner 2049', exact: true })).toBeVisible();
-		await page.getByRole('link', { name: 'Next page' }).click();
-		await expect(page).toHaveURL('/lists/101?view=detail&page=2');
+		await expect(page.locator('main ol.rows > li')).toHaveCount(4);
 
 		await bar(page).getByRole('link', { name: 'Grid view' }).click();
 		await expect(page).toHaveURL('/lists/101');
-		await expect(page.locator('main ul.grid > li')).toHaveCount(3);
+		await expect(page.locator('main ul.grid > li')).toHaveCount(4);
 	});
 
 	test('clones a public list into the lists of the account', async ({ page }) => {
@@ -318,7 +312,7 @@ test.describe('list page', () => {
 
 		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Popular films');
-		await expect(listEntries(page)).toHaveCount(2);
+		await expect(listEntries(page)).toHaveCount(3);
 	});
 });
 

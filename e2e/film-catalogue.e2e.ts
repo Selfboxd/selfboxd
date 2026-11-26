@@ -90,9 +90,10 @@ test.describe('film catalogue', () => {
 		const posters = page.locator('main ul.grid a[title]');
 		await expect(posters.first()).toHaveAttribute('href', '/film/335984');
 
-		await page.getByRole('link', { name: 'Next page' }).click();
-		await expect(page).toHaveURL('/films/browse?sort=rating_lowest&genre=878&page=2');
-		await page.getByRole('link', { name: 'Previous page' }).click();
+		await expect(posters).toHaveCount(4);
+		await expect(posters.nth(2)).toHaveAttribute('href', '/film/9202');
+		await expect(posters.nth(3)).toHaveAttribute('href', '/film/9203');
+		await expect(page.getByRole('button', { name: 'Show more' })).toHaveCount(0);
 		await expect(page).toHaveURL('/films/browse?sort=rating_lowest&genre=878');
 	});
 

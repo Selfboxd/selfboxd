@@ -52,13 +52,10 @@ test.describe('search', () => {
 
 		await page.goto('/search?q=many');
 		await expect(page.getByRole('link', { name: 'Many 1', exact: true })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Previous page' })).toBeHidden();
-		await page.getByRole('link', { name: 'Next page' }).click();
-
-		await expect(page).toHaveURL('/search?q=many&page=2');
 		await expect(page.getByRole('link', { name: 'Many 2', exact: true })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Next page' })).toBeHidden();
-		await expect(page.getByRole('link', { name: 'Previous page' })).toBeVisible();
+		await expect(page.locator('main ul.results > li')).toHaveCount(2);
+		await expect(page.getByRole('button', { name: 'Show more' })).toHaveCount(0);
+		await expect(page).toHaveURL('/search?q=many');
 	});
 
 	test('says when nothing matches', async ({ page, request }) => {

@@ -2,6 +2,9 @@
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FormError from '#lib/components/FormError.svelte';
+	import LoadMore from '#lib/components/LoadMore.svelte';
+	import { InfinitePages } from '#lib/components/infinite.svelte.js';
+	import type { SearchResult } from '#lib/catalog/search.js';
 	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
 	import { workRoute } from '#lib/paths.js';
 	import TmdbSetupNotice from '#lib/components/TmdbSetupNotice.svelte';
@@ -14,6 +17,20 @@
 
 	let { data }: PageProps = $props();
 
+	const pages = new InfinitePages<SearchResult>(
+		() =>
+			data.state === 'ready'
+				? { items: data.results, page: data.page, more: data.page < data.totalPages }
+				: { items: [], page: 1, more: false },
+		(loaded) => {
+			const next = loaded as Partial<{ results: SearchResult[]; page: number; totalPages: number }>;
+			return next.results && next.page !== undefined && next.totalPages !== undefined
+				? { items: next.results, page: next.page, more: next.page < next.totalPages }
+				: null;
+		},
+		(result) => `${result.kind}:${String(result.id)}`
+	);
+
 	type Section = 'all' | 'films' | 'series' | 'people' | 'lists';
 
 	const section = $derived.by((): Section => {
@@ -23,10 +40,9 @@
 		return sections[data.scope];
 	});
 
-	function sectionQuery(target: Section, page = 1): string {
+	function sectionQuery(target: Section): string {
 		const type = target === 'all' ? {} : { type: target };
-		const pages = page > 1 ? { page: String(page) } : {};
-		return new URLSearchParams({ q: data.query, ...type, ...pages }).toString();
+		return new URLSearchParams({ q: data.query, ...type }).toString();
 	}
 
 	const sections = $derived([
@@ -64,11 +80,11 @@
 						{/each}
 					</div>
 				{/if}
-			{:else if data.results.length === 0}
+			{:else if pages.items.length === 0}
 				<p class="empty">{m.search_empty()}</p>
 			{:else}
 				<ul class="results">
-					{#each data.results as result (`${result.kind}:${String(result.id)}`)}
+					{#each pages.items as result (`${result.kind}:${String(result.id)}`)}
 						{#if result.kind === 'person'}
 							{@const role = departmentRole(result.department)}
 							<li>
@@ -125,26 +141,7 @@
 						{/if}
 					{/each}
 				</ul>
-				{#if data.totalPages > 1}
-					<nav class="pages" aria-label={m.nav_search()}>
-						{#if data.page > 1}
-							<a
-								class="button button-secondary"
-								href="{resolve('/(app)/search')}?{sectionQuery(section, data.page - 1)}"
-							>
-								{m.search_previous()}
-							</a>
-						{/if}
-						{#if data.page < data.totalPages}
-							<a
-								class="button button-secondary next"
-								href="{resolve('/(app)/search')}?{sectionQuery(section, data.page + 1)}"
-							>
-								{m.search_next()}
-							</a>
-						{/if}
-					</nav>
-				{/if}
+				<LoadMore more={pages.more} loading={pages.loading} onmore={() => void pages.next()} />
 			{/if}
 		</section>
 
@@ -263,19 +260,6 @@
 		background: var(--color-chip);
 		box-shadow: var(--shadow-chip);
 		font-size: var(--font-size-control);
-	}
-
-	.pages {
-		display: flex;
-		margin-top: var(--space-6);
-	}
-
-	.pages .next {
-		margin-inline-start: auto;
-	}
-
-	.pages a:hover {
-		color: var(--color-heading);
 	}
 
 	.filters {

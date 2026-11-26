@@ -1,5 +1,9 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import AddToListDialog from '#lib/components/library/AddToListDialog.svelte';
+	import WatchProgress from '#lib/components/library/WatchProgress.svelte';
 	import {
 		personQuery,
 		type PersonKind,
@@ -22,6 +26,17 @@
 	let { data }: PageProps = $props();
 
 	let expanded = $state(false);
+	let adding = $state(false);
+
+	/** Form action of the page keeping its options, so it applies to the works shown. */
+	function action(name: string): string {
+		const search = query({});
+		return `?${search}${search ? '&' : ''}/${name}`;
+	}
+
+	const watchlisted = $derived(
+		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
+	);
 
 	const sortLabels: Record<PersonSort, () => string> = {
 		popular: m.browse_sort_popular,
@@ -57,14 +72,26 @@
 		return personQuery({ ...data.options, ...change }, data.fallback);
 	}
 
-	function href(change: Partial<PersonOptions>): string {
-		const search = query(change);
-		return search ? `?${search}` : '';
-	}
-
 	function entry(label: string, change: Partial<PersonOptions>, current: boolean): FilterEntry {
 		return { label, query: query(change), current };
 	}
+
+	const roleMenu = $derived(
+		data.state === 'ready'
+			? [
+					{
+						label: roleName(data.options.role),
+						entries: data.roles.map((role) =>
+							entry(
+								`${roleName(role.role)} (${String(role.count)})`,
+								{ role: role.role, decade: null, genre: null },
+								data.options.role === role.role
+							)
+						)
+					}
+				]
+			: []
+	);
 
 	const menus = $derived.by(() => {
 		if (data.state !== 'ready') return [];
@@ -128,43 +155,31 @@
 {:else}
 	{@const person = data.person}
 	{@const path = resolve('/(app)/person/[id]', { id: String(person.id) })}
+	{#snippet link(item: FilterEntry)}
+		<a
+			href="{path}{item.query ? `?${item.query}` : ''}"
+			aria-current={item.current ? 'true' : undefined}
+		>
+			{item.label}
+		</a>
+	{/snippet}
+
+	<header class="head">
+		<h1>
+			<span class="kicker">{roleHeading(data.options.role)}</span>
+			{person.name}
+		</h1>
+	</header>
+
+	<div class="bar">
+		<nav class="roles" aria-label={m.person_roles()}>
+			<FilterMenus menus={roleMenu} {link} />
+		</nav>
+		<FilterMenus {menus} {link} />
+	</div>
+
 	<div class="person">
 		<div class="main">
-			<header class="head">
-				<h1>
-					<span class="kicker">{roleHeading(data.options.role)}</span>
-					{person.name}
-				</h1>
-				<nav class="roles" aria-label={m.person_roles()}>
-					<ul>
-						{#each data.roles as role (role.role)}
-							<li>
-								<a
-									href="{path}{href({ role: role.role, decade: null, genre: null })}"
-									aria-current={data.options.role === role.role ? 'page' : undefined}
-								>
-									{roleName(role.role)}
-									<span class="count">{role.count}</span>
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</nav>
-			</header>
-
-			<div class="filters">
-				<FilterMenus {menus}>
-					{#snippet link(item: FilterEntry)}
-						<a
-							href="{path}{item.query ? `?${item.query}` : ''}"
-							aria-current={item.current ? 'true' : undefined}
-						>
-							{item.label}
-						</a>
-					{/snippet}
-				</FilterMenus>
-			</div>
-
 			{#if data.works.length === 0}
 				<p class="empty">{m.person_empty()}</p>
 			{:else}
@@ -189,15 +204,13 @@
 			{/if}
 			{#if person.birthday || person.deathday || person.placeOfBirth}
 				<dl class="facts">
-					{#if person.birthday}
+					{#if person.birthday || person.placeOfBirth}
 						<dt>{m.person_born()}</dt>
 						<dd>
-							{formatDate(new Date(person.birthday))}{#if person.placeOfBirth}<br
-								/>{person.placeOfBirth}{/if}
+							{#if person.birthday}{formatDate(new Date(person.birthday))}{/if}
+							{#if person.birthday && person.placeOfBirth}<br />{/if}
+							{person.placeOfBirth ?? ''}
 						</dd>
-					{:else if person.placeOfBirth}
-						<dt>{m.person_born()}</dt>
-						<dd>{person.placeOfBirth}</dd>
 					{/if}
 					{#if person.deathday}
 						<dt>{m.person_died()}</dt>
@@ -217,34 +230,42 @@
 					{/if}
 				</div>
 			{/if}
-			<a
-				class="tmdb"
-				href="https://www.themoviedb.org/person/{person.id}"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				{m.person_tmdb()}
-			</a>
+			<p class="tmdb">
+				{m.person_more_details()}
+				<a
+					href="https://www.themoviedb.org/person/{person.id}"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					TMDB
+				</a>
+			</p>
+
+			<div class="panel">
+				<button type="button" onclick={() => (adding = true)} disabled={data.works.length === 0}>
+					{m.person_add_to_list()}
+				</button>
+				<form method="POST" action={action('watchlist')} use:enhance>
+					<button disabled={data.works.length === 0}>{m.list_add_all_watchlist()}</button>
+				</form>
+				{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
+			</div>
+
+			{#if data.progress}<WatchProgress progress={data.progress} />{/if}
 		</aside>
 	</div>
+
+	<AddToListDialog
+		bind:open={adding}
+		action={action('list')}
+		lists={data.lists}
+		name="{person.name} - {roleName(data.options.role)}"
+	/>
 {/if}
 
 <style>
-	.person {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
-		gap: var(--space-8);
-		align-items: start;
-	}
-
 	.head {
 		margin-bottom: var(--space-4);
-	}
-
-	.filters {
-		display: flex;
-		justify-content: flex-end;
-		margin-bottom: var(--space-3);
 	}
 
 	h1 {
@@ -257,6 +278,7 @@
 
 	.kicker {
 		display: block;
+		margin-bottom: var(--space-1);
 		color: var(--color-text);
 		font-family: var(--font-body);
 		font-size: var(--font-size-small);
@@ -265,42 +287,22 @@
 		text-transform: uppercase;
 	}
 
-	.roles {
-		margin-top: var(--space-3);
+	.bar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-4);
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--space-6);
+		padding-bottom: var(--space-1);
 		border-bottom: 1px solid var(--color-border);
 	}
 
-	.roles ul {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0 var(--space-4);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.roles a {
-		display: inline-block;
-		margin-bottom: -1px;
-		padding: var(--space-1) 0;
-		border-bottom: 1px solid transparent;
-		color: var(--color-text);
-		font-size: var(--font-size-control);
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
-	}
-
-	.roles a:hover {
-		color: var(--color-heading);
-	}
-
-	.roles a[aria-current] {
-		border-bottom-color: var(--color-accent);
-		color: var(--color-heading);
-	}
-
-	.roles .count {
-		color: var(--color-text-muted);
+	.person {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+		gap: var(--space-8);
+		align-items: start;
 	}
 
 	.empty {
@@ -360,8 +362,12 @@
 		color: var(--color-text-strong);
 	}
 
+	.bio {
+		font-size: var(--font-size-body);
+	}
+
 	.bio p {
-		margin-bottom: var(--space-3);
+		margin-bottom: var(--space-2);
 		line-height: 1.6;
 	}
 
@@ -377,41 +383,75 @@
 		padding: 0;
 		border: 0;
 		background: none;
-		color: var(--color-text-muted);
+		color: var(--color-text-strong);
 		cursor: pointer;
 		font: inherit;
 	}
 
 	.more:hover,
-	.tmdb:hover {
+	.tmdb a:hover {
 		color: var(--color-heading);
 	}
 
 	.tmdb {
 		color: var(--color-text-muted);
+	}
+
+	.tmdb a {
+		margin-inline-start: var(--space-1);
+		padding: 0 var(--space-1);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		font-size: var(--font-size-micro);
 		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
+	}
+
+	.panel {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: var(--radius-medium);
+		background: var(--color-surface-raised);
+	}
+
+	.panel button {
+		display: block;
+		width: 100%;
+		padding: var(--space-3);
+		border: 0;
+		border-top: 1px solid var(--color-dialog-divider);
+		background: none;
+		color: var(--color-text-panel);
+		font-family: inherit;
+		font-size: var(--font-size-body);
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.panel > :first-child,
+	.panel > :first-child button {
+		border-top: 0;
+	}
+
+	.panel button:hover:not(:disabled) {
+		color: var(--color-heading);
+	}
+
+	.panel button:disabled {
+		cursor: default;
+		opacity: 0.5;
+	}
+
+	.done {
+		padding: var(--space-2) var(--space-3);
+		color: var(--color-accent);
+		text-align: center;
 	}
 
 	@media (max-width: 48rem) {
 		.person {
 			grid-template-columns: minmax(0, 1fr);
-		}
-
-		.filters {
-			justify-content: flex-start;
-		}
-
-		.filters :global(.menus) {
-			flex-wrap: wrap;
-		}
-
-		.main {
-			display: contents;
-		}
-
-		.head {
-			order: -2;
 		}
 
 		.side {
@@ -425,6 +465,10 @@
 
 		.photo {
 			grid-row: span 3;
+		}
+
+		.bar :global(.menus) {
+			flex-wrap: wrap;
 		}
 	}
 </style>

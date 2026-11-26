@@ -194,10 +194,14 @@ function mdblist(url: URL, response: ServerResponse) {
 				return;
 			}
 			const first = found.id === 101 && offset === 0;
+			const later = [{ id: 2, title: 'Cached Film', release_year: 1982, ids: { tmdb: 9001 } }];
 			send(
 				response,
 				200,
-				{ movies: found.id === 103 ? [] : first ? movies : movies.slice(0, 1), shows: [] },
+				{
+					movies: found.id === 103 ? [] : first ? movies : offset > 0 ? later : movies.slice(0, 1),
+					shows: []
+				},
 				{ 'x-has-more': first ? 'true' : 'false' }
 			);
 		}
@@ -324,7 +328,8 @@ const server = createServer((request, response) => {
 			page,
 			total_pages: genre === '878' ? 3 : 1,
 			total_results: genre === '878' ? 41 : matching.length,
-			results: page === 1 ? ordered : ordered.slice(0, 1)
+			results:
+				page === 1 ? ordered : [{ ...summaries[0], id: 9200 + page, title: `Page ${String(page)}` }]
 		});
 	} else if (/^\/3\/movie\/(popular|top_rated|now_playing|upcoming)$/.test(url.pathname)) {
 		const page = Number(url.searchParams.get('page') ?? '1');
@@ -332,7 +337,7 @@ const server = createServer((request, response) => {
 		send(response, 200, {
 			page,
 			total_pages: top ? 2 : 1,
-			results: page === 1 ? summaries : summaries.slice(1)
+			results: page === 1 ? summaries : [{ ...summaries[0], id: 9001, title: 'Cached Film' }]
 		});
 	} else if (url.pathname === '/3/trending/movie/week') {
 		send(response, 200, { page: 1, results: summaries });

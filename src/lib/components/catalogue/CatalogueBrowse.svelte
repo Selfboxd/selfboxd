@@ -18,6 +18,8 @@
 	import { browseCount } from '#lib/i18n/browse.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { browseRoute } from '#lib/paths.js';
+	import LoadMore from '#lib/components/LoadMore.svelte';
+	import { InfinitePages } from '#lib/components/infinite.svelte.js';
 
 	interface Props {
 		kind: WorkKind;
@@ -52,6 +54,19 @@
 		totalPages,
 		total
 	}: Props = $props();
+
+	type Work = Props['works'][number];
+
+	const pages = new InfinitePages<Work>(
+		() => ({ items: works, page, more: page < totalPages }),
+		(data) => {
+			const next = data as Partial<Pick<Props, 'works' | 'page' | 'totalPages'>>;
+			return next.works && next.page !== undefined && next.totalPages !== undefined
+				? { items: next.works, page: next.page, more: next.page < next.totalPages }
+				: null;
+		},
+		(work) => String(work.id)
+	);
 
 	const path = $derived(
 		target.page === 'studio'
@@ -219,30 +234,17 @@
 
 <p class="count">{count}</p>
 
-{#if works.length === 0}
+{#if pages.items.length === 0}
 	<p class="empty">{kind === 'series' ? m.series_browse_empty() : m.browse_empty()}</p>
 {:else}
 	<ul class="grid">
-		{#each works as work (work.id)}
+		{#each pages.items as work (work.id)}
 			<li class:watched={work.watched}><FilmPoster film={{ ...work, kind }} size="medium" /></li>
 		{/each}
 	</ul>
 {/if}
 
-{#if totalPages > 1}
-	<nav class="pages" aria-label={title}>
-		{#if page > 1}
-			<a class="button button-secondary" href="{path}?{query({ page: page - 1 })}">
-				{m.search_previous()}
-			</a>
-		{/if}
-		{#if page < totalPages}
-			<a class="button button-secondary next" href="{path}?{query({ page: page + 1 })}">
-				{m.search_next()}
-			</a>
-		{/if}
-	</nav>
-{/if}
+<LoadMore more={pages.more} loading={pages.loading} onmore={() => void pages.next()} />
 
 <style>
 	.head {
@@ -368,15 +370,6 @@
 
 	.grid .watched:hover :global(.poster img) {
 		opacity: 1;
-	}
-
-	.pages {
-		display: flex;
-		margin-top: var(--space-6);
-	}
-
-	.pages .next {
-		margin-inline-start: auto;
 	}
 
 	@media (max-width: 48rem) {
