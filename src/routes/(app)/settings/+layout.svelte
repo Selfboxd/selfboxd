@@ -11,6 +11,7 @@
 		{ href: resolve('/(app)/settings/auth'), label: m.settings_tab_auth() },
 		{ href: resolve('/(app)/settings/preferences'), label: m.settings_tab_preferences() },
 		{ href: resolve('/(app)/settings/public'), label: m.settings_tab_public() },
+		{ href: resolve('/(app)/settings/transfer'), label: m.settings_tab_transfer() },
 		...(data.user?.isAdmin
 			? [
 					{ href: resolve('/(app)/settings/accounts'), label: m.settings_tab_accounts() },
