@@ -119,6 +119,11 @@
 		};
 	}
 
+	function openImages(mode: 'poster' | 'backdrop') {
+		menuOpen = false;
+		sharedDialogs.images = { filmId, kind, mode };
+	}
+
 	function openLists() {
 		if (!status) return;
 		menuOpen = false;
@@ -185,6 +190,27 @@
 				{status.state.inWatchlist ? m.watchlist_remove() : m.poster_watchlist_add()}
 			</button>
 			<button type="button" onclick={openLists}>{m.poster_lists_add()}</button>
+			<div class="sub" class:left={menuOnLeft}>
+				<button type="button" aria-haspopup="true">{m.poster_images()}</button>
+				<div class="submenu">
+					<button
+						type="button"
+						onclick={() => {
+							openImages('poster');
+						}}
+					>
+						{m.poster_change_poster()}
+					</button>
+					<button
+						type="button"
+						onclick={() => {
+							openImages('backdrop');
+						}}
+					>
+						{m.poster_change_backdrop()}
+					</button>
+				</div>
+			</div>
 			<a href={filmPath}>{m.film_where_to_watch()}</a>
 		</div>
 	{/if}
@@ -280,10 +306,15 @@
 		display: flex;
 		width: var(--poster-menu-width);
 		flex-direction: column;
-		overflow: hidden;
 		border-radius: var(--radius-medium);
 		background: var(--color-menu);
 		box-shadow: var(--shadow-button), var(--shadow-menu);
+	}
+
+	.menu > :last-child,
+	.menu > :last-child > button {
+		border-bottom-right-radius: var(--radius-medium);
+		border-bottom-left-radius: var(--radius-medium);
 	}
 
 	.menu.left {
@@ -306,7 +337,9 @@
 	}
 
 	.menu a,
-	.menu > button {
+	.menu > button,
+	.sub > button,
+	.submenu button {
 		padding: var(--space-2) var(--space-3);
 		border: 0;
 		border-top: 1px solid var(--color-menu-divider);
@@ -318,8 +351,44 @@
 		cursor: pointer;
 	}
 
+	.sub {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.submenu {
+		position: absolute;
+		top: 0;
+		left: calc(100% + var(--space-1));
+		display: none;
+		width: var(--poster-menu-width);
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: var(--radius-medium);
+		background: var(--color-menu);
+		box-shadow: var(--shadow-button), var(--shadow-menu);
+	}
+
+	.sub.left .submenu {
+		right: calc(100% + var(--space-1));
+		left: auto;
+	}
+
+	.sub:hover .submenu,
+	.sub:focus-within .submenu {
+		display: flex;
+	}
+
+	.submenu button:first-child {
+		border-top: 0;
+	}
+
 	.menu a:hover,
-	.menu > button:hover {
+	.menu > button:hover,
+	.sub > button:hover,
+	.sub:focus-within > button,
+	.submenu button:hover {
 		background: var(--color-menu-hover);
 		color: var(--color-heading);
 	}

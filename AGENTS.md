@@ -172,6 +172,10 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   page load still takes `page`, and `InfinitePages` of `infinite.svelte.ts` loads the next page
   through `preloadData` and appends it, with `LoadMore.svelte` at the end of the items.
 - The diary filters and sorts with `diary-view.ts`, from the menus of its header.
+- An account can choose the poster and the backdrop of any work among those TMDB offers, from
+  the menu of a poster or the actions of a work page (`ImageDialog`, `work-images.ts`). The root
+  layout loads the choices (`app:images`), and `FilmPoster` and work pages show them. The profile
+  banner is chosen from the backdrop dialog of a film; Settings, Profile only removes it.
 - An account chooses its country and its streaming services in Settings, Streaming. The country
   is that of `requestRegion()` for releases and where to watch. The Service menu of browse,
   person, list and diary pages lists only the services of the account; browse pages narrow

@@ -5,6 +5,7 @@ import {
 	browseFilms,
 	browseSeries,
 	getChart,
+	getImages,
 	getPerson,
 	getRegions,
 	getServices,
@@ -474,5 +475,25 @@ describe('TMDB service', () => {
 		expect(requests[0]?.searchParams.get('with_watch_providers')).toBe('8');
 		expect(requests[0]?.searchParams.get('watch_region')).toBe('FR');
 		expect(requests[0]?.searchParams.get('with_watch_monetization_types')).toBe('flatrate');
+	});
+
+	it('loads the posters and backdrops of a work in the language of the user and English', async () => {
+		respond = () =>
+			Response.json({
+				posters: [{ file_path: '/p.jpg', width: 500, height: 750 }],
+				backdrops: [{ file_path: '/b.jpg' }]
+			});
+
+		const images = await getImages(context, 'series', 1400, 'fr-FR');
+
+		expect(requests[0]?.pathname).toBe('/3/tv/1400/images');
+		expect(requests[0]?.searchParams.get('include_image_language')).toBe('fr,en,null');
+		expect(images).toEqual({
+			ok: true,
+			value: {
+				posters: [{ path: '/p.jpg', width: 500, height: 750 }],
+				backdrops: [{ path: '/b.jpg', width: 0, height: 0 }]
+			}
+		});
 	});
 });

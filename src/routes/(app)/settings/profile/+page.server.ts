@@ -48,14 +48,6 @@ export const actions: Actions = {
 		return { saved: false };
 	},
 
-	banner: async ({ locals, request }) => {
-		const { user } = requireUser(locals);
-		const { film } = await resolveFilm(formText(await request.formData(), 'filmId'));
-		if (!film.backdropPath) return fail(400, { error: 'banner_unavailable' as const });
-		setBanner(getDatabase(), user.id, film.backdropPath);
-		return { saved: false };
-	},
-
 	removeBanner: ({ locals }) => {
 		const { user } = requireUser(locals);
 		setBanner(getDatabase(), user.id, null);

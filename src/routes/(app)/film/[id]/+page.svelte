@@ -2,6 +2,8 @@
 	import { resolve } from '$app/paths';
 	import type { DiaryEntry } from '#lib/catalog/library.js';
 	import Backdrop from '#lib/components/Backdrop.svelte';
+	import { sharedDialogs } from '#lib/components/library/shared-dialogs.svelte.js';
+	import { imageKey } from '#lib/catalog/images.js';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
 	import FilmDetails from '#lib/components/film/FilmDetails.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
@@ -44,11 +46,12 @@
 	<FormError message={errorMessage(data.error)} />
 {:else}
 	{@const film = data.film}
-	{#if film.backdropPath}
-		<Backdrop path={film.backdropPath} />
+	{@const backdropPath = data.images[imageKey('film', film.id)]?.backdrop ?? film.backdropPath}
+	{#if backdropPath}
+		<Backdrop path={backdropPath} />
 	{/if}
 
-	<div class="film" class:with-backdrop={film.backdropPath}>
+	<div class="film" class:with-backdrop={backdropPath}>
 		<aside class="side">
 			<FilmPoster {film} size="large" linked={false} actions />
 			<FilmWatch watch={film.watch} trailerKey={film.trailerKey} />
@@ -105,6 +108,9 @@
 						<FormError message={errorMessage(form.error)} />
 					{/if}
 					<FilmActions
+						onimages={(mode: 'poster' | 'backdrop') => {
+							sharedDialogs.images = { filmId: String(film.id), kind: 'film', mode };
+						}}
 						state={data.library.state}
 						{scale}
 						onlog={() =>

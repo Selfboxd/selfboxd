@@ -2,6 +2,8 @@
 	import { resolve } from '$app/paths';
 	import type { DiaryEntry } from '#lib/catalog/library.js';
 	import Backdrop from '#lib/components/Backdrop.svelte';
+	import { sharedDialogs } from '#lib/components/library/shared-dialogs.svelte.js';
+	import { imageKey } from '#lib/catalog/images.js';
 	import FilmActions from '#lib/components/film/FilmActions.svelte';
 	import FilmDetails from '#lib/components/film/FilmDetails.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
@@ -91,11 +93,13 @@
 	<FormError message={errorMessage(data.error)} />
 {:else}
 	{@const series = data.series}
-	{#if series.backdropPath}
-		<Backdrop path={series.backdropPath} />
+	{@const backdropPath =
+		data.images[imageKey('series', series.id)]?.backdrop ?? series.backdropPath}
+	{#if backdropPath}
+		<Backdrop path={backdropPath} />
 	{/if}
 
-	<div class="film" class:with-backdrop={series.backdropPath}>
+	<div class="film" class:with-backdrop={backdropPath}>
 		<aside class="side">
 			<FilmPoster film={{ ...series, kind: 'series' }} size="large" linked={false} actions />
 			<FilmWatch watch={series.watch} trailerKey={series.trailerKey} />
@@ -176,6 +180,9 @@
 						<FormError message={errorMessage(form.error)} />
 					{/if}
 					<FilmActions
+						onimages={(mode: 'poster' | 'backdrop') => {
+							sharedDialogs.images = { filmId: String(series.id), kind: 'series', mode };
+						}}
 						state={data.library.state}
 						{scale}
 						series

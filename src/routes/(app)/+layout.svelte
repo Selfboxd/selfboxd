@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ImageDialog from '#lib/components/library/ImageDialog.svelte';
 	import ListsDialog from '#lib/components/library/ListsDialog.svelte';
 	import LogDialog from '#lib/components/library/LogDialog.svelte';
 	import { sharedDialogs } from '#lib/components/library/shared-dialogs.svelte.js';
@@ -32,6 +33,7 @@
 		lists={sharedDialogs.lists?.lists ?? []}
 		member={sharedDialogs.lists?.member ?? []}
 	/>
+	<ImageDialog bind:target={sharedDialogs.images} />
 {/if}
 
 <style>

@@ -255,6 +255,7 @@ const server = createServer((request, response) => {
 
 	const language = url.searchParams.get('language') ?? '';
 	const movie = /^\/3\/movie\/(\d+)$/.exec(url.pathname);
+	const images = /^\/3\/(movie|tv)\/(\d+)\/images$/.exec(url.pathname);
 	const tv = /^\/3\/tv\/(\d+)$/.exec(url.pathname);
 	if (url.pathname === '/3/configuration') {
 		send(response, 200, {});
@@ -268,6 +269,14 @@ const server = createServer((request, response) => {
 	} else if (tv) {
 		const found = [neonPrecinct, harbour].find((entry) => entry.id === Number(tv[1]));
 		send(response, found ? 200 : 404, found ?? { status_code: 34 });
+	} else if (images) {
+		send(response, 200, {
+			posters: [
+				{ file_path: '/blade-runner-poster.jpg', width: 1000, height: 1500 },
+				{ file_path: '/alternate-poster.jpg', width: 1000, height: 1500 }
+			],
+			backdrops: [{ file_path: '/alternate-backdrop.jpg', width: 1920, height: 1080 }]
+		});
 	} else if (url.pathname === '/3/person/578') {
 		send(response, 200, {
 			...ridley,

@@ -18,9 +18,20 @@
 		onwatchlist: () => void;
 		/** Opens the dialog that chooses the lists holding the film. */
 		onlists: () => void;
+		/** Opens the dialog that chooses the poster or the backdrop of the film. */
+		onimages: (mode: 'poster' | 'backdrop') => void;
 	}
 
-	let { state, scale, series = false, onlog, onedit, onwatchlist, onlists }: Props = $props();
+	let {
+		state,
+		scale,
+		series = false,
+		onlog,
+		onedit,
+		onwatchlist,
+		onlists,
+		onimages
+	}: Props = $props();
 
 	const logged = $derived(state.logCount > 0);
 	const watchLabel = $derived(
@@ -100,6 +111,24 @@
 	{/if}
 	<button class="row" type="button" onclick={onlists}>
 		{series ? m.action_add_series_to_lists() : m.action_add_to_lists()}
+	</button>
+	<button
+		class="row"
+		type="button"
+		onclick={() => {
+			onimages('poster');
+		}}
+	>
+		{m.poster_change_poster()}
+	</button>
+	<button
+		class="row"
+		type="button"
+		onclick={() => {
+			onimages('backdrop');
+		}}
+	>
+		{m.poster_change_backdrop()}
 	</button>
 </section>
 
