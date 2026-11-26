@@ -29,6 +29,7 @@ function entry(id: number, changes: Partial<DiaryRow> = {}, year: number | null 
 		review: '',
 		containsSpoilers: false,
 		tags: [],
+		createdAt: '2026-01-01T12:00:00.000Z',
 		...changes
 	};
 }

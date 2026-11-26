@@ -3,7 +3,7 @@ import { imageKey } from '../../catalog/images';
 import { pinnedLists, pinnedReviews, type Work } from '../../catalog/library';
 import type { DatabaseExecutor } from '../db/connection';
 import { users } from '../db/schema';
-import { listDiaryEntries } from '../library/diary';
+import { listDeletedEntries, listDiaryEntries } from '../library/diary';
 import { listImageChoices } from '../library/images';
 import { getList, listLists } from '../library/lists';
 import { getProfile, listFavourites, listLiked } from '../library/profile';
@@ -48,6 +48,7 @@ export interface Snapshot {
 		spoilers: boolean;
 		pinned: boolean;
 		tags: string[];
+		createdAt: string;
 	}[];
 	watched: { work: number; rating: number | null; liked: boolean }[];
 	likes: number[];
@@ -55,6 +56,14 @@ export interface Snapshot {
 	/** Whether the account keeps its watchlist private, in which case it is left out. */
 	watchlistHidden: boolean;
 	stats: ReturnType<typeof publicStats>;
+	/** Entries deleted lately, so that readers of the feed hear of it. */
+	deleted: {
+		id: number;
+		title: string;
+		year: number | null;
+		watchedOn: string;
+		deletedAt: string;
+	}[];
 	lists: {
 		id: number;
 		name: string;
@@ -127,7 +136,8 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		review: entry.review.slice(0, 20_000),
 		spoilers: entry.containsSpoilers,
 		pinned: pinned.has(entry.id),
-		tags: entry.tags.slice(0, 20).map((tag) => tag.slice(0, 50))
+		tags: entry.tags.slice(0, 20).map((tag) => tag.slice(0, 50)),
+		createdAt: entry.createdAt
 	}));
 	const watched = listWatched(db, userId)
 		.reverse()
@@ -176,6 +186,13 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		watchlist,
 		watchlistHidden: user.watchlistPrivate,
 		stats: publicStats(db, userId),
+		deleted: listDeletedEntries(db, userId).map((entry) => ({
+			id: entry.id,
+			title: entry.title.slice(0, 500),
+			year: entry.year !== null && entry.year >= 1800 && entry.year <= 2200 ? entry.year : null,
+			watchedOn: entry.watchedOn,
+			deletedAt: entry.deletedAt.toISOString()
+		})),
 		lists
 	};
 }

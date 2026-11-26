@@ -236,7 +236,7 @@ test.describe('watched films filters', () => {
 		await signIn(page, await createAccount(request));
 	});
 
-	test('sort, narrow and resize the watched films', async ({ page }) => {
+	test('sort and narrow the watched films', async ({ page }) => {
 		await page.goto('/film/78');
 		await actions(page).getByRole('button', { name: '4 out of 5 stars', exact: true }).click();
 		await expect(actions(page).getByRole('button', { name: 'Watched' })).toBeVisible();
@@ -260,9 +260,23 @@ test.describe('watched films filters', () => {
 		await expect(links).toHaveCount(1);
 		await expect(links.first()).toHaveAttribute('href', '/film/335984');
 
-		await head.getByRole('link', { name: 'Large', exact: true }).click();
-		await expect(page).toHaveURL('/watched?liked=1&sort=rating_lowest&size=large');
-		await expect(page.locator('main ul.grid.large')).toBeVisible();
+		await expect(head.getByRole('link', { name: 'Large', exact: true })).toHaveCount(0);
+
+		await page.goto('/watched');
+		await head.getByRole('button', { name: 'Rating' }).hover();
+		await head.getByRole('link', { name: '4 out of 5 stars' }).click();
+		await expect(page).toHaveURL('/watched?rating=8');
+		await expect(links).toHaveCount(1);
+		await expect(links.first()).toHaveAttribute('href', '/film/78');
+
+		const range = head.getByRole('group', { name: 'Rating (or range)' });
+		await head.getByRole('button', { name: /4 out of 5 stars/ }).hover();
+		await range.getByRole('link', { name: '1 out of 5 stars' }).hover();
+		await page.mouse.down();
+		await range.getByRole('link', { name: '4.5 out of 5 stars' }).hover();
+		await page.mouse.up();
+		await expect(page).toHaveURL('/watched?rating=2-9');
+		await expect(links).toHaveCount(2);
 
 		await page.goto('/watched?decade=1970');
 		await expect(page.getByText('Nothing matches these filters.')).toBeVisible();

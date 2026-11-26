@@ -127,6 +127,23 @@ export const diaryEntries = sqliteTable(
 	(table) => [index('diary_entries_user_watched_on_index').on(table.userId, table.watchedOn)]
 );
 
+/** Diary entries deleted lately, kept a while so that readers of the feed hear of it. */
+export const deletedEntries = sqliteTable(
+	'deleted_entries',
+	{
+		/** Identifier the entry had, never given again. */
+		id: integer('id').primaryKey(),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		title: text('title').notNull(),
+		year: integer('year'),
+		watchedOn: text('watched_on').notNull(),
+		deletedAt: integer('deleted_at', { mode: 'timestamp' }).notNull()
+	},
+	(table) => [index('deleted_entries_user_index').on(table.userId, table.deletedAt)]
+);
+
 export const tags = sqliteTable(
 	'tags',
 	{

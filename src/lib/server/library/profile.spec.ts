@@ -125,8 +125,16 @@ describe('profile', () => {
 		expect(favouriteTitles()).toEqual([null, null, null, null]);
 	});
 
-	it('counts watched works, entries of the year and lists', () => {
+	it('counts watched films and series, works of the year and lists', () => {
+		const series = saveWork(database.db, {
+			kind: 'series',
+			externalId: '1400',
+			title: 'Show',
+			year: null,
+			posterPath: null
+		}).id;
 		setWatched(database.db, ada.id, work(0), true);
+		createDiaryEntry(database.db, ada.id, series, entry({ watchedOn: '2026-05-01' }));
 		createDiaryEntry(database.db, ada.id, work(1), entry({ watchedOn: '2026-03-01' }));
 		createDiaryEntry(database.db, ada.id, work(1), entry({ watchedOn: '2026-04-01' }));
 		createDiaryEntry(database.db, ada.id, work(2), entry({ watchedOn: '2025-12-31' }));
@@ -134,7 +142,8 @@ describe('profile', () => {
 		setWatched(database.db, grace.id, work(3), true);
 
 		expect(getProfileStats(database.db, ada.id, new Date('2026-06-01'))).toEqual({
-			watched: 3,
+			films: 3,
+			series: 1,
 			thisYear: 2,
 			lists: 1
 		});

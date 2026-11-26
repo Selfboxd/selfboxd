@@ -2,7 +2,7 @@
 	import {
 		watchedQuery,
 		watchedSorts,
-		type PosterSize,
+		type RatingRange,
 		type WatchedOptions,
 		type WatchedSort
 	} from '#lib/catalog/watched-view.js';
@@ -12,6 +12,7 @@
 	import type { FilterEntry, FilterMenu } from '#lib/components/filter-menus.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
+	import RatingRangePicker from '#lib/components/RatingRange.svelte';
 	import { ratingLabel } from '#lib/i18n/ratings.js';
 	import { m } from '#lib/paraglide/messages.js';
 
@@ -42,6 +43,19 @@
 		name: m.list_sort_name
 	};
 
+	/** Short text of a rating, such as ★★½ or 7/10. */
+	function short(rating: number): string {
+		return scale === 'ten'
+			? `${String(rating)}/10`
+			: `${'★'.repeat(Math.floor(rating / 2))}${rating % 2 === 1 ? '½' : ''}`;
+	}
+
+	function rangeLabel(range: RatingRange): string {
+		return range.min === range.max
+			? ratingLabel(range.min, scale)
+			: `${short(range.min)} – ${short(range.max)}`;
+	}
+
 	function address(change: Partial<WatchedOptions>): string {
 		const query = watchedQuery({ ...options, ...change });
 		return query ? `${path}?${query}` : path;
@@ -51,104 +65,89 @@
 		return { label, query: watchedQuery({ ...options, ...change }), current };
 	}
 
-	const menus = $derived.by((): FilterMenu[] => {
-		const ratings = Array.from({ length: 10 }, (_, index) => 10 - index);
-		return [
-			{
-				label: m.watched_show(),
-				icon: 'eye',
-				entries: [
-					entry(m.watched_show_all(), { liked: false }, !options.liked),
-					entry(m.watched_show_liked(), { liked: true }, options.liked)
-				]
-			},
-			{
-				label: `${m.list_sort_by()} ${sortLabels[options.sort]()}`,
-				entries: watchedSorts.map((sort) =>
-					entry(sortLabels[sort](), { sort }, options.sort === sort)
-				)
-			},
-			...(services.length > 0
-				? [
-						{
-							label:
-								services.find((item) => item.id === options.service)?.name ?? m.filter_service(),
-							entries: [
-								entry(m.filter_any_service(), { service: null }, options.service === null),
-								...services.map((item) =>
-									entry(item.name, { service: item.id }, options.service === item.id)
-								)
-							]
-						}
-					]
-				: []),
-			...(genres.length > 0
-				? [
-						{
-							label: options.genre ?? m.list_genre(),
-							entries: [
-								entry(m.list_any_genre(), { genre: null }, options.genre === null),
-								...genres.map((genre) => entry(genre, { genre }, options.genre === genre))
-							]
-						}
-					]
-				: []),
-			{
-				label:
-					options.decade === null
-						? m.list_decade()
-						: m.browse_decade({ decade: String(options.decade) }),
-				entries: [
-					entry(m.list_any_decade(), { decade: null }, options.decade === null),
-					...decades.map((decade) =>
-						entry(
-							m.browse_decade({ decade: String(decade) }),
-							{ decade },
-							options.decade === decade
-						)
-					)
-				]
-			},
-			{
-				label:
-					options.rating === null
-						? m.diary_column_rating()
-						: options.rating === 'none'
-							? m.diary_rating_none()
-							: ratingLabel(options.rating, scale),
-				entries: [
-					entry(m.diary_any_rating(), { rating: null }, options.rating === null),
-					entry(m.diary_rating_none(), { rating: 'none' }, options.rating === 'none'),
-					...ratings.map((rating) =>
-						entry(ratingLabel(rating, scale), { rating }, options.rating === rating)
-					)
-				]
-			}
-		];
-	});
+	const range = $derived(
+		options.rating === null || options.rating === 'none' ? null : options.rating
+	);
 
-	const sizes: { size: PosterSize; label: () => string }[] = [
-		{ size: 'small', label: m.poster_size_small },
-		{ size: 'large', label: m.poster_size_large }
-	];
+	const menus = $derived.by((): FilterMenu[] => [
+		{
+			label: m.watched_show(),
+			icon: 'eye',
+			entries: [
+				entry(m.watched_show_all(), { liked: false }, !options.liked),
+				entry(m.watched_show_liked(), { liked: true }, options.liked)
+			]
+		},
+		{
+			label: `${m.list_sort_by()} ${sortLabels[options.sort]()}`,
+			entries: watchedSorts.map((sort) =>
+				entry(sortLabels[sort](), { sort }, options.sort === sort)
+			)
+		},
+		{
+			label:
+				options.rating === null
+					? m.diary_column_rating()
+					: options.rating === 'none'
+						? m.diary_rating_none()
+						: rangeLabel(options.rating),
+			entries: [
+				entry(m.diary_any_rating(), { rating: null }, options.rating === null),
+				entry(m.diary_rating_none(), { rating: 'none' }, options.rating === 'none')
+			],
+			after: rangePicker
+		},
+		...(services.length > 0
+			? [
+					{
+						label: services.find((item) => item.id === options.service)?.name ?? m.filter_service(),
+						entries: [
+							entry(m.filter_any_service(), { service: null }, options.service === null),
+							...services.map((item) =>
+								entry(item.name, { service: item.id }, options.service === item.id)
+							)
+						]
+					}
+				]
+			: []),
+		...(genres.length > 0
+			? [
+					{
+						label: options.genre ?? m.list_genre(),
+						entries: [
+							entry(m.list_any_genre(), { genre: null }, options.genre === null),
+							...genres.map((genre) => entry(genre, { genre }, options.genre === genre))
+						]
+					}
+				]
+			: []),
+		{
+			label:
+				options.decade === null
+					? m.list_decade()
+					: m.browse_decade({ decade: String(options.decade) }),
+			entries: [
+				entry(m.list_any_decade(), { decade: null }, options.decade === null),
+				...decades.map((decade) =>
+					entry(m.browse_decade({ decade: String(decade) }), { decade }, options.decade === decade)
+				)
+			]
+		}
+	]);
 </script>
+
+{#snippet rangePicker()}
+	<RatingRangePicker
+		{scale}
+		value={range}
+		address={(min: number, max: number) => address({ rating: { min, max } })}
+	/>
+{/snippet}
 
 <header class="head">
 	<h1>{title}</h1>
 	{#if total > 0}
 		<div class="tools">
-			<div class="sizes">
-				{#each sizes as item (item.size)}
-					<!-- eslint-disable svelte/no-navigation-without-resolve -- built from the resolved path -->
-					<a
-						href={address({ size: item.size })}
-						aria-current={options.size === item.size ? 'true' : undefined}
-					>
-						{item.label()}
-					</a>
-					<!-- eslint-enable svelte/no-navigation-without-resolve -->
-				{/each}
-			</div>
 			<FilterMenus {menus}>
 				{#snippet link(item: FilterEntry)}
 					<!-- eslint-disable svelte/no-navigation-without-resolve -- built from the resolved path -->
@@ -170,7 +169,7 @@
 {:else if works.length === 0}
 	<p class="empty">{m.watched_filtered_empty()}</p>
 {:else}
-	<ul class="grid {options.size}">
+	<ul class="grid">
 		{#each works as { work, rating, liked } (work.id)}
 			<li>
 				<FilmPoster film={{ ...work, id: work.externalId }} size="fill" />
@@ -214,25 +213,6 @@
 		margin-inline-start: auto;
 	}
 
-	.sizes {
-		display: flex;
-		gap: var(--space-2);
-		padding-inline-end: var(--space-2);
-		border-inline-end: 1px solid var(--color-border);
-	}
-
-	.sizes a {
-		color: var(--color-text-muted);
-		font-size: var(--font-size-filter);
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
-	}
-
-	.sizes a:hover,
-	.sizes a[aria-current='true'] {
-		color: var(--color-text-strong);
-	}
-
 	.empty {
 		color: var(--color-text);
 	}
@@ -245,13 +225,8 @@
 		list-style: none;
 	}
 
-	.grid.small {
+	.grid {
 		grid-template-columns: repeat(auto-fill, minmax(var(--poster-small), 1fr));
-	}
-
-	.grid.large {
-		grid-template-columns: repeat(auto-fill, minmax(var(--poster-medium), 1fr));
-		gap: var(--space-4) var(--space-3);
 	}
 
 	.meta {
@@ -262,10 +237,6 @@
 		margin-top: var(--space-1);
 		color: var(--color-text-muted);
 		font-size: var(--font-size-micro);
-	}
-
-	.large .meta {
-		font-size: var(--font-size-small);
 	}
 
 	.meta :global(.rating) {

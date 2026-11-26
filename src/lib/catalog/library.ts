@@ -54,8 +54,9 @@ export interface DiaryEntry {
 	rewatch: boolean;
 	review: string;
 	containsSpoilers: boolean;
-	/** Whether the review is shown on the profile of the account. */
 	tags: string[];
+	/** When the entry was logged, as an ISO timestamp. */
+	createdAt: string;
 }
 
 export interface WatchlistItem {
@@ -152,9 +153,11 @@ export interface Profile {
 }
 
 export interface ProfileStats {
-	/** Number of works marked as watched. */
-	watched: number;
-	/** Number of diary entries dated in the current year. */
+	/** Number of films marked as watched. */
+	films: number;
+	/** Number of series marked as watched. */
+	series: number;
+	/** Number of films and series with a diary entry dated in the current year. */
 	thisYear: number;
 	lists: number;
 }

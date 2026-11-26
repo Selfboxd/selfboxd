@@ -1,7 +1,7 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 import type { DiaryEntry, SeriesStatus } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
-import { diaryEntries, diaryEntryTags, tags, works } from '../db/schema';
+import { deletedEntries, diaryEntries, diaryEntryTags, tags, works } from '../db/schema';
 import { removeFromWatchlist, writeState } from './states';
 import { deleteUnusedTags, resolveTagIds } from './tags';
 
@@ -100,8 +100,33 @@ export function updateDiaryEntry(
 }
 
 /** Deletes an entry of an account. Returns `false` when the account has no such entry. */
-export function deleteDiaryEntry(db: AppDatabase, userId: number, entryId: number): boolean {
+export function deleteDiaryEntry(
+	db: AppDatabase,
+	userId: number,
+	entryId: number,
+	now = new Date()
+): boolean {
 	return db.transaction((transaction) => {
+		const owned = transaction
+			.select({ entry: diaryEntries, work: works })
+			.from(diaryEntries)
+			.innerJoin(works, eq(diaryEntries.workId, works.id))
+			.where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
+			.get();
+		if (owned) {
+			transaction
+				.insert(deletedEntries)
+				.values({
+					id: owned.entry.id,
+					userId,
+					title: owned.work.title,
+					year: owned.work.year,
+					watchedOn: owned.entry.watchedOn,
+					deletedAt: now
+				})
+				.onConflictDoNothing()
+				.run();
+		}
 		const result = transaction
 			.delete(diaryEntries)
 			.where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
@@ -142,7 +167,8 @@ function toEntries(db: DatabaseExecutor, rows: EntryRow[]): DiaryEntry[] {
 		rewatch: entry.rewatch,
 		review: entry.review,
 		containsSpoilers: entry.containsSpoilers,
-		tags: names.get(entry.id) ?? []
+		tags: names.get(entry.id) ?? [],
+		createdAt: entry.createdAt.toISOString()
 	}));
 }
 
@@ -176,4 +202,19 @@ export function getDiaryEntry(
 		.where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
 		.all();
 	return toEntries(db, rows)[0];
+}
+
+/** How long a deleted entry stays known, so that readers of the feed hear of it. */
+export const deletedEntryLifetime = 30 * 24 * 60 * 60 * 1000;
+
+/** Entries of an account deleted lately, forgetting the older ones. */
+export function listDeletedEntries(db: DatabaseExecutor, userId: number, now = new Date()) {
+	const since = new Date(now.getTime() - deletedEntryLifetime);
+	db.delete(deletedEntries).where(lt(deletedEntries.deletedAt, since)).run();
+	return db
+		.select()
+		.from(deletedEntries)
+		.where(eq(deletedEntries.userId, userId))
+		.orderBy(desc(deletedEntries.deletedAt))
+		.all();
 }

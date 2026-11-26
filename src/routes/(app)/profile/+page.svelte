@@ -23,7 +23,8 @@
 	const longBio = $derived(isLongBio(data.profile.bio));
 	const ratedCount = $derived(data.histogram.reduce((sum, count) => sum + count, 0));
 	const stats = $derived([
-		{ value: data.stats.watched, label: m.profile_stat_films() },
+		{ value: data.stats.films, label: m.profile_stat_films() },
+		{ value: data.stats.series, label: m.profile_stat_series() },
 		{ value: data.stats.thisYear, label: m.profile_stat_this_year() },
 		{ value: data.stats.lists, label: m.nav_lists() }
 	]);

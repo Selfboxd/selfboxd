@@ -160,59 +160,6 @@
 					</div>
 				{/if}
 			{:else}
-				{#if data.library && (data.library.lists.length > 0 || data.library.reviews.length > 0 || data.library.tags.length > 0)}
-					{@const library = data.library}
-					<section class="library" aria-label={m.search_library()}>
-						{#if library.lists.length > 0}
-							<div class="group">
-								<h2 class="group-title">
-									{m.search_section_own_lists()}
-									<a href="{resolve('/(app)/search')}?{sectionQuery('your-lists')}">
-										{m.search_see_all()}
-									</a>
-								</h2>
-								<ul class="results">
-									{#each library.lists as list (list.id)}
-										<li>{@render ownList(list)}</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
-						{#if library.reviews.length > 0}
-							<div class="group">
-								<h2 class="group-title">
-									{m.search_section_reviews()}
-									<a href="{resolve('/(app)/search')}?{sectionQuery('reviews')}">
-										{m.search_see_all()}
-									</a>
-								</h2>
-								<ul class="results">
-									{#each library.reviews as entry (entry.id)}
-										<li>{@render review(entry)}</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
-						{#if library.tags.length > 0}
-							<div class="group">
-								<h2 class="group-title">
-									{m.search_section_tags()}
-									<a href="{resolve('/(app)/search')}?{sectionQuery('tags')}">
-										{m.search_see_all()}
-									</a>
-								</h2>
-								<ul class="tags">
-									{#each library.tags as tag (tag.name)}
-										<li>{@render tagChip(tag)}</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
-					</section>
-				{/if}
-				{#if data.library && (data.library.lists.length > 0 || data.library.reviews.length > 0 || data.library.tags.length > 0)}
-					<h2 class="group-title">{m.search_catalogue()}</h2>
-				{/if}
 				{#if data.broadened}
 					<p class="notice">
 						{m.search_broadened({ query: data.query, broader: data.broadened })}
@@ -310,6 +257,66 @@
 					</li>
 				{/each}
 			</ul>
+			{#if data.state !== 'reviews' && data.library && (data.library.lists.length > 0 || data.library.reviews.length > 0 || data.library.tags.length > 0)}
+				{@const library = data.library}
+				<section class="library" aria-label={m.search_library()}>
+					{#if library.lists.length > 0}
+						<div class="group">
+							<h2 class="group-title">
+								{m.search_section_own_lists()}
+								<a href="{resolve('/(app)/search')}?{sectionQuery('your-lists')}">
+									{m.search_see_all()}
+								</a>
+							</h2>
+							<ul class="mini">
+								{#each library.lists as list (list.id)}
+									<li>
+										<a href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>
+											{list.name}
+										</a>
+										<span>{m.list_count({ count: list.count })}</span>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+					{#if library.reviews.length > 0}
+						<div class="group">
+							<h2 class="group-title">
+								{m.search_section_reviews()}
+								<a href="{resolve('/(app)/search')}?{sectionQuery('reviews')}">
+									{m.search_see_all()}
+								</a>
+							</h2>
+							<ul class="mini">
+								{#each library.reviews as entry (entry.id)}
+									<li>
+										<a href={resolve('/(app)/reviews/[id]', { id: String(entry.id) })}>
+											{entry.work.title}
+										</a>
+										{#if entry.rating !== null}<RatingDisplay rating={entry.rating} {scale} />{/if}
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+					{#if library.tags.length > 0}
+						<div class="group">
+							<h2 class="group-title">
+								{m.search_section_tags()}
+								<a href="{resolve('/(app)/search')}?{sectionQuery('tags')}">
+									{m.search_see_all()}
+								</a>
+							</h2>
+							<ul class="tags">
+								{#each library.tags as tag (tag.name)}
+									<li>{@render tagChip(tag)}</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+				</section>
+			{/if}
 		</aside>
 	</div>
 {/if}
@@ -388,7 +395,42 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-6);
-		margin-bottom: var(--space-8);
+		margin-top: var(--space-8);
+	}
+
+	.mini {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--font-size-control);
+	}
+
+	.mini li {
+		display: flex;
+		gap: var(--space-2);
+		align-items: baseline;
+		justify-content: space-between;
+	}
+
+	.mini a {
+		overflow: hidden;
+		color: var(--color-text-strong);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.mini a:hover {
+		color: var(--color-link-hover);
+	}
+
+	.mini span,
+	.mini :global(.rating) {
+		flex-shrink: 0;
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
 	}
 
 	.group-title {

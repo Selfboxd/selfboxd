@@ -684,7 +684,6 @@
 	"stats_studios": "Estudios",
 	"list_field_tags": "Etiquetas",
 	"list_tags_hint": "Añade la etiqueta profile para fijar la lista en tu perfil, dos como máximo.",
-	"reviews_pin_hint": "Añade la etiqueta profile a una reseña para fijarla en tu perfil, dos como máximo.",
 	"profile_pinned_lists": "Listas fijadas",
 	"watched_sort_recent": "Vistos recientemente",
 	"watched_show_all": "Todo",
@@ -692,5 +691,8 @@
 	"watched_show": "Mostrar",
 	"poster_size_small": "Pequeño",
 	"poster_size_large": "Grande",
-	"watched_filtered_empty": "Nada coincide con estos filtros."
+	"watched_filtered_empty": "Nada coincide con estos filtros.",
+	"profile_stat_series": "Series",
+	"filter_rating_range": "Valoración (o rango)",
+	"filter_rating_drag": "Arrastra para definir un rango"
 }

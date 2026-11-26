@@ -40,6 +40,7 @@
 					{#each menu.entries as entry (entry.label)}
 						<li>{@render link(entry)}</li>
 					{/each}
+					{#if menu.after}<li class="after">{@render menu.after()}</li>{/if}
 				</ul>
 			</div>
 		</li>
@@ -131,6 +132,11 @@
 		color: var(--color-menu-text);
 		font-size: var(--font-size-control);
 		white-space: nowrap;
+	}
+
+	.after {
+		margin-top: var(--space-1);
+		border-top: 1px solid var(--color-menu-divider);
 	}
 
 	.entries :global(a:hover),
