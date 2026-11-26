@@ -1,13 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { chartPageMax, chartPageSize, isChart, type Chart } from '#lib/catalog/charts.js';
 import type { FilmSummary } from '#lib/catalog/film.js';
-import {
-	applyListOptions,
-	isRefined,
-	listActionMax,
-	listDecades,
-	parseListOptions
-} from '#lib/catalog/list-view.js';
+import { applyListOptions, isRefined, listActionMax, listDecades } from '#lib/catalog/list-view.js';
 import { requireUser } from '#lib/server/auth/guards.js';
 import { parseId } from '#lib/server/library/forms.js';
 import {
@@ -17,7 +11,8 @@ import {
 	likesList,
 	toEntries,
 	watchlistWorks,
-	withGenres,
+	listChoices,
+	refineEntries,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { getTmdbContext } from '#lib/server/tmdb/index.js';
@@ -51,7 +46,7 @@ async function leadingFilms(context: TmdbContext, chart: Chart): Promise<FilmSum
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const { user } = requireUser(locals);
 	const { chart, context } = chartContext(params.chart);
-	const options = parseListOptions(url.searchParams);
+	const { options, services } = await listChoices(user.id, url.searchParams);
 	const refined = isRefined(options);
 
 	const requested = parseId(url.searchParams.get('page') ?? '1');
@@ -72,10 +67,11 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const backdropPath = opening?.ok ? opening.value.backdropPath : current.value.backdropPath;
 	return {
 		chart,
-		entries: applyListOptions(await withGenres(all, options), options),
+		entries: applyListOptions(await refineEntries(all, options), options),
 		page,
 		totalPages: refined ? 1 : current.value.totalPages,
 		options,
+		services,
 		decades: listDecades(all),
 		genres,
 		backdropPath,

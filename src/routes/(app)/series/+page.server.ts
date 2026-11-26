@@ -12,7 +12,7 @@ export const load: PageServerLoad = async () => {
 	if (!context) return { state: 'not_configured' as const };
 
 	const language = requestLanguage();
-	const filter = { decade: null, year: null, genre: null, page: 1 };
+	const filter = { decade: null, year: null, genre: null, service: null, page: 1 };
 	const [popular, genres, rated, upcoming] = await Promise.all([
 		getPopularSeries(context, language),
 		getSeriesGenres(context, language),

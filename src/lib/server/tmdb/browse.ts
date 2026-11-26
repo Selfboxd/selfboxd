@@ -28,6 +28,9 @@ export function parseBrowseFilter(params: URLSearchParams, now = new Date()): Br
 				: null,
 		year: year !== null && year >= firstDecade && year <= currentYear + 5 ? year : null,
 		genre: wholeNumber(params.get('genre')) || null,
+		service: /^\d{1,9}$/.test(params.get('service') ?? '')
+			? Number(params.get('service')) || null
+			: null,
 		page: page >= 1 && page <= browsePageMax ? page : 1
 	};
 }

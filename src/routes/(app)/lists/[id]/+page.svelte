@@ -37,6 +37,7 @@
 	options={data.options}
 	decades={data.decades}
 	genres={data.genres}
+	services={data.services}
 	liked={data.liked}
 >
 	<LoadMore more={pages.more} loading={pages.loading} onmore={() => void pages.next()} />

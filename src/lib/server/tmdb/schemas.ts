@@ -250,3 +250,18 @@ export const companySchema = v.object({
 });
 
 export type RawCompany = v.InferOutput<typeof companySchema>;
+
+export const regionListSchema = v.object({
+	results: v.array(v.object({ iso_3166_1: v.string(), english_name: v.string() }))
+});
+
+export const providerListSchema = v.object({
+	results: v.array(
+		v.object({
+			provider_id: v.number(),
+			provider_name: v.string(),
+			logo_path: optionalText,
+			display_priority: v.optional(v.number(), 999)
+		})
+	)
+});

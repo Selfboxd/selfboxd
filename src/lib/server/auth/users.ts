@@ -14,6 +14,8 @@ export interface PublicUser {
 	/** Changes each time the profile picture is replaced; `null` without a picture. */
 	avatarVersion: number | null;
 	ratingScale: RatingScale;
+	/** ISO 3166-1 code of the country chosen by the account. */
+	country: string | null;
 }
 
 export function toPublicUser(user: User): PublicUser {
@@ -22,7 +24,8 @@ export function toPublicUser(user: User): PublicUser {
 		username: user.username,
 		isAdmin: user.isAdmin,
 		avatarVersion: user.avatarVersion,
-		ratingScale: user.ratingScale
+		ratingScale: user.ratingScale,
+		country: user.country
 	};
 }
 

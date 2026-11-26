@@ -1,4 +1,10 @@
-import type { LikedList, ListEntry, ListOptions, ListTarget } from '../../catalog/list-view';
+import {
+	parseListOptions,
+	type LikedList,
+	type ListEntry,
+	type ListOptions,
+	type ListTarget
+} from '../../catalog/list-view';
 import { listNameMaxLength, type WorkKind } from '../../catalog/library';
 import type { ListProgress } from '../../catalog/lists';
 import { getDatabase } from '../db/index';
@@ -10,6 +16,7 @@ import { isListLiked, setListLiked } from './list-likes';
 import { appendToList, createListWithWorks } from './lists';
 import { listMarks, markKey } from './marks';
 import { loadWorkDetails } from './resolve';
+import { chosenServices, streamingOn } from './services';
 import { addAllToWatchlist } from './watchlist';
 import { saveWork, type WorkInput } from './works';
 
@@ -45,6 +52,36 @@ export async function withGenres(entries: ListEntry[], options: ListOptions): Pr
 			return { ...entry, genres: details.ok ? details.value.genres : [] };
 		})
 	);
+}
+
+/** Adds the services streaming each work when the options filter by service. */
+export async function withServices(
+	entries: ListEntry[],
+	options: ListOptions
+): Promise<ListEntry[]> {
+	if (options.service === null) return entries;
+	return Promise.all(
+		entries.map(async (entry) => ({
+			...entry,
+			services: await streamingOn(entry.film.kind ?? 'film', entry.film.id)
+		}))
+	);
+}
+
+/** Options of a list page and the services of the account, keeping only one of its services. */
+export async function listChoices(userId: number, params: URLSearchParams) {
+	const parsed = parseListOptions(params);
+	const services = await chosenServices(userId);
+	const service = services.some((entry) => entry.id === parsed.service) ? parsed.service : null;
+	return { options: { ...parsed, service }, services };
+}
+
+/** Adds to the entries what the options need to narrow them: genres and services. */
+export async function refineEntries(
+	entries: ListEntry[],
+	options: ListOptions
+): Promise<ListEntry[]> {
+	return withServices(await withGenres(entries, options), options);
 }
 
 /** Genres a list can be narrowed to: those of films and of series, in alphabetical order. */

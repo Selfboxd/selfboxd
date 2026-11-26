@@ -4,8 +4,7 @@ import {
 	isRefined,
 	likedListPreviewSize,
 	listActionMax,
-	listDecades,
-	parseListOptions
+	listDecades
 } from '#lib/catalog/list-view.js';
 import { publicListPageMax, publicListPageSize, type ListProgress } from '#lib/catalog/lists.js';
 import { requireUser } from '#lib/server/auth/guards.js';
@@ -17,7 +16,8 @@ import {
 	likesList,
 	toEntries,
 	watchlistWorks,
-	withGenres,
+	listChoices,
+	refineEntries,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { listMarks, markKey } from '#lib/server/library/marks.js';
@@ -40,7 +40,7 @@ function listContext(rawId: string): { id: number; context: MdblistContext } {
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const { user } = requireUser(locals);
 	const { id, context } = listContext(params.id);
-	const options = parseListOptions(url.searchParams);
+	const { options, services } = await listChoices(user.id, url.searchParams);
 	const refined = isRefined(options);
 
 	const requested = parseId(url.searchParams.get('page') ?? '1');
@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		films.value.films.map((film) => ({ film })),
 		(page - 1) * publicListPageSize + 1
 	);
-	const entries = applyListOptions(await withGenres(all, options), options);
+	const entries = applyListOptions(await refineEntries(all, options), options);
 	const backdropPath = opening?.ok ? opening.value.backdropPath : films.value.backdropPath;
 	return {
 		list: list.value,
@@ -77,6 +77,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		page,
 		hasMore: !refined && films.value.hasMore,
 		options,
+		services,
 		decades: listDecades(all),
 		genres,
 		backdropPath,

@@ -101,6 +101,21 @@
 					...data.genres.map((genre) => entry(genre, { genre }, options.genre === genre))
 				]
 			},
+			...(data.services.length > 0
+				? [
+						{
+							label:
+								data.services.find((item) => item.id === options.service)?.name ??
+								m.filter_service(),
+							entries: [
+								entry(m.filter_any_service(), { service: null }, options.service === null),
+								...data.services.map((item) =>
+									entry(item.name, { service: item.id }, options.service === item.id)
+								)
+							]
+						}
+					]
+				: []),
 			{
 				label: `${m.list_sort_by()} ${sortLabels[options.sort]()}`,
 				entries: (Object.keys(sortLabels) as DiarySort[]).map((sort) =>

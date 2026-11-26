@@ -16,6 +16,7 @@ import { listActionMax } from '../../catalog/list-view';
 import type { PersonCredit } from '../../catalog/person';
 import { roleName } from '../../i18n/person';
 import { listLists } from './lists';
+import { chosenServices, streamingOn } from './services';
 import { progressOf, workInput } from './list-page';
 import type { WorkInput } from './works';
 
@@ -50,9 +51,24 @@ export async function loadPerson(userId: number, id: number, params: URLSearchPa
 		return { state: 'error' as const, error: person.error };
 	}
 
-	const { credits, ...details } = person.value;
+	const { credits: all, ...details } = person.value;
 	const fallback = defaultRole(person.value);
-	const options = parsePersonOptions(params, fallback);
+	const parsed = parsePersonOptions(params, fallback);
+	const services = await chosenServices(userId);
+	const options = {
+		...parsed,
+		service: services.some((service) => service.id === parsed.service) ? parsed.service : null
+	};
+	const credits =
+		options.service === null
+			? all
+			: await Promise.all(
+					all.map(async (credit) =>
+						credit.role === options.role
+							? { ...credit, services: await streamingOn(credit.kind, credit.id) }
+							: credit
+					)
+				);
 	const inRole = credits.filter((credit) => credit.role === options.role);
 	const used = new Set(inRole.flatMap((credit) => credit.genres));
 	const db = getDatabase();
@@ -64,6 +80,7 @@ export async function loadPerson(userId: number, id: number, params: URLSearchPa
 		state: 'ready' as const,
 		person: details,
 		roles: roleCounts(credits),
+		services,
 		fallback,
 		options,
 		decades: creditDecades(credits, options.role),

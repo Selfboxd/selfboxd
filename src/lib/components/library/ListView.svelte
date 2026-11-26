@@ -16,6 +16,7 @@
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import FilterMenus from '#lib/components/FilterMenus.svelte';
+	import type { Service } from '#lib/catalog/streaming.js';
 	import type { FilterEntry } from '#lib/components/filter-menus.js';
 	import Icon from '#lib/components/Icon.svelte';
 	import WatchProgress from './WatchProgress.svelte';
@@ -46,6 +47,8 @@
 		decades: number[];
 		/** Genres the list can be narrowed to. */
 		genres: string[];
+		/** Streaming services of the account, offered as a filter. */
+		services?: Service[];
 		/** Whether the place of each film is shown. */
 		ranked?: boolean;
 		/** Whether the account likes the list. */
@@ -70,6 +73,7 @@
 		options,
 		decades,
 		genres,
+		services = [],
 		ranked = true,
 		liked,
 		updatedAt = null,
@@ -112,6 +116,12 @@
 			entry(m.browse_decade({ decade: String(decade) }), { decade }, options.decade === decade)
 		)
 	]);
+	const serviceMenu = $derived([
+		entry(m.filter_any_service(), { service: null }, options.service === null),
+		...services.map((service) =>
+			entry(service.name, { service: service.id }, options.service === service.id)
+		)
+	]);
 	const genreMenu = $derived([
 		entry(m.list_any_genre(), { genre: null }, options.genre === null),
 		...genres.map((genre) => entry(genre, { genre }, options.genre === genre))
@@ -151,6 +161,16 @@
 					menus={[
 						{ label: m.list_decade(), entries: decadeMenu },
 						...(genres.length > 0 ? [{ label: m.list_genre(), entries: genreMenu }] : []),
+						...(services.length > 0
+							? [
+									{
+										label:
+											services.find((service) => service.id === options.service)?.name ??
+											m.filter_service(),
+										entries: serviceMenu
+									}
+								]
+							: []),
 						{ label: `${m.list_sort_by()} ${sortLabels[options.sort]()}`, entries: sortMenu },
 						{ label: m.list_visibility(), icon: 'eye' as const, entries: visibilityMenu }
 					]}

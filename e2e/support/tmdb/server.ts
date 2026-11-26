@@ -38,7 +38,27 @@ const sequel = {
 	id: 335984,
 	title: 'Blade Runner 2049',
 	original_title: 'Blade Runner 2049',
-	release_date: '2017-10-04'
+	release_date: '2017-10-04',
+	'watch/providers': {
+		results: {
+			US: {
+				link: 'https://www.themoviedb.org/movie/335984/watch?locale=US',
+				flatrate: [{ provider_id: 11, provider_name: 'Mubi', logo_path: '/mubi.jpg' }]
+			}
+		}
+	}
+};
+
+/** Streaming services of each country, as the TMDB provider lists give them. */
+const providers: Record<
+	string,
+	{ provider_id: number; provider_name: string; logo_path: string; display_priority: number }[]
+> = {
+	US: [
+		{ provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.jpg', display_priority: 1 },
+		{ provider_id: 11, provider_name: 'Mubi', logo_path: '/mubi.jpg', display_priority: 2 }
+	],
+	FR: [{ provider_id: 381, provider_name: 'Canal+', logo_path: '/canal.jpg', display_priority: 1 }]
 };
 
 const summaries = [bladeRunner, sequel].map((entry: Record<string, unknown>) => ({
@@ -255,6 +275,15 @@ const server = createServer((request, response) => {
 		});
 	} else if (companies[url.pathname]) {
 		send(response, 200, companies[url.pathname]);
+	} else if (url.pathname === '/3/watch/providers/regions') {
+		send(response, 200, {
+			results: [
+				{ iso_3166_1: 'FR', english_name: 'France' },
+				{ iso_3166_1: 'US', english_name: 'United States of America' }
+			]
+		});
+	} else if (/^\/3\/watch\/providers\/(movie|tv)$/.test(url.pathname)) {
+		send(response, 200, { results: providers[url.searchParams.get('watch_region') ?? ''] ?? [] });
 	} else if (url.pathname === '/3/trending/tv/week') {
 		send(response, 200, { page: 1, results: seriesSummaries });
 	} else if (url.pathname === '/3/genre/tv/list') {
@@ -320,6 +349,7 @@ const server = createServer((request, response) => {
 			if (genre !== null && (genre !== '878' || entry.id === future.id)) return false;
 			if (year !== null && !released.startsWith(year)) return false;
 			if (url.searchParams.has('with_companies') && entry.id !== 78) return false;
+			if (url.searchParams.get('with_watch_providers') === '8' && entry.id !== 78) return false;
 			return released >= from && released <= `${until}~`;
 		});
 		const ordered =

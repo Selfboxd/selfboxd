@@ -459,5 +459,14 @@
 	"add_to_list_title": "添加到片单",
 	"add_to_list_new": "新片单",
 	"add_to_list_name": "新片单名称",
-	"add_to_list_add": "添加"
+	"add_to_list_add": "添加",
+	"settings_tab_streaming": "流媒体",
+	"streaming_country_title": "国家",
+	"streaming_country": "你的国家",
+	"streaming_country_hint": "上映信息和观看渠道以该国家为准。",
+	"streaming_services_title": "服务",
+	"streaming_services_hint": "选择你使用的服务，之后可用于筛选电影和剧集。",
+	"streaming_services_empty": "TMDB 没有该国家的流媒体服务信息。",
+	"filter_service": "服务",
+	"filter_any_service": "任意服务"
 }
