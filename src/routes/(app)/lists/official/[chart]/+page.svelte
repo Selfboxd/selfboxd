@@ -42,6 +42,7 @@
 	genres={data.genres}
 	services={data.services}
 	liked={data.liked}
+	shared={data.shared}
 >
 	<LoadMore more={pages.more} loading={pages.loading} onmore={() => void pages.next()} />
 </ListView>

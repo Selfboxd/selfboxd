@@ -189,6 +189,26 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
 - The form actions of the pages of a film and a series come from `work-actions.ts`, and their
   state API from `src/lib/server/api/work-state.ts`.
 
+### Public profiles and shared lists
+
+- A public profile is off until the account turns it on in Settings, Public profile. Turning it
+  on creates an Ed25519 key pair for the account (`src/lib/server/public/keys.ts`); the 32-byte
+  seed stays in the database, and its recovery key (`SBXD1-` and the seed) moves the profile to
+  another instance.
+- The instance only pushes to the platform (`PLATFORM_URL`), with requests signed as described in
+  the `AGENTS.md` of the `web` repository (`src/lib/server/public/platform.ts`). The platform never
+  calls the instance.
+- `buildSnapshot` sends what the profile shows, with the posters the account chose when they are
+  official ones. Nothing about the machine or the instance.
+- Every request of a signed-in account that is not a read marks its profile as changed
+  (`hooks.server.ts`); `sync.ts` sends it after a short pause and retries with growing delays
+  while the platform cannot be reached. Pending changes are sent again when the server starts.
+- Every list page can be shared: only TMDB identifiers, the name, the description and the notes
+  leave the instance, and the platform answers with a stable address and a token kept in
+  `shared_lists` to update or stop the share.
+- e2e tests run against the fake platform of `e2e/support/platform/server.ts`, which checks
+  signatures like the real one and shows what it received under `/__profiles` and `/__shares`.
+
 ### External APIs
 
 - Every call to TMDB goes through `src/lib/server/tmdb/service.ts`, which caches responses and

@@ -14,6 +14,10 @@ import {
 	watchlistWorks,
 	listChoices,
 	refineEntries,
+	shareAction,
+	shareItems,
+	sharedAddress,
+	unshareAction,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { getList } from '#lib/server/library/lists.js';
@@ -59,7 +63,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		genres,
 		progress: progressOf(all),
 		backdropPath,
-		liked: likesList(user.id, { personal: list.id })
+		liked: likesList(user.id, { personal: list.id }),
+		shared: sharedAddress(user.id, { personal: list.id })
 	};
 };
 
@@ -92,6 +97,31 @@ export const actions: Actions = {
 			works(list).map(({ film }) => workInput(film))
 		);
 		redirect(303, `/profile/lists/${String(cloned)}`);
+	},
+
+	share: ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const list = ownList(user.id, params.id);
+		return shareAction(
+			user.id,
+			{ personal: list.id },
+			{
+				name: list.name,
+				description: list.description,
+				owner: user.username,
+				ranked: list.ranked,
+				items: shareItems(
+					works(list).map(({ film }) => workInput(film)),
+					list.items.map((item) => item.note)
+				)
+			}
+		);
+	},
+
+	unshare: ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const list = ownList(user.id, params.id);
+		return unshareAction(user.id, { personal: list.id });
 	},
 
 	watchlist: ({ locals, params }) => {

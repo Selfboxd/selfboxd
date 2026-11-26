@@ -21,6 +21,7 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import WatchProgress from './WatchProgress.svelte';
 	import { relativeTime } from '#lib/i18n/dates.js';
+	import { errorMessage } from '#lib/i18n/errors.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { workRoute } from '#lib/paths.js';
 	import type { PublicUser } from '#lib/server/auth/users.js';
@@ -53,6 +54,8 @@
 		ranked?: boolean;
 		/** Whether the account likes the list. */
 		liked: boolean;
+		/** Address of the list on the platform when the account shared it. */
+		shared?: string | null;
 		/** Last change of the list, as an ISO timestamp, when it is known. */
 		updatedAt?: string | null;
 		/** Content shown under the films. */
@@ -76,6 +79,7 @@
 		services = [],
 		ranked = true,
 		liked,
+		shared = null,
 		updatedAt = null,
 		children
 	}: Props = $props();
@@ -87,6 +91,22 @@
 				? resolve('/(app)/lists/[id]', { id: String(target.public) })
 				: resolve('/(app)/lists/official/[chart]', { chart: target.chart })
 	);
+	const action = $derived(page.form as { action?: string; url?: string; error?: string } | null);
+	const shareUrl = $derived(
+		action?.action === 'share' && action.url
+			? action.url
+			: action?.action === 'unshare'
+				? null
+				: shared
+	);
+	const shareError = $derived(
+		(action?.action === 'share' || action?.action === 'unshare') && action.error
+			? errorMessage(action.error)
+			: null
+	);
+	let copied = $state(false);
+	const id = $props.id();
+
 	const watchlisted = $derived(
 		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
 	);
@@ -269,6 +289,31 @@
 				<button>{m.list_add_all_watchlist()}</button>
 			</form>
 			{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
+			<form method="POST" action="{path}?/share" use:enhance>
+				<button>{shareUrl ? m.list_share_update() : m.list_share()}</button>
+			</form>
+			{#if shareUrl}
+				<div class="shared">
+					<label for="{id}-shared">{m.list_shared()}</label>
+					<input id="{id}-shared" readonly value={shareUrl} />
+					<div class="shared-actions">
+						<button
+							type="button"
+							onclick={async () => {
+								await navigator.clipboard.writeText(shareUrl);
+								copied = true;
+							}}
+						>
+							{copied ? m.public_copied() : m.public_copy()}
+						</button>
+						<form method="POST" action="{path}?/unshare" use:enhance>
+							<button>{m.list_share_stop()}</button>
+						</form>
+					</div>
+					<p>{m.list_share_hint()}</p>
+				</div>
+			{/if}
+			{#if shareError}<p class="failed" role="alert">{shareError}</p>{/if}
 		</div>
 		{#if progress}<WatchProgress {progress} />{/if}
 	</aside>
@@ -525,6 +570,41 @@
 
 	.like.liked :global(.icon) {
 		color: var(--color-like);
+	}
+
+	.shared {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		padding: var(--space-3);
+		border-top: 1px solid var(--color-dialog-divider);
+		color: var(--color-text-panel);
+		font-size: var(--font-size-small);
+	}
+
+	.shared input {
+		width: 100%;
+		font-size: var(--font-size-small);
+	}
+
+	.shared-actions {
+		display: flex;
+		gap: var(--space-2);
+	}
+
+	.panel .shared-actions button {
+		padding: var(--space-1) var(--space-2);
+		border: 1px solid var(--color-dialog-divider);
+		border-radius: var(--radius-small);
+		font-size: var(--font-size-small);
+	}
+
+	.failed {
+		padding: var(--space-2) var(--space-3);
+		border-top: 1px solid var(--color-dialog-divider);
+		color: var(--color-danger);
+		font-size: var(--font-size-control);
+		text-align: center;
 	}
 
 	.done {

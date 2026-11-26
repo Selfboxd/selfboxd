@@ -3,6 +3,24 @@ import { m } from '#lib/paraglide/messages.js';
 /** Translates an error code returned by a form action into a message for the user. */
 export function errorMessage(code: string, seconds = 0): string {
 	switch (code) {
+		case 'handle_invalid':
+			return m.error_handle_invalid();
+		case 'handle_taken':
+			return m.error_handle_taken();
+		case 'key_in_use':
+			return m.error_key_in_use();
+		case 'recovery_key_invalid':
+			return m.error_recovery_key_invalid();
+		case 'not_found':
+			return m.error_profile_not_found();
+		case 'too_many_requests':
+			return m.error_too_many_requests();
+		case 'unreachable':
+			return m.error_unreachable();
+		case 'platform_error':
+			return m.error_platform_error();
+		case 'code_invalid':
+			return m.error_code_invalid();
 		case 'invalid_credentials':
 			return m.error_invalid_credentials();
 		case 'too_many_attempts':

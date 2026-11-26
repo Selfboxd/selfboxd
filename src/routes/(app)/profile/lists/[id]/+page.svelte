@@ -28,6 +28,7 @@
 	genres={data.genres}
 	services={data.services}
 	liked={data.liked}
+	shared={data.shared}
 	ranked={list.ranked}
 	updatedAt={list.updatedAt}
 />
