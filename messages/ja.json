@@ -197,7 +197,7 @@
 	"log_search_failed": "検索に失敗しました。もう一度お試しください。",
 	"action_show_activity": "自分のアクティビティを表示",
 	"action_edit_entry": "記録を編集・レビューを追加…",
-	"watched_title": "鑑賞済みの映画",
+	"watched_title": "映画",
 	"watched_empty": "鑑賞済みの映画はまだありません。",
 	"activity_empty": "まだ何もありません。映画を記録したり、いいねしたり、ウォッチリストに追加してみましょう。",
 	"activity_event_logged": "{title} を鑑賞しました",
@@ -489,7 +489,6 @@
 	"public_restore_hint": "新しいインスタンスに移行しましたか？プロフィールの復元キーを貼り付けて取り戻せます。",
 	"public_recovery": "復元キー",
 	"public_restore": "復元",
-	"public_live": "プロフィールの公開先",
 	"public_synced": "最新です（{date}に送信）。",
 	"public_pending": "送信待ちの変更があります。プラットフォームに接続でき次第送信されます。",
 	"public_send_now": "今すぐ送信",
@@ -563,5 +562,9 @@
 	"search_tag_count": "{count} 件",
 	"search_broadened": "「{query}」に完全一致する結果はありません。「{broader}」の結果を表示しています。",
 	"search_suggestions": "代わりに、今週人気の映画",
-	"search_catalogue": "映画・シリーズ・人物"
+	"search_catalogue": "映画・シリーズ・人物",
+	"public_address": "公開プロフィール",
+	"histogram_ratings": "件の評価（{percent}）",
+	"watched_series_title": "シリーズ",
+	"watched_series_empty": "まだ視聴済みのシリーズはありません。"
 }

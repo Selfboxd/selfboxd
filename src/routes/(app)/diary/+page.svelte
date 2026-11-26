@@ -275,7 +275,7 @@
 	h1 {
 		color: var(--color-text);
 		font-family: var(--font-body);
-		font-size: var(--font-size-large);
+		font-size: var(--font-size-control);
 		font-weight: 400;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
@@ -305,7 +305,8 @@
 	}
 
 	td {
-		padding: var(--space-2);
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-control);
 		border-top: 1px solid var(--color-border-subtle);
 		text-align: center;
 		vertical-align: middle;
@@ -354,7 +355,7 @@
 
 	.day {
 		color: var(--color-text-strong);
-		font-size: var(--font-size-heading);
+		font-size: var(--font-size-large);
 		font-weight: 300;
 	}
 
@@ -367,7 +368,7 @@
 	.title {
 		color: var(--color-heading);
 		font-family: var(--font-heading);
-		font-size: var(--font-size-large);
+		font-size: var(--font-size-body);
 		font-weight: 700;
 	}
 

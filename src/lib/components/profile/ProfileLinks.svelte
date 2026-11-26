@@ -17,7 +17,7 @@
 	});
 </script>
 
-{#if links.website || links.instagram || links.x || links.discord}
+{#if links.website || links.instagram || links.x}
 	<ul class="links">
 		{#if links.website}
 			<li>
@@ -51,11 +51,6 @@
 				</a>
 			</li>
 		{/if}
-		{#if links.discord}
-			<li>
-				<span title="Discord"><Icon name="discord" />{links.discord}</span>
-			</li>
-		{/if}
 	</ul>
 {/if}
 
@@ -70,8 +65,7 @@
 		font-size: var(--font-size-small);
 	}
 
-	a,
-	span {
+	a {
 		display: inline-flex;
 		gap: var(--space-1);
 		align-items: center;

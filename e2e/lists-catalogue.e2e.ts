@@ -264,7 +264,7 @@ test.describe('list page', () => {
 	test('adds every film of a list to the watchlist', async ({ page }) => {
 		const side = page.getByRole('complementary');
 		await side.getByRole('button', { name: 'Add all films to watchlist' }).click();
-		await expect(side.getByRole('status')).toHaveText('The films are on your watchlist.');
+		await expect(page.getByRole('status')).toHaveText('The films are on your watchlist.');
 
 		await page.goto('/watchlist');
 		await expect(page.locator('main a[href="/film/78"]').first()).toBeVisible();

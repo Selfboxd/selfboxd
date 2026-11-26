@@ -35,7 +35,7 @@ async function enable(page: Page, code = '') {
 		await page.keyboard.type(code);
 	}
 	await page.getByRole('button', { name: 'Publish my profile' }).click();
-	await expect(page.getByText('Your profile is online at')).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Your public profile' })).toBeVisible();
 }
 
 async function recoveryKey(page: Page): Promise<string> {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import FormError from '#lib/components/FormError.svelte';
+	import SetupNotice from '#lib/components/SetupNotice.svelte';
 	import PublicListCard from '#lib/components/library/PublicListCard.svelte';
 	import { chartName } from '#lib/i18n/charts.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -24,12 +25,12 @@
 </header>
 
 {#if lists.state === 'not_configured'}
-	<p class="form-message notice" role="status">
-		{data.user?.isAdmin ? m.mdblist_not_configured_admin() : m.mdblist_not_configured_user()}
-		{#if data.user?.isAdmin}
-			<a href={resolve('/(app)/settings/instance')}>{m.tmdb_open_settings()}</a>
-		{/if}
-	</p>
+	<SetupNotice
+		isAdmin={data.user?.isAdmin ?? false}
+		message={data.user?.isAdmin
+			? m.mdblist_not_configured_admin()
+			: m.mdblist_not_configured_user()}
+	/>
 {:else if lists.state === 'error'}
 	<FormError
 		message={lists.error === 'unauthorized'
@@ -91,17 +92,6 @@
 		font-size: var(--font-size-title);
 		font-style: italic;
 		line-height: 1.3;
-	}
-
-	.notice {
-		margin-bottom: var(--space-8);
-		background: var(--color-panel);
-		color: var(--color-text-strong);
-	}
-
-	.notice a {
-		margin-inline-start: var(--space-2);
-		text-decoration: underline;
 	}
 
 	section {

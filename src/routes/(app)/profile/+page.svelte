@@ -546,7 +546,6 @@
 
 	.timeline {
 		margin-inline-start: var(--space-1);
-		border-inline-start: 2px solid var(--color-border-subtle);
 	}
 
 	.timeline li {
@@ -558,12 +557,23 @@
 
 	.timeline li::before {
 		position: absolute;
+		z-index: 1;
 		top: 0.4em;
-		left: -5px;
+		left: -4px;
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
 		background: var(--color-secondary);
+		content: '';
+	}
+
+	.timeline li:not(:last-child)::after {
+		position: absolute;
+		top: calc(0.4em + 4px);
+		bottom: calc(-0.4em - 4px);
+		left: -1px;
+		width: 2px;
+		background: var(--color-border-subtle);
 		content: '';
 	}
 

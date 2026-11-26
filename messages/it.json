@@ -197,7 +197,7 @@
 	"log_search_failed": "La ricerca non è riuscita. Riprova.",
 	"action_show_activity": "Mostra la tua attività",
 	"action_edit_entry": "Modifica la voce o aggiungi una recensione…",
-	"watched_title": "Film visti",
+	"watched_title": "Film",
 	"watched_empty": "Non hai ancora segnato nessun film come visto.",
 	"activity_empty": "Ancora niente. Registra un film, metti mi piace o aggiungilo alla tua watchlist.",
 	"activity_event_logged": "Hai visto {title}",
@@ -489,7 +489,6 @@
 	"public_restore_hint": "Sei passato a una nuova istanza? Incolla la chiave di ripristino del tuo profilo per riprenderlo.",
 	"public_recovery": "Chiave di ripristino",
 	"public_restore": "Ripristina",
-	"public_live": "Il tuo profilo è online su",
 	"public_synced": "Aggiornato, inviato il {date}.",
 	"public_pending": "Alcune modifiche attendono di essere inviate; partiranno appena la piattaforma sarà raggiungibile.",
 	"public_send_now": "Invia ora",
@@ -563,5 +562,9 @@
 	"search_tag_count": "{count} voci",
 	"search_broadened": "Nessun risultato esatto per «{query}». Risultati per «{broader}».",
 	"search_suggestions": "Nel frattempo, i film popolari della settimana",
-	"search_catalogue": "Film, serie e persone"
+	"search_catalogue": "Film, serie e persone",
+	"public_address": "Il tuo profilo pubblico",
+	"histogram_ratings": "voti ({percent})",
+	"watched_series_title": "Serie",
+	"watched_series_empty": "Non hai ancora segnato nessuna serie come vista."
 }

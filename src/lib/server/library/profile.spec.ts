@@ -83,13 +83,13 @@ describe('profile', () => {
 			bio: '',
 			location: '',
 			bannerPath: null,
-			links: { website: '', instagram: '', x: '', discord: '' }
+			links: { website: '', instagram: '', x: '' }
 		});
 
 		updateProfile(database.db, ada.id, {
 			bio: 'Hermit.',
 			location: 'Adrift',
-			links: { website: 'https://ada.example/', instagram: 'ada', x: '', discord: 'ada.l' }
+			links: { website: 'https://ada.example/', instagram: 'ada', x: '' }
 		});
 		setBanner(database.db, ada.id, '/banner.jpg');
 
@@ -97,7 +97,7 @@ describe('profile', () => {
 			bio: 'Hermit.',
 			location: 'Adrift',
 			bannerPath: '/banner.jpg',
-			links: { website: 'https://ada.example/', instagram: 'ada', x: '', discord: 'ada.l' }
+			links: { website: 'https://ada.example/', instagram: 'ada', x: '' }
 		});
 		expect(getProfile(database.db, grace.id).bio).toBe('');
 	});
@@ -234,7 +234,7 @@ describe('parseProfileForm', () => {
 			value: {
 				bio: 'Hi.',
 				location: 'Here',
-				links: { website: '', instagram: '', x: '', discord: '' }
+				links: { website: '', instagram: '', x: '' }
 			}
 		});
 	});
@@ -244,15 +244,13 @@ describe('parseProfileForm', () => {
 			form({
 				website: ' example.com/me ',
 				instagram: '@film.fan',
-				x: 'film_fan',
-				discord: 'film.fan'
+				x: 'film_fan'
 			})
 		);
 		expect(result.ok && result.value.links).toEqual({
 			website: 'https://example.com/me',
 			instagram: 'film.fan',
-			x: 'film_fan',
-			discord: 'film.fan'
+			x: 'film_fan'
 		});
 	});
 
@@ -261,8 +259,7 @@ describe('parseProfileForm', () => {
 			{ website: 'javascript:alert(1)' },
 			{ website: 'localhost' },
 			{ instagram: 'no spaces' },
-			{ x: 'a'.repeat(16) },
-			{ discord: 'UPPER' }
+			{ x: 'a'.repeat(16) }
 		]) {
 			expect(parseProfileForm(form(fields))).toEqual({ ok: false, error: 'link_invalid' });
 		}

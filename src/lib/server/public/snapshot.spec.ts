@@ -50,7 +50,7 @@ describe('public profile snapshot', () => {
 		updateProfile(database.db, ada.id, {
 			bio: 'Night owl',
 			location: 'Lisbon',
-			links: { website: '', instagram: 'ada', x: '', discord: '' }
+			links: { website: '', instagram: 'ada', x: '' }
 		});
 		setBanner(database.db, ada.id, '/banner.jpg');
 		setFavourite(database.db, ada.id, 2, film);

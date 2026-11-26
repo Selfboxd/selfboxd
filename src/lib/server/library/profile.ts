@@ -30,15 +30,14 @@ export function getProfile(db: DatabaseExecutor, userId: number): Profile {
 			bannerPath: users.bannerPath,
 			website: users.website,
 			instagram: users.instagram,
-			x: users.xHandle,
-			discord: users.discord
+			x: users.xHandle
 		})
 		.from(users)
 		.where(eq(users.id, userId))
 		.get();
 	if (!row) return { bio: '', location: '', bannerPath: null, links: emptyLinks };
-	const { website, instagram, x, discord, ...profile } = row;
-	return { ...profile, links: { website, instagram, x, discord } };
+	const { website, instagram, x, ...profile } = row;
+	return { ...profile, links: { website, instagram, x } };
 }
 
 export function updateProfile(
@@ -46,9 +45,9 @@ export function updateProfile(
 	userId: number,
 	input: Pick<Profile, 'bio' | 'location' | 'links'>
 ): void {
-	const { website, instagram, x, discord } = input.links;
+	const { website, instagram, x } = input.links;
 	db.update(users)
-		.set({ bio: input.bio, location: input.location, website, instagram, xHandle: x, discord })
+		.set({ bio: input.bio, location: input.location, website, instagram, xHandle: x })
 		.where(eq(users.id, userId))
 		.run();
 }

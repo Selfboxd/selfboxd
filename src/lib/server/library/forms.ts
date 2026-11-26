@@ -152,12 +152,11 @@ export function parseProfileForm(
 	const links = {
 		website: website(formText(form, 'website')),
 		instagram: username(formText(form, 'instagram'), ['instagram.com'], /^[A-Za-z0-9._]{1,30}$/),
-		x: username(formText(form, 'x'), ['x.com', 'twitter.com'], /^[A-Za-z0-9_]{1,15}$/),
-		discord: username(formText(form, 'discord'), [], /^[a-z0-9._]{2,32}$/)
+		x: username(formText(form, 'x'), ['x.com', 'twitter.com'], /^[A-Za-z0-9_]{1,15}$/)
 	};
-	const { website: site, instagram, x, discord } = links;
-	if (site === undefined || instagram === undefined || x === undefined || discord === undefined) {
+	const { website: site, instagram, x } = links;
+	if (site === undefined || instagram === undefined || x === undefined) {
 		return { ok: false, error: 'link_invalid' };
 	}
-	return { ok: true, value: { bio, location, links: { website: site, instagram, x, discord } } };
+	return { ok: true, value: { bio, location, links: { website: site, instagram, x } } };
 }

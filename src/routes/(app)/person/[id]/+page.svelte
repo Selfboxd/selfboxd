@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toasts } from '#lib/components/toast/toasts.svelte.js';
 	import PersonPhoto from '#lib/components/PersonPhoto.svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
@@ -34,9 +35,11 @@
 		return `?${search}${search ? '&' : ''}/${name}`;
 	}
 
-	const watchlisted = $derived(
-		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
-	);
+	$effect(() => {
+		if ((page.form as { action?: string } | null | undefined)?.action === 'watchlist') {
+			toasts.show(m.list_added_watchlist());
+		}
+	});
 
 	const sortLabels: Record<PersonSort, () => string> = {
 		popular: m.browse_sort_popular,
@@ -258,7 +261,6 @@
 				<form method="POST" action={action('watchlist')} use:enhance>
 					<button disabled={data.works.length === 0}>{m.list_add_all_watchlist()}</button>
 				</form>
-				{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
 			</div>
 
 			{#if data.progress}<WatchProgress progress={data.progress} />{/if}
@@ -453,12 +455,6 @@
 	.panel button:disabled {
 		cursor: default;
 		opacity: 0.5;
-	}
-
-	.done {
-		padding: var(--space-2) var(--space-3);
-		color: var(--color-accent);
-		text-align: center;
 	}
 
 	@media (max-width: 48rem) {

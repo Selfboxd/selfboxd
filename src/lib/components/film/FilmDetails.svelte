@@ -207,6 +207,7 @@
 
 	.chips li,
 	.chip {
+		max-width: 100%;
 		padding: var(--space-1) var(--space-2);
 		border-radius: var(--radius-small);
 		background: var(--color-chip);
@@ -223,6 +224,9 @@
 
 	.chips a {
 		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		padding: var(--space-1) var(--space-2);
 		border-radius: var(--radius-small);
 		color: inherit;
@@ -248,13 +252,14 @@
 
 	dl {
 		display: grid;
-		grid-template-columns: minmax(8rem, auto) minmax(0, 1fr);
+		grid-template-columns: var(--details-label-width) minmax(0, 1fr);
 		gap: var(--space-2) var(--space-4);
 		margin: 0;
 	}
 
 	dt {
 		padding-top: var(--space-1);
+		overflow-wrap: anywhere;
 		font-size: var(--font-size-small);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
@@ -287,5 +292,16 @@
 	.date {
 		min-width: 7rem;
 		color: var(--color-text-strong);
+	}
+
+	@media (max-width: 40rem) {
+		dl {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-1);
+		}
+
+		dd {
+			margin-bottom: var(--space-2);
+		}
 	}
 </style>

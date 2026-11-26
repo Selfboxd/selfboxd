@@ -23,12 +23,10 @@ test.describe('interface', () => {
 		);
 	});
 
-	test('shows the logo on the sign-in page and as the favicon', async ({ page }) => {
+	test('keeps the sign-in page free of any logo, with the favicon only', async ({ page }) => {
 		await page.goto('/login');
 
-		const logo = page.getByRole('main').locator('img').first();
-		await expect(logo).toBeVisible();
-		expect(await logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+		await expect(page.getByRole('main').locator('img')).toHaveCount(0);
 		await expect(page.locator('link[rel="icon"]')).toHaveAttribute('type', 'image/svg+xml');
 	});
 

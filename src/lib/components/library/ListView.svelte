@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toasts } from '#lib/components/toast/toasts.svelte.js';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -101,9 +102,11 @@
 	);
 	let copied = $state(false);
 
-	const watchlisted = $derived(
-		(page.form as { action?: string } | null | undefined)?.action === 'watchlist'
-	);
+	$effect(() => {
+		if ((page.form as { action?: string } | null | undefined)?.action === 'watchlist') {
+			toasts.show(m.list_added_watchlist());
+		}
+	});
 
 	const sortLabels: Record<ListSort, () => string> = {
 		list: m.list_sort_list,
@@ -282,7 +285,6 @@
 			<form method="POST" action="{path}?/watchlist" use:enhance>
 				<button>{m.list_add_all_watchlist()}</button>
 			</form>
-			{#if watchlisted}<p class="done" role="status">{m.list_added_watchlist()}</p>{/if}
 			<form
 				method="POST"
 				action="{path}?/share"
@@ -642,14 +644,6 @@
 		padding: var(--space-2) var(--space-3);
 		border-top: 1px solid var(--color-dialog-divider);
 		color: var(--color-danger);
-		font-size: var(--font-size-control);
-		text-align: center;
-	}
-
-	.done {
-		padding: var(--space-2) var(--space-3);
-		border-top: 1px solid var(--color-dialog-divider);
-		color: var(--color-highlight);
 		font-size: var(--font-size-control);
 		text-align: center;
 	}
