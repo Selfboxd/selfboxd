@@ -4,6 +4,7 @@ import { createTestDatabase, type TestDatabase } from '../testing/database';
 import {
 	browseFilms,
 	browseSeries,
+	matchWork,
 	getChart,
 	getImages,
 	getPerson,
@@ -45,6 +46,84 @@ describe('TMDB service', () => {
 
 	afterEach(() => {
 		database.cleanup();
+	});
+
+	describe('matchWork', () => {
+		const result = (id: number, title: string, date: string, original = title) => ({
+			id,
+			title,
+			original_title: original,
+			release_date: date,
+			poster_path: null,
+			backdrop_path: null
+		});
+		const page = (results: unknown[]) =>
+			Response.json({ page: 1, total_pages: 1, total_results: results.length, results });
+
+		it('prefers the same title released the same year', async () => {
+			respond = () =>
+				page([
+					result(1, 'Dune', '1984-12-14'),
+					result(2, 'Dune: Part Two', '2024-02-27'),
+					result(3, 'Dune', '2021-09-15')
+				]);
+			const found = await matchWork(context, 'Dune', 2021, 'en-US');
+			expect(found).toMatchObject({ ok: true, value: { id: 3 } });
+			expect(requests[0]?.searchParams.get('primary_release_year')).toBe('2021');
+		});
+
+		it('matches titles written differently, and the original title', async () => {
+			respond = () =>
+				page([result(4, 'Amélie', '2001-04-25', 'Le Fabuleux Destin d’Amélie Poulain')]);
+			expect(await matchWork(context, 'amelie', 2001, 'en-US')).toMatchObject({ value: { id: 4 } });
+		});
+
+		it('searches again without the year when the year finds nothing', async () => {
+			respond = (url) =>
+				url.searchParams.has('primary_release_year')
+					? page([])
+					: page([result(5, 'Carry-On', '2024-12-13')]);
+			expect(await matchWork(context, 'Carry-On', 2025, 'en-US')).toMatchObject({
+				value: { id: 5 }
+			});
+			expect(requests).toHaveLength(2);
+		});
+
+		it('finds nothing rather than a film of another time with another title', async () => {
+			respond = (url) =>
+				url.pathname.endsWith('/search/tv')
+					? Response.json({ results: [] })
+					: page([result(6, 'Something Else', '1950-01-01')]);
+			expect(await matchWork(context, 'Carry-On', 2024, 'en-US')).toEqual({
+				ok: true,
+				value: null
+			});
+		});
+
+		it('tries the title cut at its first comma, keeping only titles that start like it', async () => {
+			respond = (url) =>
+				url.searchParams.get('query') === 'Jeanne Dielman'
+					? page([
+							result(8, 'Other Film', '1975-01-01'),
+							result(9, 'Jeanne Dielman, 23 quai du Commerce, 1080 Bruxelles', '1975-05-14')
+						])
+					: page([]);
+			expect(
+				await matchWork(context, 'Jeanne Dielman, 23, quai du Commerce', 1975, 'en-US')
+			).toMatchObject({ value: { kind: 'film', id: 9 } });
+		});
+
+		it('falls back on a series of that name', async () => {
+			respond = (url) =>
+				url.pathname.endsWith('/search/tv')
+					? Response.json({
+							results: [{ id: 7, name: 'Cunk on Earth', first_air_date: '2022-09-19' }]
+						})
+					: page([]);
+			expect(await matchWork(context, 'Cunk on Earth', 2022, 'en-US')).toMatchObject({
+				value: { kind: 'series', id: 7, title: 'Cunk on Earth', year: 2022 }
+			});
+		});
 	});
 
 	it('loads a film', async () => {

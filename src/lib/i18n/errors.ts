@@ -84,6 +84,12 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_location_too_long();
 		case 'pin_limit_reached':
 			return m.error_pin_limit_reached();
+		case 'import_invalid':
+			return m.error_import_invalid();
+		case 'import_not_ready':
+			return m.error_import_not_ready();
+		case 'tmdb_failed':
+			return m.error_tmdb_failed();
 		default:
 			return m.error_generic();
 	}

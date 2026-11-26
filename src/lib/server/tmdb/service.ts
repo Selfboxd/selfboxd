@@ -196,6 +196,137 @@ export async function getPopularFilms(
 	return { ok: true, value: result.value.results.map(toFilmSummary) };
 }
 
+/** Lower case without accents or punctuation, so that titles written differently still compare. */
+function titleKey(title: string): string {
+	return title
+		.normalize('NFD')
+		.replace(/\p{M}/gu, '')
+		.toLocaleLowerCase()
+		.replace(/[^\p{L}\p{N}]+/gu, ' ')
+		.trim();
+}
+
+/** A film or a series found from the title and the year another service gives it. */
+export interface WorkMatch {
+	kind: WorkKind;
+	id: number;
+	title: string;
+	year: number | null;
+	posterPath: string | null;
+}
+
+/** A search result reduced to what matching compares. */
+interface Candidate {
+	match: WorkMatch;
+	titles: string[];
+}
+
+/**
+ * The best candidate for a title and a year: the same title within a year first, then any
+ * result of that year, then the same title of another year.
+ */
+function bestCandidate(candidates: Candidate[], title: string, year: number | null) {
+	const wanted = titleKey(title);
+	const named = (candidate: Candidate) =>
+		candidate.titles.some((entry) => titleKey(entry) === wanted);
+	const near = (candidate: Candidate) =>
+		year === null || (candidate.match.year !== null && Math.abs(candidate.match.year - year) <= 1);
+	return (
+		candidates.find((candidate) => named(candidate) && near(candidate)) ??
+		(year === null ? undefined : candidates.find(near)) ??
+		candidates.find(named)
+	)?.match;
+}
+
+/**
+ * Finds the film, or else the series, that a title and a year name, as another service lists
+ * them. The title is also tried without what follows its first comma or colon. Returns `null`
+ * when nothing comes close.
+ */
+export async function matchWork(
+	context: TmdbContext,
+	title: string,
+	year: number | null,
+	language: string
+): Promise<Loaded<WorkMatch | null>> {
+	const query = title.trim().slice(0, searchQueryMaxLength);
+	if (!query) return { ok: true, value: null };
+	const short = query.split(/[,:]| - /)[0]?.trim() ?? '';
+
+	const films = async (text: string, withYear: boolean): Promise<Loaded<Candidate[]>> => {
+		const result = await load(
+			context,
+			`find:film:${language}:${withYear ? String(year) : ''}:${text.toLowerCase()}`,
+			lifetimes.search,
+			filmSearchSchema,
+			'/search/movie',
+			{
+				language,
+				query: text,
+				include_adult: 'false',
+				...(withYear && year !== null ? { primary_release_year: String(year) } : {})
+			}
+		);
+		if (!result.ok) return result;
+		return {
+			ok: true,
+			value: result.value.results.map((entry) => ({
+				match: { kind: 'film', ...toFilmSummary(entry) },
+				titles: [entry.title, entry.original_title]
+			}))
+		};
+	};
+	const series = async (text: string, withYear: boolean): Promise<Loaded<Candidate[]>> => {
+		const result = await load(
+			context,
+			`find:series:${language}:${withYear ? String(year) : ''}:${text.toLowerCase()}`,
+			lifetimes.search,
+			seriesListSchema,
+			'/search/tv',
+			{
+				language,
+				query: text,
+				include_adult: 'false',
+				...(withYear && year !== null ? { first_air_date_year: String(year) } : {})
+			}
+		);
+		if (!result.ok) return result;
+		return {
+			ok: true,
+			value: result.value.results.map((entry) => ({
+				match: { kind: 'series', ...toSeriesSummary(entry) },
+				titles: [entry.name]
+			}))
+		};
+	};
+
+	/** Candidates whose title starts like the shortened title, for the shortened search. */
+	const startingLike = (candidates: Candidate[]) =>
+		candidates.filter((candidate) =>
+			candidate.titles.some((entry) => titleKey(entry).startsWith(titleKey(short)))
+		);
+	const attempts: { run: () => Promise<Loaded<Candidate[]>>; strict?: boolean }[] = [
+		...(year === null ? [] : [{ run: () => films(query, true) }]),
+		{ run: () => films(query, false) },
+		...(short && short !== query && short.length >= 3
+			? [{ run: () => films(short, false), strict: true }]
+			: []),
+		...(year === null ? [] : [{ run: () => series(query, true) }]),
+		{ run: () => series(query, false) }
+	];
+	for (const attempt of attempts) {
+		const candidates = await attempt.run();
+		if (!candidates.ok) return candidates;
+		const found = bestCandidate(
+			attempt.strict ? startingLike(candidates.value) : candidates.value,
+			query,
+			year
+		);
+		if (found) return { ok: true, value: found };
+	}
+	return { ok: true, value: null };
+}
+
 /** Returns the film genres, named in the given language. */
 export async function getGenres(context: TmdbContext, language: string): Promise<Loaded<Genre[]>> {
 	const result = await load(
