@@ -78,6 +78,39 @@ test.describe('profile', () => {
 		await page.goto('/profile');
 		await expect(page.getByText('Adrift')).toBeVisible();
 		await expect(page.getByText('<b>bold</b>')).toBeVisible();
+		await expect(page.getByRole('complementary').getByText('<b>bold</b>')).toBeVisible();
+	});
+
+	test('shows links to a website and networks under the name', async ({ page }) => {
+		await page.goto('/settings/profile');
+		await page.getByRole('textbox', { name: 'Website' }).fill('ada.example');
+		await page
+			.getByRole('textbox', { name: 'Instagram' })
+			.fill('https://instagram.com/ada.watches');
+		await page.getByRole('textbox', { name: 'X', exact: true }).fill('@ada_x');
+		await page.getByRole('textbox', { name: 'Discord' }).fill('ada.l');
+		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
+		await expect(page.getByRole('status')).toHaveText('Your profile has been saved.');
+
+		await page.goto('/profile');
+		await expect(page.getByRole('link', { name: 'ada.example' })).toHaveAttribute(
+			'href',
+			'https://ada.example/'
+		);
+		await expect(page.getByRole('link', { name: 'ada.watches' })).toHaveAttribute(
+			'href',
+			'https://www.instagram.com/ada.watches/'
+		);
+		await expect(page.getByRole('link', { name: 'ada_x' })).toHaveAttribute(
+			'href',
+			'https://x.com/ada_x'
+		);
+		await expect(page.getByText('ada.l')).toBeVisible();
+
+		await page.goto('/settings/profile');
+		await page.getByRole('textbox', { name: 'Website' }).fill('javascript:alert(1)');
+		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
+		await expect(page.getByRole('alert')).toContainText('One of the links is not valid.');
 	});
 
 	test('chooses and removes favourite films', async ({ page }) => {

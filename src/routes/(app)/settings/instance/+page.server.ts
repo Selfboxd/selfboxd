@@ -13,16 +13,19 @@ import { tmdbConfig } from '#lib/server/tmdb/index.js';
 import { isTmdbKeyValid } from '#lib/server/tmdb/service.js';
 import type { Actions, PageServerLoad } from './$types';
 
+/** Setting holding the key of each service. */
+const settingNames = { tmdb: 'tmdb_api_key', mdblist: 'mdblist_api_key' } as const;
+
 /** Longest accepted key. TMDB read access tokens are a few hundred characters long. */
 const keyMaxLength = 1000;
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireAdmin(locals);
 	const db = getDatabase();
-	return {
-		tmdbConfigured: getInstanceSetting(db, 'tmdb_api_key') !== undefined,
-		mdblistConfigured: getInstanceSetting(db, 'mdblist_api_key') !== undefined
-	};
+	const keys = (['tmdb', 'mdblist'] as const).filter(
+		(id) => getInstanceSetting(db, settingNames[id]) !== undefined
+	);
+	return { keys: keys.map((id) => ({ id })) };
 };
 
 export const actions: Actions = {
@@ -52,9 +55,11 @@ export const actions: Actions = {
 		return { action: 'mdblist' as const, success: true };
 	},
 
-	removeMdblist: ({ locals }) => {
+	remove: async ({ locals, request }) => {
 		requireAdmin(locals);
-		deleteInstanceSetting(getDatabase(), 'mdblist_api_key');
-		return { action: 'mdblist' as const, success: false };
+		const id = formText(await request.formData(), 'key');
+		if (id !== 'tmdb' && id !== 'mdblist') return fail(400, { action: 'remove' as const });
+		deleteInstanceSetting(getDatabase(), settingNames[id]);
+		return { action: 'remove' as const, success: true };
 	}
 };

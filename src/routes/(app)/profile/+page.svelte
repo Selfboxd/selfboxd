@@ -6,7 +6,9 @@
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
+	import ProfileLinks from '#lib/components/profile/ProfileLinks.svelte';
 	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
+	import { isLongBio } from '#lib/catalog/library.js';
 	import RatingHistogram from '#lib/components/profile/RatingHistogram.svelte';
 	import ReviewCard from '#lib/components/profile/ReviewCard.svelte';
 	import { activitySentence } from '#lib/i18n/activity.js';
@@ -17,6 +19,7 @@
 	let { data }: PageProps = $props();
 
 	const scale = $derived(data.user?.ratingScale ?? 'stars');
+	const longBio = $derived(isLongBio(data.profile.bio));
 	const ratedCount = $derived(data.histogram.reduce((sum, count) => sum + count, 0));
 	const stats = $derived([
 		{ value: data.stats.watched, label: m.profile_stat_films() },
@@ -60,10 +63,11 @@
 				<a class="edit" href={resolve('/(app)/settings/profile')}>{m.profile_edit()}</a>
 			</p>
 			<h1 class="sr-only">{data.user.username}</h1>
-			{#if data.profile.bio}<p class="bio">{data.profile.bio}</p>{/if}
+			{#if data.profile.bio && !longBio}<p class="bio">{data.profile.bio}</p>{/if}
 			{#if data.profile.location}
 				<p class="location"><Icon name="pin" filled /> {data.profile.location}</p>
 			{/if}
+			<ProfileLinks links={data.profile.links} />
 		</div>
 		<dl>
 			{#each stats as stat (stat.label)}
@@ -165,6 +169,7 @@
 	</div>
 
 	<aside>
+		{#if longBio}<p class="bio side-bio">{data.profile.bio}</p>{/if}
 		{#if diary.length > 0}
 			<section>
 				<h2 class="section-title split-title">
@@ -311,6 +316,14 @@
 		margin-top: var(--space-2);
 		overflow-wrap: anywhere;
 		white-space: pre-line;
+	}
+
+	.side-bio {
+		max-width: none;
+		margin: 0;
+		color: var(--color-text);
+		font-size: var(--font-size-small);
+		line-height: 1.6;
 	}
 
 	.location {

@@ -21,6 +21,8 @@ export function errorMessage(code: string, seconds = 0): string {
 			return m.error_platform_error();
 		case 'code_invalid':
 			return m.error_code_invalid();
+		case 'link_invalid':
+			return m.error_link_invalid();
 		case 'invalid_credentials':
 			return m.error_invalid_credentials();
 		case 'too_many_attempts':

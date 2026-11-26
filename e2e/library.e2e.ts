@@ -176,7 +176,7 @@ test.describe('watchlist', () => {
 		const dialog = page.getByRole('dialog');
 		await expect(dialog.getByLabel('Note')).toHaveValue('First note');
 		await dialog.getByLabel('Note').fill('Second note');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 
 		await page.goto('/watchlist');
 		await expect(page.getByText('Second note')).toBeVisible();
@@ -199,7 +199,7 @@ test.describe('diary', () => {
 		await dialog.getByText('Like', { exact: true }).click();
 		await dialog.getByLabel('Review').fill('Tears in rain.\n\nStill unmatched.');
 		await dialog.getByLabel('Tags').fill('Cinema, 35mm');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await expect(actions(page).getByRole('button', { name: 'Logged' })).toBeVisible();
@@ -240,11 +240,11 @@ test.describe('diary', () => {
 		await openFilm(page);
 		let dialog = await openLog(page);
 		await dialog.getByLabel('Watched on').fill('2025-12-30');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 		dialog = await openLog(page);
 		await dialog.getByLabel('Watched on').fill('2026-01-02');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await page.goto('/diary');
@@ -261,12 +261,12 @@ test.describe('diary', () => {
 		let dialog = await openLog(page);
 		await dialog.getByLabel('Watched on').fill('2025-12-30');
 		await dialog.getByRole('button', { name: '4.5 out of 5 stars', exact: true }).click();
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 		await openFilm(page, 335984);
 		dialog = await openLog(page);
 		await dialog.getByLabel('Watched on').fill('2026-01-02');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await page.goto('/diary');
@@ -325,7 +325,7 @@ test.describe('diary', () => {
 		const dialog = await openLog(page);
 
 		await dialog.getByLabel('Watched on').fill('2999-01-01');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 
 		await expect(dialog.getByRole('alert')).toHaveText(
 			'Choose a valid date that is not in the future.'
@@ -339,7 +339,7 @@ test.describe('diary', () => {
 		const dialog = await openLog(page);
 		await dialog.getByLabel('Review').fill('Deckard is a replicant.');
 		await dialog.getByLabel('Contains spoilers').check();
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await expect(page.getByText('This review may contain spoilers.')).toBeVisible();
@@ -356,7 +356,7 @@ test.describe('diary', () => {
 		const dialog = await openLog(page);
 
 		await dialog.getByLabel('Review').fill('<img src=x onerror=alert(1)>');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await expect(page.getByText('<img src=x onerror=alert(1)>')).toBeVisible();
@@ -368,7 +368,7 @@ test.describe('diary', () => {
 		let dialog = await openLog(page);
 		await dialog.getByLabel('Watched on').fill('2026-02-01');
 		await dialog.getByLabel('Review').fill('First impression.');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await page.goto('/diary');
@@ -378,7 +378,7 @@ test.describe('diary', () => {
 		await expect(dialog.getByLabel('Review')).toHaveValue('First impression.');
 		await dialog.getByLabel('Watched on').fill('2026-02-03');
 		await dialog.getByRole('button', { name: '5 out of 5 stars', exact: true }).click();
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		const row = page.getByRole('row').filter({ hasText: 'Blade Runner' });
@@ -389,7 +389,7 @@ test.describe('diary', () => {
 	test('deletes an entry, which leaves the film watched', async ({ page }) => {
 		await openFilm(page);
 		const dialog = await openLog(page);
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		page.on('dialog', (confirmation) => void confirmation.accept());
@@ -403,7 +403,7 @@ test.describe('diary', () => {
 	test('keeps a logged film watched', async ({ page }) => {
 		await openFilm(page);
 		const dialog = await openLog(page);
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await actions(page).getByRole('button', { name: 'Logged' }).click();
@@ -422,7 +422,7 @@ test.describe('rating scale', () => {
 
 		await page.goto('/settings/preferences');
 		await chooseOption(page, 'Rating scale', 'Mark out of 10');
-		await page.getByRole('button', { name: 'Save' }).click();
+		await page.getByRole('button', { name: 'Save' }).first().click();
 		await expect(page.getByRole('status')).toHaveText('Your preferences have been saved.');
 
 		await openFilm(page);
@@ -444,7 +444,7 @@ test.describe('library privacy', () => {
 		await openFilm(page);
 		const dialog = await openLog(page);
 		await dialog.getByLabel('Review').fill('Private thoughts.');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 
 		await page.context().clearCookies();
@@ -466,7 +466,7 @@ test.describe('library privacy', () => {
 		await openFilm(page);
 		const dialog = await openLog(page);
 		await dialog.getByLabel('Review').fill('Mine.');
-		await dialog.getByRole('button', { name: 'Save' }).click();
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
 		await expect(dialog).toBeHidden();
 		await page.getByRole('button', { name: 'Edit entry', exact: true }).click();
 		const id = await page.locator('dialog[open] input[name="entryId"]').first().inputValue();

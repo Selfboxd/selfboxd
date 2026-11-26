@@ -2,11 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { chooseOption, createAccount, signIn } from './support/accounts';
 
 async function chooseServices(page: Page, names: string[]) {
-	await page.goto('/settings/streaming');
-	const services = page.getByRole('main').locator('form', { hasText: 'Save' }).last();
-	for (const name of names) await services.getByText(name, { exact: true }).click();
+	await page.goto('/settings/preferences');
+	const services = page
+		.getByRole('main')
+		.locator('form', { has: page.getByRole('searchbox', { name: 'Find a service' }) });
+	for (const name of names) await services.getByRole('button', { name, exact: true }).click();
 	await services.getByRole('button', { name: 'Save' }).click();
-	await expect(page.getByRole('status')).toHaveText('Your preferences have been saved.');
+	await expect(services.getByRole('status')).toHaveText('Your preferences have been saved.');
 }
 
 async function choose(page: Page, menu: string, option: string) {
@@ -25,24 +27,33 @@ test.describe('streaming settings', () => {
 	});
 
 	test('chooses a country and the services used there', async ({ page }) => {
-		await page.goto('/settings');
-		await page.getByRole('link', { name: 'Streaming' }).click();
-		await expect(page).toHaveURL('/settings/streaming');
+		await page.goto('/settings/preferences');
 		await expect(page.getByText('Netflix', { exact: true })).toBeVisible();
+		const country = page.getByRole('main').locator('form', { hasText: 'Your country' });
 
 		await chooseOption(page.getByRole('main'), 'Your country', 'France');
-		await page.getByRole('button', { name: 'Save' }).first().click();
+		await country.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByText('Canal+', { exact: true })).toBeVisible();
 		await expect(page.getByText('Netflix', { exact: true })).toHaveCount(0);
 
 		await chooseOption(page.getByRole('main'), 'Your country', 'United States of America');
-		await page.getByRole('button', { name: 'Save' }).first().click();
+		await country.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByText('Netflix', { exact: true })).toBeVisible();
 
 		await chooseServices(page, ['Netflix']);
 		await page.reload();
-		await expect(page.getByRole('checkbox', { name: 'Netflix' })).toBeChecked();
-		await expect(page.getByRole('checkbox', { name: 'Mubi' })).not.toBeChecked();
+		await expect(page.getByRole('button', { name: 'Netflix' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await expect(page.getByRole('button', { name: 'Mubi' })).toHaveAttribute(
+			'aria-pressed',
+			'false'
+		);
+
+		await page.getByRole('searchbox', { name: 'Find a service' }).fill('mu');
+		await expect(page.getByRole('button', { name: 'Netflix' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Mubi' })).toBeVisible();
 	});
 
 	test('offers no service menu until services are chosen', async ({ page }) => {

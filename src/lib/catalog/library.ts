@@ -126,9 +126,25 @@ export const listNoteMaxLength = 500;
 export const listPreviewSize = 5;
 
 /** What an account tells about itself on its profile. */
+/** Links an account shows on its profile; an empty text shows nothing. */
+export interface ProfileLinks {
+	website: string;
+	instagram: string;
+	x: string;
+	discord: string;
+}
+
+export const emptyLinks: ProfileLinks = { website: '', instagram: '', x: '', discord: '' };
+
+/** A bio shown beside the profile rather than under the name: long or on several lines. */
+export function isLongBio(bio: string): boolean {
+	return bio.includes('\n') || bio.length > 160;
+}
+
 export interface Profile {
 	bio: string;
 	location: string;
+	links: ProfileLinks;
 	/** Path of the TMDB backdrop used as banner, or `null` without banner. */
 	bannerPath: string | null;
 }

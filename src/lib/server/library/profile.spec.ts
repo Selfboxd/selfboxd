@@ -79,15 +79,25 @@ describe('profile', () => {
 	}
 
 	it('starts empty and stores the bio, location and banner', () => {
-		expect(getProfile(database.db, ada.id)).toEqual({ bio: '', location: '', bannerPath: null });
+		expect(getProfile(database.db, ada.id)).toEqual({
+			bio: '',
+			location: '',
+			bannerPath: null,
+			links: { website: '', instagram: '', x: '', discord: '' }
+		});
 
-		updateProfile(database.db, ada.id, { bio: 'Hermit.', location: 'Adrift' });
+		updateProfile(database.db, ada.id, {
+			bio: 'Hermit.',
+			location: 'Adrift',
+			links: { website: 'https://ada.example/', instagram: 'ada', x: '', discord: 'ada.l' }
+		});
 		setBanner(database.db, ada.id, '/banner.jpg');
 
 		expect(getProfile(database.db, ada.id)).toEqual({
 			bio: 'Hermit.',
 			location: 'Adrift',
-			bannerPath: '/banner.jpg'
+			bannerPath: '/banner.jpg',
+			links: { website: 'https://ada.example/', instagram: 'ada', x: '', discord: 'ada.l' }
 		});
 		expect(getProfile(database.db, grace.id).bio).toBe('');
 	});
@@ -221,8 +231,41 @@ describe('parseProfileForm', () => {
 	it('trims the fields', () => {
 		expect(parseProfileForm(form({ bio: ' Hi. ', location: ' Here ' }))).toEqual({
 			ok: true,
-			value: { bio: 'Hi.', location: 'Here' }
+			value: {
+				bio: 'Hi.',
+				location: 'Here',
+				links: { website: '', instagram: '', x: '', discord: '' }
+			}
 		});
+	});
+
+	it('normalises the links', () => {
+		const result = parseProfileForm(
+			form({
+				website: ' example.com/me ',
+				instagram: '@film.fan',
+				x: 'film_fan',
+				discord: 'film.fan'
+			})
+		);
+		expect(result.ok && result.value.links).toEqual({
+			website: 'https://example.com/me',
+			instagram: 'film.fan',
+			x: 'film_fan',
+			discord: 'film.fan'
+		});
+	});
+
+	it('refuses links that are not addresses or handles', () => {
+		for (const fields of [
+			{ website: 'javascript:alert(1)' },
+			{ website: 'localhost' },
+			{ instagram: 'no spaces' },
+			{ x: 'a'.repeat(16) },
+			{ discord: 'UPPER' }
+		]) {
+			expect(parseProfileForm(form(fields))).toEqual({ ok: false, error: 'link_invalid' });
+		}
 	});
 
 	it('refuses fields that are too long', () => {

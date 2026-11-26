@@ -32,6 +32,7 @@ export interface Snapshot {
 	location: string;
 	ratingScale: 'stars' | 'ten';
 	bannerPath: string | null;
+	links: { website: string; instagram: string; x: string; discord: string };
 	works: SnapshotWork[];
 	favourites: { slot: number; work: number }[];
 	diary: {
@@ -148,6 +149,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		location: profile.location.slice(0, 100),
 		ratingScale: user.ratingScale,
 		bannerPath: picture(profile.bannerPath),
+		links: profile.links,
 		works,
 		favourites,
 		diary,

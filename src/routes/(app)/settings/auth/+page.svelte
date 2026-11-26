@@ -3,6 +3,7 @@
 	import FormError from '#lib/components/FormError.svelte';
 	import FormNotice from '#lib/components/FormNotice.svelte';
 	import TextField from '#lib/components/TextField.svelte';
+	import { describeAgent } from '#lib/auth/agent.js';
 	import { formatDate } from '#lib/i18n/dates.js';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -62,7 +63,9 @@
 								<span class="badge">{m.session_current()}</span>
 							{/if}
 						</span>
-						<span class="session-label">{session.label}</span>
+						<span class="session-label" title={session.label}>
+							{session.kind === 'device' ? session.label : describeAgent(session.label)}
+						</span>
 						<span class="session-date">
 							{m.session_last_used({ date: formatDate(session.lastUsedAt) })}
 						</span>
@@ -91,9 +94,9 @@
 
 	.sessions li {
 		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-		align-items: flex-start;
+		gap: var(--space-4);
+		align-items: center;
+		justify-content: space-between;
 		padding: var(--space-3) 0;
 		border-bottom: 1px solid var(--color-border);
 	}
@@ -101,6 +104,7 @@
 	.session {
 		display: flex;
 		min-width: 0;
+		flex: 1;
 		flex-direction: column;
 		gap: var(--space-1);
 	}

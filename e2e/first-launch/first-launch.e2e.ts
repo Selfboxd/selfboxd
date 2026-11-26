@@ -99,7 +99,7 @@ test.describe('first launch', () => {
 		await expect(page.getByRole('status')).toContainText('Add a TMDB API key in the settings');
 		await page.getByRole('link', { name: 'Open the settings' }).click();
 		await expect(page).toHaveURL('/settings/instance');
-		await expect(page.getByText('No key is configured.')).toBeVisible();
+		await expect(page.getByText('No key yet.')).toBeVisible();
 	});
 
 	test('tells a regular account to wait for the administrator', async ({ page, request }) => {
@@ -130,7 +130,7 @@ test.describe('first launch', () => {
 		await page.getByRole('button', { name: 'Save key' }).click();
 
 		await expect(page.getByRole('alert')).toHaveText('TMDB did not accept this key.');
-		await expect(page.getByText('No key is configured.')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Remove the TMDB key' })).toHaveCount(0);
 	});
 
 	test('saves a valid TMDB key without ever showing it again', async ({ page }) => {
@@ -142,7 +142,7 @@ test.describe('first launch', () => {
 
 		await expect(page.getByRole('status')).toHaveText('The TMDB key has been saved.');
 		await page.reload();
-		await expect(page.getByText('A key is configured.')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Remove the TMDB key' })).toBeVisible();
 		expect(await page.content()).not.toContain('valid-test-key');
 	});
 
@@ -165,7 +165,7 @@ test.describe('first launch', () => {
 		await page.getByRole('button', { name: 'Save MDBList key' }).click();
 
 		await expect(page.getByRole('alert')).toHaveText('MDBList did not accept this key.');
-		await expect(page.getByText('No MDBList key is configured.')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Remove the MDBList key' })).toHaveCount(0);
 	});
 
 	test('saves and removes a valid MDBList key without ever showing it again', async ({ page }) => {
@@ -176,11 +176,12 @@ test.describe('first launch', () => {
 			await page.getByLabel('MDBList API key').fill('valid-mdblist-key');
 			await page.getByRole('button', { name: 'Save MDBList key' }).click();
 			await expect(page.getByRole('status')).toHaveText('The MDBList key has been saved.');
-			await expect(page.getByText('An MDBList key is configured.')).toBeVisible();
+			const remove = page.getByRole('button', { name: 'Remove the MDBList key' });
+			await expect(remove).toBeVisible();
 			expect(await page.content()).not.toContain('valid-mdblist-key');
 			if (round === 1) {
-				await page.getByRole('button', { name: 'Remove MDBList key' }).click();
-				await expect(page.getByText('No MDBList key is configured.')).toBeVisible();
+				await remove.click();
+				await expect(remove).toHaveCount(0);
 			}
 		}
 	});
