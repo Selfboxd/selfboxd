@@ -89,6 +89,8 @@ export interface ActivityEvent {
 	liked: boolean;
 	rewatch: boolean;
 	reviewed: boolean;
+	/** Diary entry of a logged event, `null` for the other kinds. */
+	entryId: number | null;
 }
 
 /** A list of an account, as shown among its other lists. */

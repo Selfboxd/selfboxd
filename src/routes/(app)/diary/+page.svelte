@@ -230,7 +230,14 @@
 						{#if entry.rewatch}<Icon name="rewatch" label={m.diary_column_rewatch()} />{/if}
 					</td>
 					<td>
-						{#if entry.review}<Icon name="review" label={m.diary_column_review()} />{/if}
+						{#if entry.review}
+							<a
+								class="review-link"
+								href={resolve('/(app)/reviews/[id]', { id: String(entry.id) })}
+							>
+								<Icon name="review" label={m.review_open()} />
+							</a>
+						{/if}
 					</td>
 					<td>
 						<button type="button" onclick={() => (logTarget = { kind: 'edit', entry })}>
@@ -399,5 +406,14 @@
 		td:nth-child(8) {
 			display: none;
 		}
+	}
+
+	.review-link {
+		display: inline-flex;
+		color: inherit;
+	}
+
+	.review-link:hover {
+		color: var(--color-heading);
 	}
 </style>

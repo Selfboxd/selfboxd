@@ -2,6 +2,8 @@
 	import { enhance } from '$app/forms';
 	import Icon from '#lib/components/Icon.svelte';
 	import FormError from '#lib/components/FormError.svelte';
+	import TagsInput from '#lib/components/TagsInput.svelte';
+	import { resolve } from '$app/paths';
 	import { watchlistNoteMaxLength } from '#lib/catalog/library.js';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -19,7 +21,8 @@
 
 	let dialog: HTMLDialogElement | undefined = $state();
 	let note = $state('');
-	let tags = $state('');
+	let tags = $state<string[]>([]);
+	let knownTags = $state<string[]>([]);
 	let listed = $state(false);
 
 	const id = $props.id();
@@ -28,9 +31,20 @@
 		if (!open || !dialog || dialog.open) return;
 		listed = current !== null;
 		note = current?.note ?? '';
-		tags = current?.tags.join(', ') ?? '';
+		tags = [...(current?.tags ?? [])];
 		dialog.showModal();
+		void loadTags();
 	});
+
+	/** Fetches the tags already used on the watchlist; none when they fail to load. */
+	async function loadTags() {
+		try {
+			const response = await fetch(`${resolve('/api/v1/tags')}?kind=watchlist`);
+			if (response.ok) knownTags = ((await response.json()) as { tags: string[] }).tags;
+		} catch {
+			knownTags = [];
+		}
+	}
 </script>
 
 <dialog bind:this={dialog} aria-labelledby="{id}-title" onclose={() => (open = false)}>
@@ -72,14 +86,7 @@
 		</div>
 		<div class="field">
 			<label class="field-label" for="{id}-tags">{m.log_tags()}</label>
-			<input
-				class="field-input"
-				id="{id}-tags"
-				type="text"
-				name="tags"
-				bind:value={tags}
-				autocomplete="off"
-			/>
+			<TagsInput id="{id}-tags" name="tags" bind:value={tags} suggestions={knownTags} />
 			<span class="field-hint">{m.log_tags_hint()}</span>
 		</div>
 		<button class="button button-primary">{listed ? m.log_save() : m.watchlist_add()}</button>
@@ -99,6 +106,7 @@
 
 	dialog::backdrop {
 		background: var(--color-scrim);
+		backdrop-filter: blur(var(--blur-backdrop));
 	}
 
 	header {

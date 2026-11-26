@@ -45,7 +45,8 @@ export function listActivity(db: DatabaseExecutor, userId: number): ActivityEven
 			rating: entry.rating,
 			liked: entry.liked,
 			rewatch: entry.rewatch,
-			reviewed: entry.review !== ''
+			reviewed: entry.review !== '',
+			entryId: entry.id
 		})),
 		...listed.map(({ item, work }) => ({
 			kind: 'watchlisted' as const,
@@ -54,7 +55,8 @@ export function listActivity(db: DatabaseExecutor, userId: number): ActivityEven
 			rating: null,
 			liked: false,
 			rewatch: false,
-			reviewed: false
+			reviewed: false,
+			entryId: null
 		})),
 		...states
 			.filter(({ state, work }) => !loggedWorks.has(work.id) && (state.watched || state.liked))
@@ -65,7 +67,8 @@ export function listActivity(db: DatabaseExecutor, userId: number): ActivityEven
 				rating: state.rating,
 				liked: state.liked,
 				rewatch: false,
-				reviewed: false
+				reviewed: false,
+				entryId: null
 			}))
 	];
 	return events.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, activityLimit);

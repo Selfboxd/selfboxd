@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { FilmSearchResult } from '#lib/catalog/film.js';
-	import type { RatingScale } from '#lib/catalog/library.js';
+	import type { RatingScale, SeriesStatus } from '#lib/catalog/library.js';
+	import type { WorkSearchResult } from '#lib/catalog/search.js';
 	import Icon from '#lib/components/Icon.svelte';
+	import { seasonName } from '#lib/i18n/series.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import FilmSearchDialog from './FilmSearchDialog.svelte';
 	import LogDialog from './LogDialog.svelte';
-	import type { LogTarget } from './log-target.js';
+	import type { LogSeason, LogTarget } from './log-target.js';
+	import WorkSearchDialog from './WorkSearchDialog.svelte';
 
 	interface Props {
 		scale: RatingScale;
@@ -16,6 +17,7 @@
 	let { scale }: Props = $props();
 
 	let searchOpen = $state(false);
+	let searchKind = $state<'all' | 'film' | 'series'>('all');
 	let menu: HTMLElement | undefined = $state();
 	let menuOpen = $state(false);
 	let logTarget = $state<LogTarget | null>(null);
@@ -30,29 +32,65 @@
 
 	afterNavigate(closeMenu);
 
-	function open() {
+	function open(kind: 'all' | 'film' | 'series') {
+		closeMenu();
+		searchKind = kind;
 		searchOpen = true;
 	}
 
-	function pick(film: FilmSearchResult) {
-		logTarget = {
-			kind: 'new',
-			film: {
-				id: String(film.id),
-				kind: 'film',
-				title: film.title,
-				year: film.year,
-				posterPath: film.posterPath
-			},
-			defaults: { rating: null, liked: false, rewatch: false }
+	/** Seasons and status of a series, so that the dialog can offer them; empty when they fail to load. */
+	async function seriesChoices(
+		id: number
+	): Promise<{ seasons: LogSeason[]; status?: SeriesStatus }> {
+		try {
+			const [details, state] = await Promise.all([
+				fetch(resolve('/api/v1/series/[id]', { id: String(id) })),
+				fetch(resolve('/api/v1/series/[id]/state', { id: String(id) }))
+			]);
+			const seasons = details.ok
+				? ((await details.json()) as { series: { seasons: { number: number }[] } }).series.seasons
+				: [];
+			const status = state.ok
+				? ((await state.json()) as { state: { status: SeriesStatus | null } }).state.status
+				: null;
+			return {
+				seasons: seasons.map((season) => ({
+					number: season.number,
+					name: seasonName(season.number)
+				})),
+				...(status ? { status } : {})
+			};
+		} catch {
+			return { seasons: [] };
+		}
+	}
+
+	async function pick(work: WorkSearchResult) {
+		const film = {
+			id: String(work.id),
+			kind: work.kind,
+			title: work.title,
+			year: work.year,
+			posterPath: work.posterPath
 		};
+		const defaults = { rating: null, liked: false, rewatch: false };
+		logTarget =
+			work.kind === 'series'
+				? { kind: 'new', film, defaults, ...(await seriesChoices(work.id)) }
+				: { kind: 'new', film, defaults };
 	}
 </script>
 
 <svelte:window onclick={closeOnOutsideClick} />
 
 <div class="group">
-	<button class="log" type="button" onclick={open}>
+	<button
+		class="log"
+		type="button"
+		onclick={() => {
+			open('all');
+		}}
+	>
 		<Icon name="plus" />
 		{m.nav_log()}
 	</button>
@@ -71,11 +109,18 @@
 				<button
 					type="button"
 					onclick={() => {
-						closeMenu();
-						open();
+						open('film');
 					}}
 				>
 					{m.nav_log_film()}
+				</button>
+				<button
+					type="button"
+					onclick={() => {
+						open('series');
+					}}
+				>
+					{m.nav_log_series()}
 				</button>
 				<a href={resolve('/(app)/profile/lists/new')}>{m.lists_new()}</a>
 			</div>
@@ -83,7 +128,12 @@
 	</div>
 </div>
 
-<FilmSearchDialog bind:open={searchOpen} title={m.log_search_title()} onpick={pick} />
+<WorkSearchDialog
+	bind:open={searchOpen}
+	title={m.log_search_title()}
+	kind={searchKind}
+	onpick={(work: WorkSearchResult) => void pick(work)}
+/>
 
 <LogDialog bind:target={logTarget} {scale} />
 

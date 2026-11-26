@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn, type Account } from './support/accounts';
+import { fillTags } from './support/fields';
 
 function actions(page: Page) {
 	return page.getByRole('region', { name: 'Your actions' });
@@ -12,14 +13,14 @@ async function log(page: Page, film: number, fields: { review?: string; tags?: s
 		.click();
 	const dialog = page.getByRole('dialog');
 	if (fields.review) await dialog.getByLabel('Review').fill(fields.review);
-	if (fields.tags) await dialog.getByLabel('Tags').fill(fields.tags);
+	if (fields.tags) await fillTags(dialog, 'Tags', fields.tags);
 	await dialog.getByRole('button', { name: 'Save' }).click();
 	await expect(dialog).toBeHidden();
 }
 
 async function pickFilm(page: Page, title: string) {
 	const dialog = page.getByRole('dialog');
-	await dialog.getByLabel('Name of film').fill(title);
+	await dialog.getByLabel('Name of the film').fill(title);
 	await dialog.getByRole('button', { name: new RegExp(title) }).click();
 	await expect(dialog).toBeHidden();
 }
@@ -59,7 +60,7 @@ test.describe('profile', () => {
 
 	test('opens from the account menu', async ({ page }) => {
 		const navigation = page.getByRole('navigation', { name: 'Main navigation' });
-		await navigation.locator('button[aria-haspopup]').hover();
+		await navigation.locator('button[aria-haspopup="true"]').hover();
 		await navigation.getByRole('link', { name: 'Profile' }).click();
 
 		await expect(page).toHaveURL('/profile');
@@ -238,6 +239,49 @@ test.describe('profile', () => {
 		await page.goto('/diary?tag=%3Cscript%3E');
 
 		await expect(page.getByRole('row').filter({ hasText: 'Blade Runner' })).toHaveCount(1);
+	});
+});
+
+test.describe('review page', () => {
+	test.beforeEach(async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+	});
+
+	test('opens from the diary and the activity, and edits the review', async ({ page }) => {
+		await log(page, 78, { review: 'Tears in rain.\n\nStill unmatched.', tags: 'cinema' });
+
+		await page.goto('/diary');
+		await page.getByRole('link', { name: 'Read the review' }).click();
+		await expect(page).toHaveURL(/\/reviews\/\d+$/);
+		const main = page.getByRole('main');
+		await expect(main.getByText(/^Review by /)).toBeVisible();
+		await expect(main.getByRole('heading', { name: /Blade Runner/ })).toBeVisible();
+		await expect(main.getByText('Still unmatched.')).toBeVisible();
+		await expect(main.getByRole('list', { name: 'Tags' })).toHaveText('cinema');
+		const address = page.url();
+
+		await main.getByRole('button', { name: 'Edit or delete this review…' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Edit diary entry' });
+		await dialog.getByLabel('Review').fill('Changed my mind.');
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(main.getByText('Changed my mind.')).toBeVisible();
+
+		await page.goto('/activity');
+		await page.getByRole('link', { name: 'Read the review' }).first().click();
+		await expect(page).toHaveURL(address);
+	});
+
+	test('is not found for an entry of another account', async ({ page, request }) => {
+		await log(page, 78, { review: 'Mine.' });
+		await page.goto('/diary');
+		const address = await page.getByRole('link', { name: 'Read the review' }).getAttribute('href');
+
+		await page.context().clearCookies();
+		await signIn(page, await createAccount(request));
+		const response = await page.goto(address ?? '/');
+		expect(response?.status()).toBe(404);
+		expect((await page.goto('/reviews/abc'))?.status()).toBe(404);
 	});
 });
 

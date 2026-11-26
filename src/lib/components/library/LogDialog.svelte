@@ -15,7 +15,9 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import type { LogFilm, LogSeason, LogTarget } from './log-target.js';
 	import RatingInput from './RatingInput.svelte';
+	import DatePicker from '#lib/components/DatePicker.svelte';
 	import Select from '#lib/components/Select.svelte';
+	import TagsInput from '#lib/components/TagsInput.svelte';
 
 	interface Props {
 		/** Set to open the dialog; reset to `null` when the dialog closes. */
@@ -38,7 +40,8 @@
 	let rewatch = $state(false);
 	let review = $state('');
 	let containsSpoilers = $state(false);
-	let tags = $state('');
+	let tags = $state<string[]>([]);
+	let knownTags = $state<string[]>([]);
 	let season = $state('');
 	let status = $state<SeriesStatus>('finished');
 	let seasons = $state<LogSeason[]>([]);
@@ -63,7 +66,7 @@
 		entryId = entry.id;
 		film = { ...entry.work, id: entry.work.externalId };
 		({ watchedOn, rating, liked, rewatch, review, containsSpoilers } = entry);
-		tags = entry.tags.join(', ');
+		tags = [...entry.tags];
 		season = entry.season === null ? '' : String(entry.season);
 	}
 
@@ -82,10 +85,21 @@
 			watchedOn = today();
 			review = '';
 			containsSpoilers = false;
-			tags = '';
+			tags = [];
 		}
 		dialog.showModal();
+		void loadTags();
 	});
+
+	/** Fetches the tags already used, offered while typing; none when they fail to load. */
+	async function loadTags() {
+		try {
+			const response = await fetch(resolve('/api/v1/tags'));
+			if (response.ok) knownTags = ((await response.json()) as { tags: string[] }).tags;
+		} catch {
+			knownTags = [];
+		}
+	}
 
 	/** Reloads the page data and closes the dialog after a success, or shows the error. */
 	async function finish(result: ActionResult<ActionData, ActionData>) {
@@ -142,10 +156,10 @@
 			{/if}
 
 			<div class="when">
-				<label class="date-label">
-					{m.log_date()}
-					<input class="date" type="date" name="watchedOn" bind:value={watchedOn} required />
-				</label>
+				<div class="date-label">
+					<label for="{id}-date">{m.log_date()}</label>
+					<DatePicker id="{id}-date" name="watchedOn" bind:value={watchedOn} max={today()} />
+				</div>
 				<label class="check">
 					<input type="checkbox" name="rewatch" bind:checked={rewatch} />
 					{m.log_rewatch()}
@@ -208,14 +222,12 @@
 						<label for="{id}-tags">{m.log_tags()}</label>
 						<span class="note">{m.log_tags_hint()}</span>
 					</p>
-					<input
-						class="light"
+					<TagsInput
 						id="{id}-tags"
-						type="text"
 						name="tags"
-						placeholder={m.log_tags_placeholder()}
 						bind:value={tags}
-						autocomplete="off"
+						suggestions={knownTags}
+						placeholder={m.log_tags_placeholder()}
 					/>
 				</div>
 				<div class="group rating">
@@ -266,6 +278,7 @@
 
 	dialog::backdrop {
 		background: var(--color-scrim);
+		backdrop-filter: blur(var(--blur-backdrop));
 	}
 
 	header,
@@ -275,6 +288,10 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--space-4) var(--space-6);
+	}
+
+	footer {
+		justify-content: flex-end;
 	}
 
 	header {
@@ -355,15 +372,6 @@
 		gap: var(--space-2);
 		align-items: center;
 		color: var(--color-text-strong);
-	}
-
-	.date {
-		padding: var(--space-1) var(--space-2);
-		border: 0;
-		border-radius: var(--radius-small);
-		background: var(--color-well);
-		color: var(--color-heading);
-		font: inherit;
 	}
 
 	.check input {
@@ -504,7 +512,6 @@
 	}
 
 	.save {
-		margin-inline-start: auto;
 		background: var(--color-accent);
 	}
 
@@ -513,11 +520,13 @@
 	}
 
 	.delete {
-		background: var(--color-danger-button);
+		background: var(--color-secondary);
+		color: var(--color-secondary-text);
 	}
 
 	.delete:hover {
-		background: var(--color-danger-button-hover);
+		background: var(--color-secondary-hover);
+		color: var(--color-heading);
 	}
 
 	@media (max-width: 40rem) {

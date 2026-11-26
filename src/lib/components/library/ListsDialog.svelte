@@ -94,6 +94,7 @@
 
 	dialog::backdrop {
 		background: var(--color-scrim);
+		backdrop-filter: blur(var(--blur-backdrop));
 	}
 
 	header {

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createAccount, signIn } from './support/accounts';
+import { chooseOption, createAccount, signIn } from './support/accounts';
+import { pickDate } from './support/fields';
 
 function navigation(page: Page) {
 	return page.getByRole('navigation', { name: 'Main navigation' });
@@ -84,13 +85,13 @@ test.describe('header', () => {
 	test('logs a film found from the log button, on any page', async ({ page }) => {
 		await page.goto('/diary');
 		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
-		const search = page.getByRole('dialog', { name: 'Add to your films…' });
-		await search.getByLabel('Name of film').fill('2049');
+		const search = page.getByRole('dialog', { name: 'What do you want to log?' });
+		await search.getByLabel('Name of the film or series').fill('2049');
 		await search.getByRole('button', { name: /Blade Runner 2049/ }).click();
 
 		const dialog = page.getByRole('dialog', { name: 'I watched…' });
 		await expect(dialog.getByText('Blade Runner 2049')).toBeVisible();
-		await dialog.getByLabel('Watched on').fill('2026-04-02');
+		await pickDate(dialog, 'Watched on', '2026-04-02');
 		await dialog.getByRole('button', { name: '4 out of 5 stars', exact: true }).click();
 		await dialog.getByRole('button', { name: 'Save' }).click();
 		await expect(dialog).toBeHidden();
@@ -102,12 +103,14 @@ test.describe('header', () => {
 
 	test('reports an invalid entry inside the log dialog', async ({ page }) => {
 		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
-		const search = page.getByRole('dialog', { name: 'Add to your films…' });
-		await search.getByLabel('Name of film').fill('2049');
+		const search = page.getByRole('dialog', { name: 'What do you want to log?' });
+		await search.getByLabel('Name of the film or series').fill('2049');
 		await search.getByRole('button', { name: /Blade Runner 2049/ }).click();
 		const dialog = page.getByRole('dialog', { name: 'I watched…' });
 
-		await dialog.getByLabel('Watched on').fill('2999-01-01');
+		await dialog
+			.locator('input[name="watchedOn"]')
+			.evaluate((input: HTMLInputElement) => (input.value = '2999-01-01'));
 		await dialog.getByRole('button', { name: 'Save' }).click();
 
 		await expect(dialog.getByRole('alert')).toHaveText(
@@ -115,13 +118,39 @@ test.describe('header', () => {
 		);
 	});
 
+	test('logs a series found from the log menu, with its seasons', async ({ page }) => {
+		await page.goto('/diary');
+		await navigation(page).getByRole('button', { name: 'More ways to add' }).click();
+		await navigation(page).getByRole('button', { name: 'Log a series' }).click();
+		const search = page.getByRole('dialog', { name: 'What do you want to log?' });
+		await search.getByLabel('Name of the series').fill('neon');
+		await search.getByRole('button', { name: /Neon Precinct/ }).click();
+
+		const dialog = page.getByRole('dialog', { name: 'I watched…' });
+		await expect(dialog.getByText('Neon Precinct')).toBeVisible();
+		await chooseOption(dialog, 'Season', 'Season 2');
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+
+		const row = page.getByRole('row').filter({ hasText: 'Neon Precinct' });
+		await expect(row).toContainText('Season 2');
+	});
+
+	test('finds films and series together from the log button', async ({ page }) => {
+		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
+		const search = page.getByRole('dialog', { name: 'What do you want to log?' });
+		await search.getByLabel('Name of the film or series').fill('e');
+		await expect(search.getByRole('button', { name: /Neon Precinct/ })).toContainText('Series');
+		await expect(search.getByRole('button', { name: /Blade Runner 2049/ })).toBeVisible();
+	});
+
 	test('tells when no film matches in the log search', async ({ page }) => {
 		await navigation(page).getByRole('button', { name: 'Log', exact: true }).click();
-		const search = page.getByRole('dialog', { name: 'Add to your films…' });
+		const search = page.getByRole('dialog', { name: 'What do you want to log?' });
 
-		await search.getByLabel('Name of film').fill('zzzz');
+		await search.getByLabel('Name of the film or series').fill('zzzz');
 
-		await expect(search.getByText('No films match this search.')).toBeVisible();
+		await expect(search.getByText('Nothing matches this search.')).toBeVisible();
 	});
 });
 
