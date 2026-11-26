@@ -321,7 +321,6 @@
 	"chart_now_playing": "In cinemas now",
 	"chart_upcoming": "Upcoming films",
 	"chart_empty": "This chart has no film on this page.",
-	"search_section_lists": "Lists",
 	"nav_series": "Series",
 	"error_season_invalid": "Choose a valid season.",
 	"error_status_invalid": "Choose a valid status.",
@@ -553,5 +552,16 @@
 	"review_page_edit": "Edit or delete this review…",
 	"review_page_work": "Go to {title}",
 	"review_page_all": "All your reviews",
-	"review_open": "Read the review"
+	"review_open": "Read the review",
+	"search_section_own_lists": "Your lists",
+	"search_section_reviews": "Reviews",
+	"search_section_tags": "Tags",
+	"search_section_journal": "Journal articles",
+	"search_section_public_lists": "Public lists",
+	"search_library": "In your library",
+	"search_see_all": "See all",
+	"search_tag_count": "{count} entries",
+	"search_broadened": "Nothing matches “{query}” exactly. Showing results for “{broader}”.",
+	"search_suggestions": "Popular films this week, in the meantime",
+	"search_catalogue": "Films, series and people"
 }

@@ -82,6 +82,7 @@ test.describe('person pages', () => {
 		await page.goto('/person/578');
 		const side = page.getByRole('complementary');
 
+		await expect(side.getByRole('img', { name: 'Ridley Scott' })).toBeVisible();
 		await expect(side.getByText('South Shields, England')).toBeVisible();
 		await expect(side.getByText('An English film director.')).toBeVisible();
 		await expect(side.getByText('He made Alien and Blade Runner.')).toHaveCount(0);

@@ -321,7 +321,6 @@
 	"chart_now_playing": "En cines ahora",
 	"chart_upcoming": "Próximos estrenos",
 	"chart_empty": "Esta clasificación no tiene películas en esta página.",
-	"search_section_lists": "Listas",
 	"nav_series": "Series",
 	"error_season_invalid": "Elige una temporada válida.",
 	"error_status_invalid": "Elige un estado válido.",
@@ -553,5 +552,16 @@
 	"review_page_edit": "Editar o eliminar esta reseña…",
 	"review_page_work": "Ir a {title}",
 	"review_page_all": "Todas tus reseñas",
-	"review_open": "Leer la reseña"
+	"review_open": "Leer la reseña",
+	"search_section_own_lists": "Tus listas",
+	"search_section_reviews": "Reseñas",
+	"search_section_tags": "Etiquetas",
+	"search_section_journal": "Artículos del diario",
+	"search_section_public_lists": "Listas públicas",
+	"search_library": "En tu biblioteca",
+	"search_see_all": "Ver todo",
+	"search_tag_count": "{count} entradas",
+	"search_broadened": "Nada coincide exactamente con «{query}». Resultados para «{broader}».",
+	"search_suggestions": "Mientras tanto, películas populares esta semana",
+	"search_catalogue": "Películas, series y personas"
 }

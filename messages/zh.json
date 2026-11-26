@@ -321,7 +321,6 @@
 	"chart_now_playing": "正在上映",
 	"chart_upcoming": "即将上映",
 	"chart_empty": "此榜单在本页没有电影。",
-	"search_section_lists": "列表",
 	"nav_series": "剧集",
 	"error_season_invalid": "请选择有效的季。",
 	"error_status_invalid": "请选择有效的状态。",
@@ -553,5 +552,16 @@
 	"review_page_edit": "编辑或删除此评论…",
 	"review_page_work": "前往 {title}",
 	"review_page_all": "你的全部评论",
-	"review_open": "阅读评论"
+	"review_open": "阅读评论",
+	"search_section_own_lists": "你的片单",
+	"search_section_reviews": "评论",
+	"search_section_tags": "标签",
+	"search_section_journal": "期刊文章",
+	"search_section_public_lists": "公开片单",
+	"search_library": "你的资料库中",
+	"search_see_all": "查看全部",
+	"search_tag_count": "{count} 条",
+	"search_broadened": "没有与“{query}”完全匹配的结果，显示“{broader}”的结果。",
+	"search_suggestions": "不妨看看本周热门电影",
+	"search_catalogue": "电影、剧集和人物"
 }

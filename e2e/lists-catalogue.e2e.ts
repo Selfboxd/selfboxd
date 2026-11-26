@@ -86,7 +86,7 @@ test.describe('lists catalogue', () => {
 
 	test('finds lists by name from the main search', async ({ page }) => {
 		await page.goto('/search?q=rainy');
-		await page.getByRole('complementary').getByRole('link', { name: 'Lists' }).click();
+		await page.getByRole('complementary').getByRole('link', { name: 'Public lists' }).click();
 
 		await expect(page).toHaveURL('/search?q=rainy&type=lists');
 		await expect(page.getByRole('article')).toHaveCount(1);

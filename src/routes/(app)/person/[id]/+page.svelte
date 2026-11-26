@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PersonPhoto from '#lib/components/PersonPhoto.svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -19,7 +20,6 @@
 	import { formatDate } from '#lib/i18n/dates.js';
 	import { errorMessage } from '#lib/i18n/errors.js';
 	import { roleHeading, roleName } from '#lib/i18n/person.js';
-	import { tmdbImage } from '#lib/images.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
@@ -209,14 +209,9 @@
 		</div>
 
 		<aside class="side">
-			{#if person.profilePath}
-				<img
-					class="photo"
-					src={tmdbImage(person.profilePath, 'w342')}
-					alt={person.name}
-					loading="lazy"
-				/>
-			{/if}
+			<div class="photo">
+				<PersonPhoto path={person.profilePath} name={person.name} size="w342" />
+			</div>
 			{#if person.birthday || person.deathday || person.placeOfBirth}
 				<dl class="facts">
 					{#if person.birthday || person.placeOfBirth}
@@ -354,7 +349,9 @@
 	}
 
 	.photo {
+		overflow: hidden;
 		width: 100%;
+		aspect-ratio: 2 / 3;
 		border-radius: var(--radius-medium);
 		box-shadow: var(--shadow-poster);
 	}

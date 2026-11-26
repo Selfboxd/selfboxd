@@ -155,7 +155,8 @@
 
 	.heading {
 		color: var(--color-text);
-		font-size: var(--font-size-control);
+		font-size: var(--font-size-small);
+		line-height: 1;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 	}
@@ -183,8 +184,10 @@
 		display: flex;
 		gap: var(--space-1);
 		align-items: center;
-		padding: var(--space-1) var(--space-2);
+		height: var(--browse-height);
+		padding: 0 var(--space-2);
 		font-size: var(--font-size-small);
+		line-height: 1;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 		white-space: nowrap;

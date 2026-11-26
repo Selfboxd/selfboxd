@@ -132,6 +132,8 @@
 	--space-12: 3rem;
 
 	--duration-fast: 160ms;
+	--duration-medium: 280ms;
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
 	--radius-small: 3px;
 	--radius-medium: 4px;
@@ -148,6 +150,7 @@
 	--select-min-width: 9rem;
 	--select-max-height: 18rem;
 	--search-open-width: 13.5rem;
+	--browse-height: 1.75rem;
 	--search-height: 1.875rem;
 	--menu-row-height: 2.5rem;
 	--poster-tiny: 2.1875rem;
