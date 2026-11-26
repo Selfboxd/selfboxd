@@ -76,6 +76,9 @@
 		gap: var(--space-4);
 		align-items: flex-start;
 		padding: var(--space-4) 0;
+	}
+
+	article:not(:last-of-type) {
 		border-bottom: 1px solid var(--color-border-subtle);
 	}
 

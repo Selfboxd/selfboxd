@@ -236,7 +236,7 @@
 		inset: auto 0 0;
 		display: flex;
 		justify-content: center;
-		padding-bottom: 10%;
+		padding-bottom: 8%;
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity var(--duration-fast);
@@ -251,10 +251,10 @@
 
 	.bar {
 		display: flex;
-		gap: 0.55em;
+		gap: 0.6em;
 		align-items: center;
-		padding: 0.45em 0.75em;
-		border-radius: 0.4em;
+		padding: 0.35em 0.6em;
+		border-radius: 0.35em;
 		background: var(--color-poster-bar);
 		font-size: var(--font-size-poster-action);
 	}
