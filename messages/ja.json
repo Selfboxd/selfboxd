@@ -525,9 +525,9 @@
 	"error_platform_error": "Selfboxdプラットフォームがリクエストを拒否しました。",
 	"error_code_invalid": "アクセスコードは4桁の数字にしてください。",
 	"list_share": "共有",
-	"list_share_hint": "リンクを知っている人は誰でもリストを見られます。作品はTMDBで開きます。",
 	"list_share_update": "共有リストを更新",
 	"list_share_stop": "共有を停止",
 	"list_shared": "共有先",
-	"error_profile_not_found": "このキーに対応する公開プロフィールはありません。"
+	"error_profile_not_found": "このキーに対応する公開プロフィールはありません。",
+	"list_sharing": "共有中…"
 }

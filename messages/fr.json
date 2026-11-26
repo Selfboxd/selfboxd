@@ -525,9 +525,9 @@
 	"error_platform_error": "La plateforme Selfboxd a refusé la demande.",
 	"error_code_invalid": "Le code d’accès doit comporter quatre chiffres.",
 	"list_share": "Partager",
-	"list_share_hint": "Toute personne qui a le lien peut voir la liste ; ses films s’ouvrent sur TMDB.",
 	"list_share_update": "Mettre à jour la liste partagée",
 	"list_share_stop": "Arrêter le partage",
 	"list_shared": "Partagée à l’adresse",
-	"error_profile_not_found": "Aucun profil public ne correspond à cette clé."
+	"error_profile_not_found": "Aucun profil public ne correspond à cette clé.",
+	"list_sharing": "Partage…"
 }

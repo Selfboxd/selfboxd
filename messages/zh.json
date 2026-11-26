@@ -525,9 +525,9 @@
 	"error_platform_error": "Selfboxd 平台拒绝了该请求。",
 	"error_code_invalid": "访问码必须是四位数字。",
 	"list_share": "分享",
-	"list_share_hint": "任何有链接的人都能查看该片单；影片会在 TMDB 上打开。",
 	"list_share_update": "更新共享片单",
 	"list_share_stop": "停止分享",
 	"list_shared": "分享地址",
-	"error_profile_not_found": "没有与此密钥对应的公开主页。"
+	"error_profile_not_found": "没有与此密钥对应的公开主页。",
+	"list_sharing": "分享中…"
 }
