@@ -8,6 +8,7 @@ import { listImageChoices } from '../library/images';
 import { getList, listLists } from '../library/lists';
 import { getProfile, listFavourites, listLiked } from '../library/profile';
 import { listWatched } from '../library/watched';
+import { publicStats } from '../library/stats';
 import { listWatchlist } from '../library/watchlist';
 
 /** Version of the copy of a profile understood by the platform. */
@@ -53,6 +54,7 @@ export interface Snapshot {
 	watchlist: { work: number; addedAt: string }[];
 	/** Whether the account keeps its watchlist private, in which case it is left out. */
 	watchlistHidden: boolean;
+	stats: ReturnType<typeof publicStats>;
 	lists: {
 		id: number;
 		name: string;
@@ -167,6 +169,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		likes,
 		watchlist,
 		watchlistHidden: user.watchlistPrivate,
+		stats: publicStats(db, userId),
 		lists
 	};
 }

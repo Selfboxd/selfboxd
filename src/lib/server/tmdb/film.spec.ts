@@ -28,7 +28,7 @@ describe('toFilm', () => {
 	});
 
 	it('separates the directors from the rest of the crew', () => {
-		expect(film.directors).toEqual([{ id: 578, name: 'Ridley Scott' }]);
+		expect(film.directors).toEqual([{ id: 578, name: 'Ridley Scott', profilePath: null }]);
 		expect(film.crew.map((group) => group.job)).not.toContain('Director');
 	});
 

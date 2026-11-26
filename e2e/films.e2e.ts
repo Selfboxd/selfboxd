@@ -351,7 +351,7 @@ test.describe('film API', () => {
 					originalTitle: 'Blade Runner 2049',
 					year: 2017,
 					posterPath: '/blade-runner-poster.jpg',
-					directors: [{ id: 578, name: 'Ridley Scott' }],
+					directors: [{ id: 578, name: 'Ridley Scott', profilePath: null }],
 					alternativeTitles: ['Blade Runner', 'Der Blade Runner', 'ブレードランナー']
 				}
 			],

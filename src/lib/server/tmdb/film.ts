@@ -118,11 +118,16 @@ export function toFilm(raw: RawFilmDetails, region: string): Film {
 		rating: { average: raw.vote_average, count: raw.vote_count },
 		directors: raw.credits.crew
 			.filter((member) => member.job === directorJob)
-			.map((member) => ({ id: member.id, name: member.name })),
+			.map((member) => ({
+				id: member.id,
+				name: member.name,
+				profilePath: member.profile_path ?? null
+			})),
 		cast: raw.credits.cast.map((member) => ({
 			id: member.id,
 			name: member.name,
-			character: member.character ?? ''
+			character: member.character ?? '',
+			profilePath: member.profile_path ?? null
 		})),
 		crew: groupCrew(raw.credits.crew),
 		genres: raw.genres.map((genre) => genre.name),

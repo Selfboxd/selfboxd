@@ -7,6 +7,7 @@ import {
 	text,
 	uniqueIndex
 } from 'drizzle-orm/sqlite-core';
+import type { WorkFacts } from '../../catalog/stats';
 
 export const users = sqliteTable('users', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -321,3 +322,12 @@ export const sharedLists = sqliteTable(
 		)
 	]
 );
+
+/** What statistics keep from the TMDB details of a work, refreshed now and then. */
+export const workFacts = sqliteTable('work_facts', {
+	workId: integer('work_id')
+		.primaryKey()
+		.references(() => works.id, { onDelete: 'cascade' }),
+	facts: text('facts', { mode: 'json' }).$type<WorkFacts>().notNull(),
+	fetchedAt: integer('fetched_at', { mode: 'timestamp' }).notNull()
+});
