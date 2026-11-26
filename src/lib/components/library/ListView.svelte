@@ -252,8 +252,8 @@
 			</ol>
 		{:else}
 			<ul class="grid">
-				{#each entries as { film, position, note, watched } (film.id)}
-					<li class:watched>
+				{#each entries as { film, position, note } (film.id)}
+					<li>
 						<FilmPoster {film} size="medium" />
 						{#if ranked}<p class="position">{position}</p>{/if}
 						{#if note}<p class="note">{note}</p>{/if}
@@ -454,15 +454,6 @@
 
 	.grid :global(.poster) {
 		width: 100%;
-	}
-
-	.grid .watched :global(.poster img) {
-		opacity: 0.5;
-		transition: opacity var(--duration-fast);
-	}
-
-	.grid .watched:hover :global(.poster img) {
-		opacity: 1;
 	}
 
 	.position {

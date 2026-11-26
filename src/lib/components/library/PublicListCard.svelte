@@ -2,8 +2,7 @@
 	import { resolve } from '$app/paths';
 	import type { Chart } from '#lib/catalog/charts.js';
 	import type { FilmSummary } from '#lib/catalog/film.js';
-	import { publicListPreviewSize } from '#lib/catalog/lists.js';
-	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
+	import ListStack from './ListStack.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
@@ -33,19 +32,11 @@
 				: resolve('/(app)/lists/[id]', { id: String(target.list) })
 	);
 
-	const empty = $derived(
-		Array.from({ length: publicListPreviewSize - list.preview.length }, (_, index) => index)
-	);
 	const compact = $derived(new Intl.NumberFormat(getLocale(), { notation: 'compact' }));
 </script>
 
 <article class:row>
-	<a class="stack" {href} tabindex="-1" aria-hidden="true">
-		{#each list.preview as film (film.id)}
-			<FilmPoster {film} size="medium" linked={false} />
-		{/each}
-		{#each empty as slot (slot)}<span class="slot"></span>{/each}
-	</a>
+	<ListStack works={list.preview} {href} />
 	<div class="text">
 		<h3><a {href}>{list.name}</a></h3>
 		<p class="meta">
@@ -66,8 +57,8 @@
 		align-items: center;
 	}
 
-	.row .stack {
-		margin-bottom: 0;
+	article:not(.row) > :global(.stack) {
+		margin-bottom: var(--space-2);
 	}
 
 	.row h3 {
@@ -80,52 +71,6 @@
 
 	h3 {
 		overflow-wrap: anywhere;
-	}
-
-	.stack {
-		display: flex;
-		overflow: hidden;
-		margin-bottom: var(--space-2);
-		border-radius: var(--radius-medium);
-		box-shadow: var(--shadow-poster-frame);
-	}
-
-	.stack :global(.poster),
-	.slot {
-		flex: 0 0 34%;
-		width: auto;
-		border-radius: 0;
-		aspect-ratio: 2 / 3;
-		box-shadow: var(--shadow-poster-stack);
-	}
-
-	.stack > :global(* + *) {
-		margin-inline-start: -17.5%;
-	}
-
-	.stack > :global(:nth-child(1)) {
-		z-index: 4;
-	}
-
-	.stack > :global(:nth-child(2)) {
-		z-index: 3;
-	}
-
-	.stack > :global(:nth-child(3)) {
-		z-index: 2;
-	}
-
-	.stack > :global(:nth-child(4)) {
-		z-index: 1;
-	}
-
-	.slot {
-		position: relative;
-		background: var(--color-chip);
-	}
-
-	.stack:hover {
-		box-shadow: var(--shadow-poster-hover);
 	}
 
 	h3 {

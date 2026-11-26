@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { formatDate } from '#lib/i18n/dates.js';
 	import { countryName, languageName } from '#lib/i18n/names.js';
+	import Tooltip from '#lib/components/Tooltip.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { releaseTypes, type Company, type Film, type ReleaseType } from '#lib/catalog/film.js';
 
@@ -14,6 +15,8 @@
 	}
 
 	let { film }: Props = $props();
+
+	let hoveredCast = $state<number | null>(null);
 
 	type TabId = 'cast' | 'crew' | 'details' | 'genres' | 'releases';
 
@@ -82,7 +85,14 @@
 	{#if active === 'cast'}
 		<ul class="chips">
 			{#each visibleCast as member (member.id)}
-				<li title={member.character}>
+				<li
+					class="member"
+					onpointerenter={() => (hoveredCast = member.id)}
+					onpointerleave={() => (hoveredCast = null)}
+				>
+					{#if hoveredCast === member.id && member.character}
+						<Tooltip>{member.character}</Tooltip>
+					{/if}
 					<a href={resolve('/(app)/person/[id]', { id: String(member.id) })}>{member.name}</a>
 				</li>
 			{/each}
@@ -165,6 +175,10 @@
 </div>
 
 <style>
+	.member {
+		position: relative;
+	}
+
 	.tabs {
 		display: flex;
 		gap: var(--space-4);

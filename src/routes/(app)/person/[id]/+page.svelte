@@ -203,8 +203,8 @@
 			{:else}
 				<ul class="grid">
 					{#each data.works as work (`${work.kind}:${String(work.id)}`)}
-						<li class:watched={work.watched} title={work.character || undefined}>
-							<FilmPoster film={work} size="medium" />
+						<li>
+							<FilmPoster film={work} size="medium" note={work.character || undefined} />
 						</li>
 					{/each}
 				</ul>
@@ -332,15 +332,6 @@
 
 	.grid :global(.poster) {
 		width: 100%;
-	}
-
-	.grid .watched :global(.poster img) {
-		opacity: 0.5;
-		transition: opacity var(--duration-fast);
-	}
-
-	.grid .watched:hover :global(.poster img) {
-		opacity: 1;
 	}
 
 	.side {

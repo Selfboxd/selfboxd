@@ -152,14 +152,15 @@
 
 	h1 {
 		color: var(--color-text-strong);
-		font-family: var(--font-body);
-		font-size: var(--font-size-title);
-		font-weight: 300;
+		font-size: var(--font-size-hero);
+		font-style: italic;
+		line-height: 1.2;
 	}
 
 	.welcome p {
-		margin-top: var(--space-1);
+		margin-top: var(--space-2);
 		color: var(--color-text-muted);
+		font-size: var(--font-size-prose);
 	}
 
 	section {

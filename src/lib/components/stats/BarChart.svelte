@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	interface Bar {
 		label: string;
 		value: number;
@@ -69,7 +70,13 @@
 						onfocus={() => (active = index)}
 						onblur={() => (active = null)}
 					></button>
-					{#if active === index}<span class="tip" aria-hidden="true">{bar.tip}</span>{/if}
+					{#if active === index}<span
+							class="tip"
+							aria-hidden="true"
+							in:fade={{ delay: 380, duration: 160 }}
+						>
+							{bar.tip}
+						</span>{/if}
 				</li>
 			{/each}
 		</ul>

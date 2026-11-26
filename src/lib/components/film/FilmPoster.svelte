@@ -6,6 +6,7 @@
 	import type { FilmSummary } from '#lib/catalog/film.js';
 	import type { WorkKind } from '#lib/catalog/library.js';
 	import { workRoute } from '#lib/paths.js';
+	import Tooltip from '#lib/components/Tooltip.svelte';
 	import PosterActions from './PosterActions.svelte';
 	import type { PosterSeason } from '#lib/components/library/log-target.js';
 
@@ -23,9 +24,11 @@
 		actions?: boolean;
 		/** The season of a series the poster shows, for the quick actions. */
 		season?: PosterSeason | undefined;
+		/** Second line of the tooltip, such as the character a person plays. */
+		note?: string | undefined;
 	}
 
-	let { film, size = 'medium', linked = true, actions = linked, season }: Props = $props();
+	let { film, size = 'medium', linked = true, actions = linked, season, note }: Props = $props();
 
 	const imageSizes: Record<NonNullable<Props['size']>, TmdbImageSize> = {
 		tiny: 'w92',
@@ -45,19 +48,33 @@
 	const posterPath = $derived(chosen ?? film.posterPath);
 
 	const label = $derived(film.year ? `${film.title} (${String(film.year)})` : film.title);
+
+	let hovered = $state(false);
 </script>
 
 {#snippet picture()}
 	{#if posterPath}
-		<img src={tmdbImage(posterPath, imageSizes[size])} alt={label} loading="lazy" />
+		<img src={tmdbImage(posterPath, imageSizes[size])} alt={linked ? '' : label} loading="lazy" />
 	{:else}
 		<span class="placeholder">{film.title}</span>
 	{/if}
 {/snippet}
 
-<div class="poster {size}" class:interactive={linked || actions}>
+<div
+	class="poster {size}"
+	class:interactive={linked || actions}
+	role="presentation"
+	onpointerenter={() => (hovered = linked)}
+	onpointerleave={() => (hovered = false)}
+>
+	{#if hovered}
+		<Tooltip>
+			<span>{label}</span>
+			{#if note}<span class="note">{note}</span>{/if}
+		</Tooltip>
+	{/if}
 	{#if linked}
-		<a href={resolve(workRoute(film.kind ?? 'film'), { id: String(film.id) })} title={label}>
+		<a href={resolve(workRoute(film.kind ?? 'film'), { id: String(film.id) })} aria-label={label}>
 			{@render picture()}
 		</a>
 	{:else}
@@ -75,6 +92,7 @@
 		border-radius: var(--radius-medium);
 		background: var(--color-panel);
 		box-shadow: var(--shadow-poster);
+		container-type: inline-size;
 	}
 
 	.poster::after {
@@ -84,6 +102,7 @@
 		content: '';
 		inset: 0;
 		pointer-events: none;
+		transition: box-shadow var(--duration-medium) var(--ease-out);
 	}
 
 	.interactive:hover::after,
@@ -127,6 +146,12 @@
 	a,
 	.placeholder {
 		border-radius: inherit;
+	}
+
+	.note {
+		color: var(--color-text);
+		font-size: var(--font-size-small);
+		font-weight: 400;
 	}
 
 	.placeholder {

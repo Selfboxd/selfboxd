@@ -18,7 +18,7 @@ async function choose(page: Page, menu: string, option: string) {
 }
 
 function posters(page: Page) {
-	return page.locator('main ul.grid a[title]');
+	return page.locator('main ul.grid a[aria-label]');
 }
 
 test.describe('streaming settings', () => {

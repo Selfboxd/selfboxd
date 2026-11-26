@@ -5,6 +5,7 @@
 	import Backdrop from '#lib/components/Backdrop.svelte';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import Icon from '#lib/components/Icon.svelte';
+	import ListStack from '#lib/components/library/ListStack.svelte';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
 	import ProfileLinks from '#lib/components/profile/ProfileLinks.svelte';
 	import ProfileNav from '#lib/components/profile/ProfileNav.svelte';
@@ -213,11 +214,10 @@
 				<ul class="lists">
 					{#each data.lists as list (list.id)}
 						<li>
-							<a class="stack" href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>
-								{#each list.preview as work (work.id)}
-									<FilmPoster film={{ ...work, id: work.externalId }} size="small" linked={false} />
-								{/each}
-							</a>
+							<ListStack
+								works={list.preview.map((work) => ({ ...work, id: work.externalId }))}
+								href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
+							/>
 							<p>
 								<a
 									class="list-name"
@@ -515,22 +515,8 @@
 		margin-bottom: var(--space-4);
 	}
 
-	.stack {
-		display: flex;
-		overflow: hidden;
-		min-height: var(--list-stack-height);
+	.lists :global(.stack) {
 		margin-bottom: var(--space-2);
-		border-radius: var(--radius-medium);
-		background: var(--color-chip);
-	}
-
-	.stack :global(.poster) {
-		flex-shrink: 0;
-		box-shadow: var(--shadow-poster-stack);
-	}
-
-	.stack :global(.poster + .poster) {
-		margin-inline-start: calc(-1 * var(--space-6));
 	}
 
 	.list-name {
