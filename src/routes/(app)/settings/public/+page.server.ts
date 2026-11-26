@@ -16,8 +16,12 @@ import {
 } from '#lib/server/public/profile.js';
 import type { Actions, PageServerLoad } from './$types';
 
-/** Reads an optional access code: four digits, or nothing; `false` for anything else. */
-function readCode(value: string): string | null | false {
+/** Reads an optional access code sent one digit per box: four digits, or nothing. */
+function readCode(form: FormData): string | null | false {
+	const value = form
+		.getAll('accessCode')
+		.map((digit) => (typeof digit === 'string' ? digit.trim() : ''))
+		.join('');
 	if (value === '') return null;
 	return /^\d{4}$/.test(value) ? value : false;
 }
@@ -47,7 +51,7 @@ export const actions: Actions = {
 		const { user } = requireUser(locals);
 		const form = await request.formData();
 		const handle = formText(form, 'handle').trim().toLowerCase();
-		const code = readCode(formText(form, 'accessCode').trim());
+		const code = readCode(form);
 		if (code === false) return fail(400, { action: 'enable' as const, error: 'code_invalid' });
 		if (getPublicProfile(getDatabase(), user.id)) return { action: 'enable' as const };
 		const result = await enablePublicProfile(user.id, handle, code);
@@ -69,7 +73,7 @@ export const actions: Actions = {
 	code: async ({ locals, request }) => {
 		const { user } = requireUser(locals);
 		const form = await request.formData();
-		const code = form.has('remove') ? null : readCode(formText(form, 'accessCode').trim());
+		const code = form.has('remove') ? null : readCode(form);
 		if (code === false || (code === null && !form.has('remove'))) {
 			return fail(400, { action: 'code' as const, error: 'code_invalid' });
 		}

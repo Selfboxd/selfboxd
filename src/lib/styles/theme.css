@@ -65,6 +65,9 @@
 	--color-danger-button-hover: #b04e4e;
 	--color-rating: #00c030;
 	--color-danger: #ff6666;
+	--color-danger-soft: rgb(255 102 102 / 16%);
+	--color-danger-soft-hover: rgb(255 102 102 / 30%);
+	--color-danger-soft-text: #ffb3b3;
 	--color-danger-surface: #3a2228;
 	--color-success-surface: #17301f;
 	--color-focus: #40bcf4;
@@ -173,6 +176,10 @@
 	--sidebar-width: 15rem;
 	--calendar-width: 3.25rem;
 	--service-tile: 11rem;
+	--services-height: 28rem;
+	--settings-wide: 52rem;
+	--code-digit: 2.75rem;
+	--code-digit-height: 3.25rem;
 	--dialog-images-width: 64rem;
 	--backdrop-choice: 14rem;
 }

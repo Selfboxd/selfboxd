@@ -113,7 +113,7 @@
 
 .split {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+	grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
 	gap: var(--space-12);
 	align-items: start;
 }
@@ -132,12 +132,14 @@
 }
 
 .button-danger {
-	background: var(--color-danger-button);
-	color: var(--color-heading);
+	background: var(--color-danger-soft);
+	box-shadow: none;
+	color: var(--color-danger-soft-text);
 }
 
 .button-danger:hover {
-	background: var(--color-danger-button-hover);
+	background: var(--color-danger-soft-hover);
+	color: var(--color-heading);
 }
 
 .sr-only {

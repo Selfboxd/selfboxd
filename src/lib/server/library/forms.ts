@@ -7,6 +7,7 @@ import {
 	seasonMax,
 	seriesStatuses,
 	watchlistNoteMaxLength,
+	type ProfileLinks,
 	type SeriesStatus
 } from '../../catalog/library';
 import { formText } from '../auth/forms';
@@ -26,7 +27,8 @@ export type LibraryFormError =
 	| 'list_name_too_long'
 	| 'list_description_too_long'
 	| 'bio_too_long'
-	| 'location_too_long';
+	| 'location_too_long'
+	| 'link_invalid';
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; error: LibraryFormError };
 
@@ -109,10 +111,53 @@ export function parseId(value: string): number | undefined {
 }
 
 /** Reads and validates the fields of the profile form. */
-export function parseProfileForm(form: FormData): Parsed<{ bio: string; location: string }> {
+/**
+ * Reads a username of a network, given bare, with an `@` or as the address of the profile.
+ * Returns `''` for nothing and `undefined` for a text that is not a username.
+ */
+function username(value: string, hosts: string[], pattern: RegExp): string | undefined {
+	let name = value.trim();
+	for (const host of hosts) {
+		const match = new RegExp(`^(?:https?://)?(?:www\\.)?${host.replace('.', '\\.')}/`, 'i').exec(
+			name
+		);
+		if (match) name = name.slice(match[0].length);
+	}
+	name = name.replace(/^@/, '').replace(/\/+$/, '');
+	if (name === '') return '';
+	return pattern.test(name) ? name : undefined;
+}
+
+/** Reads the address of a website; a bare domain gets `https://`. */
+function website(value: string): string | undefined {
+	const trimmed = value.trim();
+	if (trimmed === '') return '';
+	const address = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+	if (address.length > 200) return undefined;
+	try {
+		const url = new URL(address);
+		return url.hostname.includes('.') ? url.href : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+export function parseProfileForm(
+	form: FormData
+): Parsed<{ bio: string; location: string; links: ProfileLinks }> {
 	const bio = formText(form, 'bio').trim();
 	if (bio.length > bioMaxLength) return { ok: false, error: 'bio_too_long' };
 	const location = formText(form, 'location').trim();
 	if (location.length > locationMaxLength) return { ok: false, error: 'location_too_long' };
-	return { ok: true, value: { bio, location } };
+	const links = {
+		website: website(formText(form, 'website')),
+		instagram: username(formText(form, 'instagram'), ['instagram.com'], /^[A-Za-z0-9._]{1,30}$/),
+		x: username(formText(form, 'x'), ['x.com', 'twitter.com'], /^[A-Za-z0-9_]{1,15}$/),
+		discord: username(formText(form, 'discord'), [], /^[a-z0-9._]{2,32}$/)
+	};
+	const { website: site, instagram, x, discord } = links;
+	if (site === undefined || instagram === undefined || x === undefined || discord === undefined) {
+		return { ok: false, error: 'link_invalid' };
+	}
+	return { ok: true, value: { bio, location, links: { website: site, instagram, x, discord } } };
 }

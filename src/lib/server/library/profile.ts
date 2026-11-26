@@ -1,5 +1,6 @@
 import { and, count, desc, eq, isNotNull, like, ne } from 'drizzle-orm';
 import {
+	emptyLinks,
 	favouriteSlots,
 	pinnedReviewLimit,
 	ratingMax,
@@ -23,19 +24,33 @@ import {
 
 export function getProfile(db: DatabaseExecutor, userId: number): Profile {
 	const row = db
-		.select({ bio: users.bio, location: users.location, bannerPath: users.bannerPath })
+		.select({
+			bio: users.bio,
+			location: users.location,
+			bannerPath: users.bannerPath,
+			website: users.website,
+			instagram: users.instagram,
+			x: users.xHandle,
+			discord: users.discord
+		})
 		.from(users)
 		.where(eq(users.id, userId))
 		.get();
-	return row ?? { bio: '', location: '', bannerPath: null };
+	if (!row) return { bio: '', location: '', bannerPath: null, links: emptyLinks };
+	const { website, instagram, x, discord, ...profile } = row;
+	return { ...profile, links: { website, instagram, x, discord } };
 }
 
 export function updateProfile(
 	db: DatabaseExecutor,
 	userId: number,
-	input: Pick<Profile, 'bio' | 'location'>
+	input: Pick<Profile, 'bio' | 'location' | 'links'>
 ): void {
-	db.update(users).set(input).where(eq(users.id, userId)).run();
+	const { website, instagram, x, discord } = input.links;
+	db.update(users)
+		.set({ bio: input.bio, location: input.location, website, instagram, xHandle: x, discord })
+		.where(eq(users.id, userId))
+		.run();
 }
 
 export function setBanner(db: DatabaseExecutor, userId: number, bannerPath: string | null): void {

@@ -12,6 +12,9 @@ import {
 	updateProfile
 } from '#lib/server/library/profile.js';
 import { resolveFilm } from '#lib/server/library/resolve.js';
+import { setAvatarVersion } from '#lib/server/auth/users.js';
+import { deleteAvatar, processAvatar, saveAvatar } from '#lib/server/media/avatar.js';
+import { avatarsDir } from '#lib/server/paths.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -46,6 +49,26 @@ export const actions: Actions = {
 		if (!Number.isInteger(slot)) return invalid();
 		clearFavourite(getDatabase(), user.id, slot);
 		return { saved: false };
+	},
+
+	upload: async ({ locals, request }) => {
+		const { user } = requireUser(locals);
+		const file = (await request.formData()).get('avatar');
+		if (!(file instanceof File) || file.size === 0) {
+			return fail(400, { action: 'upload' as const, error: 'image_invalid' as const });
+		}
+		const result = await processAvatar(new Uint8Array(await file.arrayBuffer()));
+		if (!result.ok) return fail(400, { action: 'upload' as const, error: result.error });
+		await saveAvatar(avatarsDir, user.id, result.image);
+		setAvatarVersion(getDatabase(), user.id, Date.now());
+		return { action: 'upload' as const };
+	},
+
+	removeAvatar: async ({ locals }) => {
+		const { user } = requireUser(locals);
+		setAvatarVersion(getDatabase(), user.id, null);
+		await deleteAvatar(avatarsDir, user.id);
+		return { action: 'removeAvatar' as const };
 	},
 
 	removeBanner: ({ locals }) => {

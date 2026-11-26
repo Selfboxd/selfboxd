@@ -20,6 +20,12 @@ export const users = sqliteTable('users', {
 	bio: text('bio').notNull().default(''),
 	location: text('location').notNull().default(''),
 	bannerPath: text('banner_path'),
+	/** Address of a website shown on the profile. */
+	website: text('website').notNull().default(''),
+	/** Instagram, X and Discord usernames shown on the profile. */
+	instagram: text('instagram').notNull().default(''),
+	xHandle: text('x_handle').notNull().default(''),
+	discord: text('discord').notNull().default(''),
 	/** ISO 3166-1 code of the country of the account, for releases and streaming offers. */
 	country: text('country'),
 	createdAt: integer('created_at', { mode: 'timestamp' })

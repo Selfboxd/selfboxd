@@ -47,7 +47,11 @@ describe('public profile snapshot', () => {
 	});
 
 	it('holds the profile, its works once each, and references by index', () => {
-		updateProfile(database.db, ada.id, { bio: 'Night owl', location: 'Lisbon' });
+		updateProfile(database.db, ada.id, {
+			bio: 'Night owl',
+			location: 'Lisbon',
+			links: { website: '', instagram: 'ada', x: '', discord: '' }
+		});
 		setBanner(database.db, ada.id, '/banner.jpg');
 		setFavourite(database.db, ada.id, 2, film);
 		createDiaryEntry(database.db, ada.id, film, {

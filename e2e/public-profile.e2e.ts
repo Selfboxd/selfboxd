@@ -30,7 +30,10 @@ function handleOf(account: Account): string {
 
 async function enable(page: Page, code = '') {
 	await page.goto('/settings/public');
-	if (code) await page.getByLabel('Access code (optional)').fill(code);
+	if (code) {
+		await page.getByLabel('Access code 1').click();
+		await page.keyboard.type(code);
+	}
 	await page.getByRole('button', { name: 'Publish my profile' }).click();
 	await expect(page.getByText('Your profile is online at')).toBeVisible();
 }
@@ -64,7 +67,7 @@ test.describe('public profile', () => {
 	}) => {
 		await enable(page);
 		const handle = handleOf(account);
-		await expect(page.getByRole('link', { name: `${platform}/${handle}` })).toBeVisible();
+		await expect(page.getByRole('link', { name: `localhost:4177/${handle}` })).toBeVisible();
 		const first = await published(request, handle);
 		expect(first?.payload?.profile.name).toBe(account.username);
 		expect(first?.payload?.accessCode).toBeNull();
@@ -141,7 +144,7 @@ test.describe('public profile', () => {
 		await elsewhere.goto('/settings/public');
 		await elsewhere.getByLabel('Recovery key').fill(key);
 		await elsewhere.getByRole('button', { name: 'Restore' }).click();
-		await expect(elsewhere.getByRole('link', { name: `${platform}/${handle}` })).toBeVisible();
+		await expect(elsewhere.getByRole('link', { name: `localhost:4177/${handle}` })).toBeVisible();
 		await expect
 			.poll(async () => (await published(request, handle))?.payload?.profile.name)
 			.toBe(moved.username);
@@ -192,6 +195,8 @@ test.describe('public profile', () => {
 
 	test('deletes the copy from the platform', async ({ page, request }) => {
 		await enable(page);
+		await page.getByRole('button', { name: 'Delete the public profile' }).click();
+		await expect(page.getByText('Delete your public profile from the platform?')).toBeVisible();
 		await page.getByRole('button', { name: 'Delete the public profile' }).click();
 		await expect(page.getByRole('button', { name: 'Publish my profile' })).toBeVisible();
 		expect(await published(request, handleOf(account))).toBeNull();

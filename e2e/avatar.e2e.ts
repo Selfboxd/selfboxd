@@ -10,9 +10,8 @@ async function photo(): Promise<Buffer> {
 }
 
 async function upload(page: Page, file: { name: string; mimeType: string; buffer: Buffer }) {
-	await page.goto('/settings/avatar');
+	await page.goto('/settings/profile');
 	await page.getByLabel('Image').setInputFiles(file);
-	await page.getByRole('button', { name: 'Upload' }).click();
 }
 
 function headerAvatar(page: Page) {
