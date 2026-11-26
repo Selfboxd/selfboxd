@@ -14,6 +14,8 @@ export interface FilmSearchResult extends FilmSummary {
 export interface Person {
 	id: number;
 	name: string;
+	/** Path of the TMDB profile picture, when TMDB has one and it was asked for. */
+	profilePath?: string | null;
 }
 
 /** A production company or a television network. */

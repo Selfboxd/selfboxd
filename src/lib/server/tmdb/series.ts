@@ -39,11 +39,16 @@ export function toSeries(raw: RawSeriesDetails, region: string): Series {
 		overview: raw.overview ?? '',
 		backdropPath: raw.backdrop_path ?? null,
 		rating: { average: raw.vote_average, count: raw.vote_count },
-		creators: raw.created_by.map((person) => ({ id: person.id, name: person.name })),
+		creators: raw.created_by.map((person) => ({
+			id: person.id,
+			name: person.name,
+			profilePath: person.profile_path ?? null
+		})),
 		cast: raw.credits.cast.map((member) => ({
 			id: member.id,
 			name: member.name,
-			character: member.character ?? ''
+			character: member.character ?? '',
+			profilePath: member.profile_path ?? null
 		})),
 		crew: groupCrew(raw.credits.crew, null),
 		genres: raw.genres.map((genre) => genre.name),

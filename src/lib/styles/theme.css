@@ -33,6 +33,7 @@
 	--color-input-focus: #ffffff;
 	--color-input-focus-text: #223344;
 	--color-accent: #00ac1c;
+	--color-accent-dim: #1e6b39;
 	--color-accent-hover: #009d1a;
 	--color-accent-contrast: #ffffff;
 	--color-highlight: #00e054;
@@ -154,6 +155,7 @@
 	--browse-height: 1.75rem;
 	--details-label-width: 8.5rem;
 	--toast-width: 22rem;
+	--stats-chart-height: 7rem;
 	--search-height: 1.875rem;
 	--menu-row-height: 2.5rem;
 	--poster-tiny: 2.1875rem;

@@ -49,7 +49,9 @@ export const filmDetailsSchema = v.object({
 				profile_path: optionalText
 			})
 		),
-		crew: v.array(v.object({ id: v.number(), name: v.string(), job: v.string() }))
+		crew: v.array(
+			v.object({ id: v.number(), name: v.string(), job: v.string(), profile_path: optionalText })
+		)
 	}),
 	videos: v.object({
 		results: v.array(
@@ -155,7 +157,10 @@ export const seriesDetailsSchema = v.object({
 	number_of_episodes: v.optional(v.number(), 0),
 	episode_run_time: v.optional(v.array(v.number()), []),
 	genres: v.array(v.object({ id: v.number(), name: v.string() })),
-	created_by: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
+	created_by: v.optional(
+		v.array(v.object({ id: v.number(), name: v.string(), profile_path: optionalText })),
+		[]
+	),
 	networks: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
 	production_companies: v.optional(v.array(v.object({ id: v.number(), name: v.string() })), []),
 	origin_country: v.optional(v.array(v.string()), []),

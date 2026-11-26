@@ -1,3 +1,5 @@
+import { ensureAccountFacts } from '../library/stats';
+import { getTmdbContext } from '../tmdb/index';
 import { eq } from 'drizzle-orm';
 import type { AppDatabase } from '../db/connection';
 import { getDatabase } from '../db/index';
@@ -63,6 +65,8 @@ export async function publishNow(userId: number): Promise<Outcome> {
 	if (!row) return { ok: false, error: 'not_found' };
 	db.update(publicProfiles).set({ pending: false }).where(eq(publicProfiles.userId, userId)).run();
 
+	const context = getTmdbContext();
+	if (context) await ensureAccountFacts(db, context, userId).catch(() => undefined);
 	const avatar = await readAvatar(avatarsDir, userId);
 	const result = await signedRequest(
 		row.keySeed,

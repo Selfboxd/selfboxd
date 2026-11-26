@@ -205,7 +205,7 @@ describe('TMDB service', () => {
 							originalTitle: 'Blade Runner',
 							year: 1982,
 							posterPath: null,
-							directors: [{ id: 578, name: 'Ridley Scott' }],
+							directors: [{ id: 578, name: 'Ridley Scott', profilePath: null }],
 							alternativeTitles: ['Der Blade Runner', 'ブレードランナー']
 						}
 					],

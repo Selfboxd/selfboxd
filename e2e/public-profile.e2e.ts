@@ -16,6 +16,7 @@ interface Published {
 			watchlist: unknown[];
 			watchlistHidden: boolean;
 			lists: { name: string; items: { work: number; note: string }[] }[];
+			stats: { all: { totals: { works: number }; directors: { person: { name: string } }[] } };
 		};
 	} | null;
 }
@@ -86,6 +87,8 @@ test.describe('public profile', () => {
 		const after = await published(request, handle);
 		expect(after?.payload?.profile.diary[0]?.review).toBe('Tears in rain.');
 		expect(after?.payload?.profile.works[0]?.id).toBe(78);
+		expect(after?.payload?.profile.stats.all.totals.works).toBe(1);
+		expect(after?.payload?.profile.stats.all.directors[0]?.person.name).toBe('Ridley Scott');
 		expect(JSON.stringify(after)).not.toContain('localhost:4173');
 	});
 
