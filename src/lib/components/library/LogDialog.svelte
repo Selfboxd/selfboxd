@@ -101,14 +101,23 @@
 		}
 	}
 
-	/** Reloads the page data and closes the dialog after a success, or shows the error. */
+	/** Closes the dialog at once; the change is saved in the background. */
+	function submitted() {
+		error = undefined;
+		dialog?.close();
+		return async ({ result }: { result: ActionResult<ActionData, ActionData> }) => {
+			await finish(result);
+		};
+	}
+
+	/** Reloads the page data after a success, or opens the dialog again on the error. */
 	async function finish(result: ActionResult<ActionData, ActionData>) {
 		if (result.type === 'success') {
 			await refreshAll();
-			dialog?.close();
 		} else {
 			const code = result.type === 'failure' ? result.data?.error : undefined;
 			error = typeof code === 'string' ? code : 'generic';
+			dialog?.showModal();
 		}
 	}
 
@@ -130,15 +139,7 @@
 		</button>
 	</header>
 
-	<form
-		id="{id}-form"
-		method="POST"
-		action="{filmPath}?/log"
-		use:enhance={() =>
-			async ({ result }) => {
-				await finish(result);
-			}}
-	>
+	<form id="{id}-form" method="POST" action="{filmPath}?/log" use:enhance={submitted}>
 		{#if entryId !== null}
 			<input type="hidden" name="entryId" value={entryId} />
 		{/if}
@@ -251,10 +252,7 @@
 			<form
 				method="POST"
 				action="{filmPath}?/deleteEntry"
-				use:enhance={() =>
-					async ({ result }) => {
-						await finish(result);
-					}}
+				use:enhance={submitted}
 				onsubmit={confirmDeletion}
 			>
 				<input type="hidden" name="entryId" value={entryId} />

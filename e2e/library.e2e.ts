@@ -234,6 +234,57 @@ test.describe('diary', () => {
 		await signIn(page, await createAccount(request));
 	});
 
+	test('answers clicks at once while the server is slow', async ({ page }) => {
+		await openFilm(page);
+		let release: () => void = () => undefined;
+		const held = new Promise<void>((done) => {
+			release = done;
+		});
+		await page.route('**/film/78?/like', async (route) => {
+			await held;
+			await route.continue();
+		});
+		await actions(page).getByRole('button', { name: 'Like', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Liked' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		const saved = page.waitForResponse((response) => response.url().endsWith('/film/78?/like'));
+		release();
+		await saved;
+		await page.unroute('**/film/78?/like');
+
+		await page.route('**/film/78?/log', async (route) => {
+			await new Promise((done) => setTimeout(done, 1_500));
+			await route.continue();
+		});
+		const dialog = await openLog(page);
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
+		await expect(dialog).toBeHidden({ timeout: 1_000 });
+		await expect(actions(page).getByRole('button', { name: 'Logged' })).toBeVisible();
+	});
+
+	test('opens the log dialog again when saving fails', async ({ page }) => {
+		await openFilm(page);
+		await page.route('**/film/78?/log', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					type: 'failure',
+					status: 400,
+					data: '[{"error":1},"review_too_long"]'
+				})
+			})
+		);
+		const dialog = await openLog(page);
+		await dialog.getByLabel('Review').fill('Kept while it fails.');
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
+		await expect(dialog).toBeVisible();
+		await expect(dialog.getByRole('alert')).toBeVisible();
+		await expect(dialog.getByLabel('Review')).toHaveValue('Kept while it fails.');
+	});
+
 	test('shows a heart for a film liked outside its entry', async ({ page }) => {
 		await openFilm(page);
 		const dialog = await openLog(page);

@@ -33,9 +33,28 @@
 		onimages
 	}: Props = $props();
 
-	const logged = $derived(state.logCount > 0);
+	/** The state shown, changed at once by a click and replaced by the saved one. */
+	let shown = $derived({ ...state });
+
+	/** Shows a change before the server confirms it; a refusal brings back the saved state. */
+	function optimistic(change: (current: WorkState, form: FormData) => Partial<WorkState>) {
+		return ({ formData }: { formData: FormData }) => {
+			shown = { ...shown, ...change(shown, formData) };
+			return async ({ update }: { update: () => Promise<void> }) => {
+				await update();
+				shown = { ...state };
+			};
+		};
+	}
+
+	function rated(form: FormData): number | null {
+		const value = Number(form.get('rating'));
+		return Number.isInteger(value) && value >= 1 && value <= 10 ? value : null;
+	}
+
+	const logged = $derived(shown.logCount > 0);
 	const watchLabel = $derived(
-		logged ? m.action_logged() : state.watched ? m.action_watched() : m.action_watch()
+		logged ? m.action_logged() : shown.watched ? m.action_watched() : m.action_watch()
 	);
 </script>
 
@@ -50,9 +69,17 @@
 
 <section class="actions" aria-label={m.actions_label()}>
 	<div class="toggles">
-		<form method="POST" action="?/watch" use:enhance>
-			<input type="hidden" name="watched" value={String(!state.watched)} />
-			<button class="toggle watch" class:on={state.watched} aria-pressed={state.watched}>
+		<form
+			method="POST"
+			action="?/watch"
+			use:enhance={optimistic((current) =>
+				current.watched && current.logCount === 0
+					? { watched: false, rating: null }
+					: { watched: true, inWatchlist: false }
+			)}
+		>
+			<input type="hidden" name="watched" value={String(!shown.watched)} />
+			<button class="toggle watch" class:on={shown.watched} aria-pressed={shown.watched}>
 				<span class="eye">
 					<svg class="glyph" viewBox="0 0 52 32" aria-hidden="true">
 						<path
@@ -61,25 +88,33 @@
 						/>
 						<circle class="pupil" cx="26" cy="16" r="6.5" />
 					</svg>
-					{#if state.logCount > 1}<span class="count">{state.logCount}</span>{/if}
+					{#if shown.logCount > 1}<span class="count">{shown.logCount}</span>{/if}
 				</span>
 				<span>{watchLabel}</span>
 			</button>
 		</form>
-		<form method="POST" action="?/like" use:enhance>
-			<input type="hidden" name="liked" value={String(!state.liked)} />
-			<button class="toggle like" class:on={state.liked} aria-pressed={state.liked}>
+		<form
+			method="POST"
+			action="?/like"
+			use:enhance={optimistic((current) => ({ liked: !current.liked }))}
+		>
+			<input type="hidden" name="liked" value={String(!shown.liked)} />
+			<button class="toggle like" class:on={shown.liked} aria-pressed={shown.liked}>
 				<svg class="glyph" viewBox="0 0 40 32" aria-hidden="true">
 					<path
 						class="shape"
 						d="M20 30S3 20 3 10.500C3 5.500 7 2.500 11 2.500C15 2.500 18.500 5 20 8.500C21.500 5 25 2.500 29 2.500C33 2.500 37 5.500 37 10.500C37 20 20 30 20 30Z"
 					/>
 				</svg>
-				<span>{state.liked ? m.action_liked() : m.action_like()}</span>
+				<span>{shown.liked ? m.action_liked() : m.action_like()}</span>
 			</button>
 		</form>
-		{#if state.inWatchlist}
-			<form method="POST" action="?/watchlist" use:enhance>
+		{#if shown.inWatchlist}
+			<form
+				method="POST"
+				action="?/watchlist"
+				use:enhance={optimistic(() => ({ inWatchlist: false }))}
+			>
 				<input type="hidden" name="listed" value="false" />
 				<button class="toggle watchlist on" aria-pressed="true">
 					{@render watchlistIcon(true)}
@@ -94,9 +129,17 @@
 		{/if}
 	</div>
 
-	<form class="rate" method="POST" action="?/rate" use:enhance>
-		<span class="rate-label">{state.rating === null ? m.action_rate() : m.action_rated()}</span>
-		<RatingInput value={state.rating} {scale} mode="submit" />
+	<form
+		class="rate"
+		method="POST"
+		action="?/rate"
+		use:enhance={optimistic((_, form) => {
+			const rating = rated(form);
+			return rating === null ? { rating } : { rating, watched: true, inWatchlist: false };
+		})}
+	>
+		<span class="rate-label">{shown.rating === null ? m.action_rate() : m.action_rated()}</span>
+		<RatingInput value={shown.rating} {scale} mode="submit" />
 	</form>
 
 	{#if logged}
@@ -106,7 +149,7 @@
 	{:else}
 		<button class="row" type="button" onclick={onlog}>{m.action_log()}</button>
 	{/if}
-	{#if state.inWatchlist}
+	{#if shown.inWatchlist}
 		<button class="row" type="button" onclick={onwatchlist}>{m.action_watchlist_edit()}</button>
 	{/if}
 	<button class="row" type="button" onclick={onlists}>

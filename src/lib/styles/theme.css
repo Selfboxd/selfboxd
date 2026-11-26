@@ -15,7 +15,7 @@
 	--color-header-scrim: rgb(20 24 28 / 92%);
 	--shadow-header-text: 0 1px 3px rgb(0 0 0 / 85%);
 	--shadow-header-icon: drop-shadow(0 1px 2px rgb(0 0 0 / 85%));
-	--color-poster-bar: rgb(8 10 12 / 88%);
+	--color-poster-bar: rgb(4 6 8 / 92%);
 	--color-poster-action: #bbccdd;
 	--color-profile-bar: #2c3440;
 	--color-journal-band: #445566;
@@ -122,7 +122,7 @@
 	--font-size-display: 3.5rem;
 	--font-size-progress: 2.75rem;
 	--font-size-rating-input: 1.75rem;
-	--font-size-poster-action: clamp(0.85rem, 8cqi + 0.3rem, 1.6rem);
+	--font-size-poster-action: clamp(0.625rem, 5cqi + 0.2rem, 1.05rem);
 	--font-size-rating-card: 2.125rem;
 	--font-size-journal-feature: 3rem;
 	--font-size-journal-title: 1.5rem;
