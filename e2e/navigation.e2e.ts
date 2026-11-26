@@ -223,11 +223,49 @@ test.describe('watched films', () => {
 
 		await page.goto('/watched');
 
-		const items = page.getByRole('main').getByRole('listitem');
+		const items = page.locator('main ul.grid > li');
 		await expect(items).toHaveCount(1);
 		await expect(items.getByRole('link')).toHaveAttribute('href', '/film/78');
 		await expect(items.getByRole('img', { name: '4 out of 5 stars' })).toBeVisible();
 		await expect(items.getByRole('img', { name: 'Liked' })).toBeVisible();
+	});
+});
+
+test.describe('watched films filters', () => {
+	test.beforeEach(async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+	});
+
+	test('sort, narrow and resize the watched films', async ({ page }) => {
+		await page.goto('/film/78');
+		await actions(page).getByRole('button', { name: '4 out of 5 stars', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Watched' })).toBeVisible();
+		await page.goto('/film/335984');
+		await actions(page).getByRole('button', { name: '2 out of 5 stars', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Watched' })).toBeVisible();
+		await actions(page).getByRole('button', { name: 'Like', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Liked' })).toBeVisible();
+
+		await page.goto('/watched?sort=rating');
+		const links = page.locator('main ul.grid > li > .poster > a');
+		await expect(links).toHaveCount(2);
+		await expect(links.first()).toHaveAttribute('href', '/film/78');
+		await page.goto('/watched?sort=rating_lowest');
+		await expect(links.first()).toHaveAttribute('href', '/film/335984');
+
+		const head = page.locator('main .head');
+		await head.getByRole('button', { name: 'Show' }).hover();
+		await head.getByRole('link', { name: 'Liked only' }).click();
+		await expect(page).toHaveURL('/watched?liked=1&sort=rating_lowest');
+		await expect(links).toHaveCount(1);
+		await expect(links.first()).toHaveAttribute('href', '/film/335984');
+
+		await head.getByRole('link', { name: 'Large', exact: true }).click();
+		await expect(page).toHaveURL('/watched?liked=1&sort=rating_lowest&size=large');
+		await expect(page.locator('main ul.grid.large')).toBeVisible();
+
+		await page.goto('/watched?decade=1970');
+		await expect(page.getByText('Nothing matches these filters.')).toBeVisible();
 	});
 });
 

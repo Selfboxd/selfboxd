@@ -40,15 +40,7 @@ test.describe('profile', () => {
 		await expect(page.getByRole('heading', { name: 'Favorite films' })).toBeHidden();
 		await expect(page.getByText('No rating yet.')).toBeVisible();
 		const tabs = page.getByRole('navigation', { name: 'Profile' });
-		for (const name of [
-			'Activity',
-			'Films',
-			'Diary',
-			'Reviews',
-			'Watchlist',
-			'Lists',
-			'Likes'
-		]) {
+		for (const name of ['Activity', 'Films', 'Diary', 'Reviews', 'Watchlist', 'Lists', 'Likes']) {
 			await expect(tabs.getByRole('link', { name, exact: true })).toBeVisible();
 		}
 		await expect(tabs.getByRole('link', { name: 'Tags', exact: true })).toHaveCount(0);

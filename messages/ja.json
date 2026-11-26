@@ -685,5 +685,12 @@
 	"list_field_tags": "タグ",
 	"list_tags_hint": "タグ profile を付けるとプロフィールに固定されます（最大2件）。",
 	"reviews_pin_hint": "レビューにタグ profile を付けるとプロフィールに固定されます（最大2件）。",
-	"profile_pinned_lists": "固定したリスト"
+	"profile_pinned_lists": "固定したリスト",
+	"watched_sort_recent": "最近観た順",
+	"watched_show_all": "すべて",
+	"watched_show_liked": "いいねのみ",
+	"watched_show": "表示",
+	"poster_size_small": "小",
+	"poster_size_large": "大",
+	"watched_filtered_empty": "条件に合う作品はありません。"
 }

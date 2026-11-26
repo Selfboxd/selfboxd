@@ -685,5 +685,12 @@
 	"list_field_tags": "标签",
 	"list_tags_hint": "添加标签 profile 即可将列表置顶到个人资料，最多两个。",
 	"reviews_pin_hint": "为影评添加标签 profile 即可置顶到个人资料，最多两条。",
-	"profile_pinned_lists": "置顶列表"
+	"profile_pinned_lists": "置顶列表",
+	"watched_sort_recent": "最近观看",
+	"watched_show_all": "全部",
+	"watched_show_liked": "仅喜欢的",
+	"watched_show": "显示",
+	"poster_size_small": "小",
+	"poster_size_large": "大",
+	"watched_filtered_empty": "没有符合筛选条件的作品。"
 }

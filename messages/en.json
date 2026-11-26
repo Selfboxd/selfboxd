@@ -685,5 +685,12 @@
 	"list_field_tags": "Tags",
 	"list_tags_hint": "Tag a list profile to pin it on your profile, two at most.",
 	"reviews_pin_hint": "Tag a review profile to pin it on your profile, two at most.",
-	"profile_pinned_lists": "Pinned lists"
+	"profile_pinned_lists": "Pinned lists",
+	"watched_sort_recent": "Recently watched",
+	"watched_show_all": "Everything",
+	"watched_show_liked": "Liked only",
+	"watched_show": "Show",
+	"poster_size_small": "Small",
+	"poster_size_large": "Large",
+	"watched_filtered_empty": "Nothing matches these filters."
 }

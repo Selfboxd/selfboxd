@@ -685,5 +685,12 @@
 	"list_field_tags": "Tags",
 	"list_tags_hint": "Ajoutez le tag profile pour épingler la liste sur votre profil, deux au maximum.",
 	"reviews_pin_hint": "Ajoutez le tag profile à une critique pour l’épingler sur votre profil, deux au maximum.",
-	"profile_pinned_lists": "Listes épinglées"
+	"profile_pinned_lists": "Listes épinglées",
+	"watched_sort_recent": "Vus récemment",
+	"watched_show_all": "Tout",
+	"watched_show_liked": "Seulement les aimés",
+	"watched_show": "Afficher",
+	"poster_size_small": "Petit",
+	"poster_size_large": "Grand",
+	"watched_filtered_empty": "Rien ne correspond à ces filtres."
 }

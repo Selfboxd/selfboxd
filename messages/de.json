@@ -685,5 +685,12 @@
 	"list_field_tags": "Tags",
 	"list_tags_hint": "Mit dem Tag profile wird die Liste auf deinem Profil angeheftet, höchstens zwei.",
 	"reviews_pin_hint": "Mit dem Tag profile wird eine Kritik auf deinem Profil angeheftet, höchstens zwei.",
-	"profile_pinned_lists": "Angeheftete Listen"
+	"profile_pinned_lists": "Angeheftete Listen",
+	"watched_sort_recent": "Zuletzt gesehen",
+	"watched_show_all": "Alles",
+	"watched_show_liked": "Nur gemochte",
+	"watched_show": "Anzeigen",
+	"poster_size_small": "Klein",
+	"poster_size_large": "Groß",
+	"watched_filtered_empty": "Nichts passt zu diesen Filtern."
 }

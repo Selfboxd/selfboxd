@@ -685,5 +685,12 @@
 	"list_field_tags": "Etiquetas",
 	"list_tags_hint": "Adicione a etiqueta profile para fixar a lista no seu perfil, no máximo duas.",
 	"reviews_pin_hint": "Adicione a etiqueta profile a uma crítica para fixá-la no seu perfil, no máximo duas.",
-	"profile_pinned_lists": "Listas fixadas"
+	"profile_pinned_lists": "Listas fixadas",
+	"watched_sort_recent": "Vistos recentemente",
+	"watched_show_all": "Tudo",
+	"watched_show_liked": "Apenas os curtidos",
+	"watched_show": "Mostrar",
+	"poster_size_small": "Pequeno",
+	"poster_size_large": "Grande",
+	"watched_filtered_empty": "Nada corresponde a estes filtros."
 }
