@@ -1,6 +1,6 @@
 import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import type { DatabaseExecutor } from '../db/connection';
-import { diaryEntryTags, tags, watchlistItemTags } from '../db/schema';
+import { diaryEntryTags, listTags, tags, watchlistItemTags } from '../db/schema';
 
 export type TagKind = (typeof tags.$inferSelect)['kind'];
 
@@ -24,14 +24,15 @@ export function resolveTagIds(
 		.map((tag) => tag.id);
 }
 
-/** Deletes the tags of an account that no diary entry and no watchlist item uses any more. */
+/** Deletes the tags of an account that no diary entry, watchlist item or list uses any more. */
 export function deleteUnusedTags(db: DatabaseExecutor, userId: number): void {
 	db.delete(tags)
 		.where(
 			and(
 				eq(tags.userId, userId),
 				notInArray(tags.id, db.select({ id: diaryEntryTags.tagId }).from(diaryEntryTags)),
-				notInArray(tags.id, db.select({ id: watchlistItemTags.tagId }).from(watchlistItemTags))
+				notInArray(tags.id, db.select({ id: watchlistItemTags.tagId }).from(watchlistItemTags)),
+				notInArray(tags.id, db.select({ id: listTags.tagId }).from(listTags))
 			)
 		)
 		.run();

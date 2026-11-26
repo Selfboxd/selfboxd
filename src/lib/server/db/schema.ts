@@ -122,7 +122,6 @@ export const diaryEntries = sqliteTable(
 		rewatch: integer('rewatch', { mode: 'boolean' }).notNull().default(false),
 		review: text('review').notNull().default(''),
 		containsSpoilers: integer('contains_spoilers', { mode: 'boolean' }).notNull().default(false),
-		pinned: integer('pinned', { mode: 'boolean' }).notNull().default(false),
 		createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
 	},
 	(table) => [index('diary_entries_user_watched_on_index').on(table.userId, table.watchedOn)]
@@ -135,7 +134,7 @@ export const tags = sqliteTable(
 		userId: integer('user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		kind: text('kind', { enum: ['diary', 'watchlist'] }).notNull(),
+		kind: text('kind', { enum: ['diary', 'watchlist', 'list'] }).notNull(),
 		name: text('name').notNull()
 	},
 	(table) => [uniqueIndex('tags_user_kind_name_unique').on(table.userId, table.kind, table.name)]
@@ -197,6 +196,19 @@ export const lists = sqliteTable(
 		updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 	},
 	(table) => [index('lists_user_index').on(table.userId)]
+);
+
+export const listTags = sqliteTable(
+	'list_tags',
+	{
+		listId: integer('list_id')
+			.notNull()
+			.references(() => lists.id, { onDelete: 'cascade' }),
+		tagId: integer('tag_id')
+			.notNull()
+			.references(() => tags.id, { onDelete: 'cascade' })
+	},
+	(table) => [primaryKey({ columns: [table.listId, table.tagId] })]
 );
 
 export const listItems = sqliteTable(

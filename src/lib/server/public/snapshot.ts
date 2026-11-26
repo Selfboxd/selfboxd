@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { imageKey } from '../../catalog/images';
-import type { Work } from '../../catalog/library';
+import { pinnedLists, pinnedReviews, type Work } from '../../catalog/library';
 import type { DatabaseExecutor } from '../db/connection';
 import { users } from '../db/schema';
 import { listDiaryEntries } from '../library/diary';
@@ -60,6 +60,7 @@ export interface Snapshot {
 		name: string;
 		description: string;
 		ranked: boolean;
+		pinned: boolean;
 		updatedAt: string;
 		items: { work: number; note: string }[];
 	}[];
@@ -113,7 +114,9 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 	const favourites = listFavourites(db, userId).flatMap((work, slot) =>
 		work ? [{ slot: slot + 1, work: index(work) }] : []
 	);
-	const diary = listDiaryEntries(db, userId).map((entry) => ({
+	const entries = listDiaryEntries(db, userId);
+	const pinned = new Set(pinnedReviews(entries).map((entry) => entry.id));
+	const diary = entries.map((entry) => ({
 		id: entry.id,
 		work: index(entry.work),
 		watchedOn: entry.watchedOn,
@@ -123,7 +126,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		rewatch: entry.rewatch,
 		review: entry.review.slice(0, 20_000),
 		spoilers: entry.containsSpoilers,
-		pinned: entry.pinned,
+		pinned: pinned.has(entry.id),
 		tags: entry.tags.slice(0, 20).map((tag) => tag.slice(0, 50))
 	}));
 	const watched = listWatched(db, userId)
@@ -136,7 +139,9 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 				work: index(item.work),
 				addedAt: day(item.addedAt)
 			}));
-	const lists = listLists(db, userId).flatMap((summary) => {
+	const summaries = listLists(db, userId);
+	const pinnedListIds = new Set(pinnedLists(summaries).map((list) => list.id));
+	const lists = summaries.flatMap((summary) => {
 		const list = getList(db, userId, summary.id);
 		if (!list) return [];
 		return [
@@ -145,6 +150,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 				name: list.name.slice(0, 100),
 				description: list.description.slice(0, 5_000),
 				ranked: list.ranked,
+				pinned: pinnedListIds.has(list.id),
 				updatedAt: day(list.updatedAt),
 				items: list.items.map((item) => ({
 					work: index(item.work),

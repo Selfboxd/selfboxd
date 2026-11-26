@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Tous les tags",
 	"watchlist_sort_added": "Ajout",
 	"watchlist_sort_added_oldest": "Ajout le plus ancien",
-	"watchlist_make_private": "Rendre la watchlist privée",
-	"watchlist_make_public": "Afficher la watchlist sur le profil public",
+	"watchlist_make_private": "Rendre privée",
+	"watchlist_make_public": "Rendre publique",
 	"watchlist_private_notice": "Privée : votre profil public ne l’affiche pas.",
 	"watchlist_made_private": "Votre watchlist est maintenant privée.",
 	"watchlist_made_public": "Votre watchlist s’affiche de nouveau sur votre profil public.",
@@ -681,5 +681,9 @@
 	"stats_times": "{count} fois",
 	"stats_cast": "Acteurs",
 	"stats_directors_title": "Réalisateurs",
-	"stats_studios": "Studios"
+	"stats_studios": "Studios",
+	"list_field_tags": "Tags",
+	"list_tags_hint": "Ajoutez le tag profile pour épingler la liste sur votre profil, deux au maximum.",
+	"reviews_pin_hint": "Ajoutez le tag profile à une critique pour l’épingler sur votre profil, deux au maximum.",
+	"profile_pinned_lists": "Listes épinglées"
 }

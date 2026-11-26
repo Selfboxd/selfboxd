@@ -254,7 +254,7 @@
 				</a>
 			</p>
 
-			<div class="panel">
+			<div class="panel action-panel">
 				<button type="button" onclick={() => (adding = true)} disabled={data.works.length === 0}>
 					{m.person_add_to_list()}
 				</button>
@@ -410,42 +410,6 @@
 		color: var(--color-text);
 		font-size: var(--font-size-micro);
 		letter-spacing: var(--letter-spacing-caps);
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		border-radius: var(--radius-medium);
-		background: var(--color-surface-raised);
-	}
-
-	.panel button {
-		display: block;
-		width: 100%;
-		padding: var(--space-3);
-		border: 0;
-		border-top: 1px solid var(--color-dialog-divider);
-		background: none;
-		color: var(--color-text-panel);
-		font-family: inherit;
-		font-size: var(--font-size-body);
-		text-align: center;
-		cursor: pointer;
-	}
-
-	.panel > :first-child,
-	.panel > :first-child button {
-		border-top: 0;
-	}
-
-	.panel button:hover:not(:disabled) {
-		color: var(--color-heading);
-	}
-
-	.panel button:disabled {
-		cursor: default;
-		opacity: 0.5;
 	}
 
 	@media (max-width: 48rem) {

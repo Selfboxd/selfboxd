@@ -55,7 +55,6 @@ export interface DiaryEntry {
 	review: string;
 	containsSpoilers: boolean;
 	/** Whether the review is shown on the profile of the account. */
-	pinned: boolean;
 	tags: string[];
 }
 
@@ -99,6 +98,7 @@ export interface ListSummary {
 	name: string;
 	description: string;
 	ranked: boolean;
+	tags: string[];
 	/** Number of works in the list. */
 	count: number;
 	/** First works of the list, in order. */
@@ -118,6 +118,7 @@ export interface WorkList {
 	updatedAt: string;
 	description: string;
 	ranked: boolean;
+	tags: string[];
 	items: ListItem[];
 }
 
@@ -166,4 +167,24 @@ export interface TagCount {
 export const bioMaxLength = 1000;
 export const locationMaxLength = 100;
 export const favouriteSlots = 4;
-export const pinnedReviewLimit = 2;
+/** Tag that pins a review or a list on the profile. */
+export const profileTag = 'profile';
+/** Reviews, and lists, pinned on the profile at most. */
+export const pinnedLimit = 2;
+
+/** Whether tags carry the profile tag, whatever its case. */
+export function hasProfileTag(tags: string[]): boolean {
+	return tags.some((tag) => tag.toLowerCase() === profileTag);
+}
+
+/** Reviews pinned on the profile: the latest ones with a review and the profile tag. */
+export function pinnedReviews<T extends { review: string; tags: string[] }>(entries: T[]): T[] {
+	return entries
+		.filter((entry) => entry.review !== '' && hasProfileTag(entry.tags))
+		.slice(0, pinnedLimit);
+}
+
+/** Lists pinned on the profile: the latest changed ones with the profile tag. */
+export function pinnedLists<T extends { tags: string[] }>(lists: T[]): T[] {
+	return lists.filter((list) => hasProfileTag(list.tags)).slice(0, pinnedLimit);
+}

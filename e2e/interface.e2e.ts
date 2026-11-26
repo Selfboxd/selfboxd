@@ -20,7 +20,7 @@ test.describe('interface', () => {
 
 		await expect(page).toHaveTitle('Selfboxd');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-			`Welcome back, ${account.username}.`
+			`Welcome back, ${account.username}. Here is what is on.`
 		);
 	});
 

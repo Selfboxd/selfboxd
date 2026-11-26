@@ -34,7 +34,7 @@ const files: Record<string, string> = {
 	'likes/films.csv': 'Date,Name,Year,Letterboxd URI\n2025-01-17,Alien,1979,https://boxd.it/b2\n',
 	'watchlist.csv': 'Date,Name,Year,Letterboxd URI\n2025-03-01,Dune,2021,https://boxd.it/d4\n',
 	'lists/top.csv':
-		'Letterboxd list export v7\nDate,Name,Tags,URL,Description\n2025-01-01,Top Scott,,https://boxd.it/l1,Best of Scott\n\n' +
+		'Letterboxd list export v7\nDate,Name,Tags,URL,Description\n2025-01-01,Top Scott,"profile, noir",https://boxd.it/l1,Best of Scott\n\n' +
 		'Position,Name,Year,URL,Description\n1,Alien,1979,https://boxd.it/b2,\n2,Blade Runner,1982,https://boxd.it/a1,The cut\n',
 	'deleted/diary.csv':
 		'Date,Name,Year,Letterboxd URI,Rating,Rewatch,Tags,Watched Date\n2025-01-01,Gone,2000,x,3,,,2025-01-01\n',
@@ -101,6 +101,7 @@ describe('parseLetterboxd', () => {
 			{
 				name: 'Top Scott',
 				description: 'Best of Scott',
+				tags: ['profile', 'noir'],
 				items: [
 					{ film: 'alien|1979', note: '' },
 					{ film: 'blade runner|1982', note: 'The cut' }
@@ -161,7 +162,12 @@ describe('import', () => {
 		const alien = diary[1]?.work.id ?? 0;
 		expect(getWorkState(database.db, ada.id, alien)).toMatchObject({ liked: true, watched: true });
 		const [list] = listLists(database.db, ada.id);
-		expect(list).toMatchObject({ name: 'Top Scott', ranked: true, count: 2 });
+		expect(list).toMatchObject({
+			name: 'Top Scott',
+			ranked: true,
+			count: 2,
+			tags: ['noir', 'profile']
+		});
 		expect(getList(database.db, ada.id, list?.id ?? 0)?.items.map((item) => item.note)).toEqual([
 			'',
 			'The cut'

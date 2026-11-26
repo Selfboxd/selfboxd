@@ -47,11 +47,11 @@ test.describe('profile', () => {
 			'Reviews',
 			'Watchlist',
 			'Lists',
-			'Likes',
-			'Tags'
+			'Likes'
 		]) {
 			await expect(tabs.getByRole('link', { name, exact: true })).toBeVisible();
 		}
+		await expect(tabs.getByRole('link', { name: 'Tags', exact: true })).toHaveCount(0);
 		await expect(tabs.getByRole('link', { name: 'Profile' })).toHaveAttribute(
 			'aria-current',
 			'page'
@@ -161,7 +161,7 @@ test.describe('profile', () => {
 		await expect(page.locator('.backdrop')).toHaveCount(0);
 	});
 
-	test('summarises the diary, ratings, reviews, lists and tags', async ({ page }) => {
+	test('summarises the diary, ratings, reviews and lists', async ({ page }) => {
 		await log(page, 78, { review: 'Tears in rain.', tags: 'cinema' });
 		await actions(page).getByRole('button', { name: '5 out of 5 stars', exact: true }).click();
 		await expect(actions(page).getByText('Rated')).toBeVisible();
@@ -183,42 +183,47 @@ test.describe('profile', () => {
 		await expect(ratings.getByText('ratings (100%)')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Rainy nights' })).toBeVisible();
 		await expect(page.getByText('You watched Blade Runner')).toBeVisible();
-		await page.getByRole('link', { name: 'cinema' }).click();
-		await expect(page).toHaveURL('/diary?tag=cinema');
+		await expect(page.getByRole('link', { name: 'cinema', exact: true })).toHaveCount(0);
 	});
 
-	test('pins two reviews at most on the profile', async ({ page }) => {
-		await log(page, 78, { review: 'First.' });
-		await log(page, 78, { review: 'Second.' });
-		await log(page, 335984, { review: 'Third.' });
+	test('pins the two latest reviews tagged profile', async ({ page }) => {
+		await log(page, 78, { review: 'First.', tags: 'profile' });
+		await log(page, 78, { review: 'Second.', tags: 'Profile' });
+		await log(page, 335984, { review: 'Third.', tags: 'profile' });
+		await log(page, 335984, { review: 'Untagged.' });
 		await page.goto('/reviews');
-		const cards = page.getByRole('article');
-		await expect(cards).toHaveCount(3);
-
-		await cards
-			.filter({ hasText: 'First.' })
-			.getByRole('button', { name: 'Pin to profile' })
-			.click();
-		await cards
-			.filter({ hasText: 'Second.' })
-			.getByRole('button', { name: 'Pin to profile' })
-			.click();
-		await expect(page.getByRole('button', { name: 'Unpin from profile' })).toHaveCount(2);
-		await cards
-			.filter({ hasText: 'Third.' })
-			.getByRole('button', { name: 'Pin to profile' })
-			.click();
-		await expect(page.getByRole('alert')).toHaveText(
-			'You can pin two reviews at most. Unpin one first.'
-		);
+		await expect(page.getByText('Tag a review profile to pin it')).toBeVisible();
 
 		await page.goto('/profile');
 		const pinned = page.locator('section', { hasText: 'Pinned reviews' }).first();
 		await expect(pinned.getByRole('article')).toHaveCount(2);
-		await expect(pinned).not.toContainText('Third.');
+		await expect(pinned).not.toContainText('Untagged.');
 	});
 
-	test('lists liked films and diary tags on their own pages', async ({ page }) => {
+	test('pins the lists tagged profile', async ({ page }) => {
+		for (const { name, tags } of [
+			{ name: 'Neon', tags: 'profile' },
+			{ name: 'Rain', tags: '' },
+			{ name: 'Night', tags: 'profile, noir' }
+		]) {
+			await page.goto('/profile/lists/new');
+			await page.getByLabel('Name', { exact: true }).fill(name);
+			if (tags) await fillTags(page.getByRole('main'), 'Tags', tags);
+			await page.getByRole('button', { name: 'Save' }).click();
+			await expect(page.getByRole('heading', { name })).toBeVisible();
+		}
+
+		await page.goto('/profile');
+		const pinned = page.locator('section', { hasText: 'Pinned lists' });
+		await expect(pinned.getByRole('link', { name: 'Neon' })).toBeVisible();
+		await expect(pinned.getByRole('link', { name: 'Night' })).toBeVisible();
+		await expect(pinned.getByRole('link', { name: 'Rain' })).toHaveCount(0);
+		await expect(
+			page.getByRole('navigation', { name: 'Profile' }).getByRole('link', { name: 'Tags' })
+		).toHaveCount(0);
+	});
+
+	test('lists liked films on their own page', async ({ page }) => {
 		await log(page, 78, { tags: 'cinema, 35mm' });
 		await actions(page).getByRole('button', { name: 'Like', exact: true }).click();
 		await expect(actions(page).getByRole('button', { name: 'Liked' })).toBeVisible();
@@ -227,9 +232,7 @@ test.describe('profile', () => {
 		await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(1);
 		await expect(page.locator('a[href="/film/78"]')).toBeVisible();
 
-		await page.goto('/tags');
-		await page.getByRole('link', { name: '35mm' }).click();
-		await expect(page).toHaveURL('/diary?tag=35mm');
+		await page.goto('/diary?tag=35mm');
 		await expect(page.getByRole('row').filter({ hasText: 'Blade Runner' })).toHaveCount(1);
 	});
 
@@ -314,8 +317,7 @@ test.describe('profile bar', () => {
 			'/reviews',
 			'/watchlist',
 			'/profile/lists',
-			'/likes',
-			'/tags'
+			'/likes'
 		]) {
 			await page.goto(path);
 			const bar = page.getByRole('navigation', { name: 'Profile' });
@@ -329,21 +331,13 @@ test.describe('profile bar', () => {
 });
 
 test.describe('profile privacy', () => {
-	test('refuses forged favourites and pins', async ({ page, request, baseURL }) => {
+	test('refuses forged favourites', async ({ page, request, baseURL }) => {
 		await signIn(page, await createAccount(request));
-		await log(page, 78, { review: 'Mine.' });
-		await page.goto('/reviews');
-		const entryId = await page.locator('input[name="entryId"]').first().inputValue();
 		const cookies = await page.context().cookies();
 
 		await page.context().clearCookies();
 		await signIn(page, await createAccount(request));
 		const headers = { origin: baseURL ?? '' };
-		const pin = await page.request.post('/reviews?/pin', {
-			headers,
-			form: { entryId, pinned: 'true' }
-		});
-		expect(await pin.text()).toContain('entry_not_found');
 		for (const slot of ['0', '5', 'abc']) {
 			const response = await page.request.post('/settings/profile?/favourite', {
 				headers,

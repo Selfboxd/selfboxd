@@ -156,7 +156,7 @@
 			{:else if form?.saved}
 				<FormNotice message={m.list_saved()} />
 			{/if}
-			<ListForm initial={list} />
+			<ListForm initial={list} knownTags={data.knownTags} />
 			<button class="button button-primary">{m.log_save()}</button>
 		</form>
 		<a class="back" href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}>

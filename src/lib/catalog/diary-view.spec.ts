@@ -28,7 +28,6 @@ function entry(id: number, changes: Partial<DiaryRow> = {}, year: number | null 
 		rewatch: false,
 		review: '',
 		containsSpoilers: false,
-		pinned: false,
 		tags: [],
 		...changes
 	};

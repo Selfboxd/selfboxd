@@ -15,13 +15,13 @@
 	--color-header-scrim: rgb(20 24 28 / 92%);
 	--shadow-header-text: 0 1px 3px rgb(0 0 0 / 85%);
 	--shadow-header-icon: drop-shadow(0 1px 2px rgb(0 0 0 / 85%));
-	--color-poster-bar: rgb(20 24 28 / 82%);
+	--color-poster-bar: rgb(8 10 12 / 88%);
 	--color-poster-action: #bbccdd;
 	--color-profile-bar: #2c3440;
 	--color-journal-band: #445566;
 	--color-journal-band-rule: rgb(255 255 255 / 12%);
 	--color-panel: #2c3440;
-	--color-table-head: #1b2228;
+	--color-table-head: #11151a;
 	--color-surface-raised: #445566;
 	--color-histogram: #456;
 	--color-histogram-hover: #678;
@@ -110,13 +110,13 @@
 
 	--font-size-micro: 0.625rem;
 	--font-size-small: 0.75rem;
+	--font-size-filter: 0.6875rem;
 	--font-size-control: 0.8125rem;
 	--font-size-body: 0.875rem;
 	--font-size-prose: 1.0625rem;
 	--font-size-large: 1.125rem;
 	--font-size-heading: 1.375rem;
 	--font-size-title: 1.75rem;
-	--font-size-hero: 2.375rem;
 	--font-size-wordmark: 1.625rem;
 	--font-size-film-title: 2rem;
 	--font-size-display: 3.5rem;

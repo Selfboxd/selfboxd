@@ -16,6 +16,7 @@ import {
 	setMembership,
 	updateList
 } from './lists';
+import { listTagNames } from './tags';
 import { saveWork } from './works';
 
 const input = { name: 'Favourites', description: '', ranked: false };
@@ -78,9 +79,23 @@ describe('lists', () => {
 			name: 'Favourites',
 			description: 'Best.',
 			ranked: true,
+			tags: [],
 			updatedAt: now.toISOString(),
 			items: []
 		});
+	});
+
+	it('keeps the tags of a list and forgets the unused ones', () => {
+		const id = createList(database.db, ada.id, { ...input, tags: ['profile', 'noir'] });
+		expect(getList(database.db, ada.id, id)?.tags).toEqual(['noir', 'profile']);
+		expect(listTagNames(database.db, ada.id, 'list')).toEqual(['noir', 'profile']);
+
+		updateList(database.db, ada.id, id, { ...input, tags: ['profile'] });
+		expect(listLists(database.db, ada.id)[0]?.tags).toEqual(['profile']);
+		expect(listTagNames(database.db, ada.id, 'list')).toEqual(['profile']);
+
+		updateList(database.db, ada.id, id, input);
+		expect(getList(database.db, ada.id, id)?.tags).toEqual(['profile']);
 	});
 
 	it('creates a list holding works in order, each once', () => {
@@ -227,7 +242,7 @@ describe('parseListForm', () => {
 	it('trims the fields and reads the ranking', () => {
 		expect(parseListForm(form({ name: ' Noir ', description: ' Dark. ', ranked: 'on' }))).toEqual({
 			ok: true,
-			value: { name: 'Noir', description: 'Dark.', ranked: true }
+			value: { name: 'Noir', description: 'Dark.', ranked: true, tags: [] }
 		});
 	});
 

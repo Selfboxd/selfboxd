@@ -136,6 +136,34 @@
 			</section>
 		{/if}
 
+		{#if data.pinnedLists.length > 0}
+			<section>
+				<h2 class="section-title split-title">
+					<span>{m.profile_pinned_lists()}</span>
+					<a href={resolve('/(app)/profile/lists')}>{m.profile_all()}</a>
+				</h2>
+				<ul class="pinned-lists">
+					{#each data.pinnedLists as list (list.id)}
+						<li>
+							<ListStack
+								works={list.preview.map((work) => ({ ...work, id: work.externalId }))}
+								href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
+							/>
+							<p>
+								<a
+									class="list-name"
+									href={resolve('/(app)/profile/lists/[id]', { id: String(list.id) })}
+								>
+									{list.name}
+								</a>
+								<span>{m.list_count({ count: list.count })}</span>
+							</p>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+
 		{#if data.reviews.length > 0}
 			<section>
 				<h2 class="section-title split-title">
@@ -145,26 +173,6 @@
 				{#each data.reviews as entry (entry.id)}
 					<ReviewCard {entry} {scale} />
 				{/each}
-			</section>
-		{/if}
-
-		{#if data.tags.length > 0}
-			<section class="tags">
-				<h2 class="section-title split-title">
-					<a href={resolve('/(app)/tags')}>{m.profile_tab_tags()}</a>
-					<a href={resolve('/(app)/tags')}>{String(data.tags.length)}</a>
-				</h2>
-				<ul>
-					{#each data.tags as tag (tag.name)}
-						<li>
-							<a
-								href="{resolve('/(app)/diary')}?{new URLSearchParams({ tag: tag.name }).toString()}"
-							>
-								{tag.name}
-							</a>
-						</li>
-					{/each}
-				</ul>
 			</section>
 		{/if}
 	</div>
@@ -433,30 +441,6 @@
 		color: var(--color-text-muted);
 	}
 
-	.tags ul {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.tags li a {
-		display: block;
-		padding: var(--space-1) var(--space-2);
-		border-radius: var(--radius-small);
-		background: var(--color-chip);
-		box-shadow: var(--shadow-chip);
-		color: var(--color-text);
-		font-size: var(--font-size-small);
-	}
-
-	.tags li a:hover {
-		background: var(--color-chip-hover);
-		color: var(--color-heading);
-	}
-
 	.none {
 		color: var(--color-text-muted);
 		font-size: var(--font-size-control);
@@ -513,6 +497,24 @@
 
 	.lists li {
 		margin-bottom: var(--space-4);
+	}
+
+	.pinned-lists {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pinned-lists :global(.stack) {
+		margin-bottom: var(--space-2);
+	}
+
+	.pinned-lists span {
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
 	}
 
 	.lists :global(.stack) {

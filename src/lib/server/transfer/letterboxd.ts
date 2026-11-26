@@ -21,6 +21,7 @@ export interface LetterboxdEntry {
 export interface LetterboxdList {
 	name: string;
 	description: string;
+	tags: string[];
 	items: { film: string; note: string }[];
 }
 
@@ -168,7 +169,14 @@ export function parseLetterboxd(files: Map<string, Uint8Array>): LetterboxdExpor
 							return key ? [{ film: key, note: (row.Description ?? '').trim() }] : [];
 						})
 					: [];
-			return [{ name: header.Name.trim(), description: (header.Description ?? '').trim(), items }];
+			return [
+				{
+					name: header.Name.trim(),
+					description: (header.Description ?? '').trim(),
+					tags: tags(header.Tags),
+					items
+				}
+			];
 		});
 
 	const profileRow = rows('profile.csv')[0];

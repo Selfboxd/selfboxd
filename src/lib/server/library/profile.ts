@@ -1,8 +1,7 @@
-import { and, count, desc, eq, isNotNull, like, ne } from 'drizzle-orm';
+import { and, count, desc, eq, isNotNull, like } from 'drizzle-orm';
 import {
 	emptyLinks,
 	favouriteSlots,
-	pinnedReviewLimit,
 	ratingMax,
 	type Profile,
 	type ProfileStats,
@@ -164,39 +163,4 @@ export function listTagCounts(db: DatabaseExecutor, userId: number): TagCount[] 
 		.groupBy(tags.id)
 		.orderBy(desc(count()), tags.name)
 		.all();
-}
-
-export type PinResult = 'done' | 'not_found' | 'limit_reached';
-
-/**
- * Shows or hides the review of a diary entry on the profile of its account.
- * Only an entry with a review can be pinned, and at most `pinnedReviewLimit` of them.
- */
-export function setPinned(
-	db: AppDatabase,
-	userId: number,
-	entryId: number,
-	pinned: boolean
-): PinResult {
-	return db.transaction((transaction) => {
-		const owned = and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId));
-		const entry = transaction.select().from(diaryEntries).where(owned).get();
-		if (!entry || (pinned && entry.review === '')) return 'not_found';
-		if (pinned && !entry.pinned) {
-			const others = transaction
-				.select({ value: count() })
-				.from(diaryEntries)
-				.where(
-					and(
-						eq(diaryEntries.userId, userId),
-						eq(diaryEntries.pinned, true),
-						ne(diaryEntries.id, entryId)
-					)
-				)
-				.get();
-			if ((others?.value ?? 0) >= pinnedReviewLimit) return 'limit_reached';
-		}
-		transaction.update(diaryEntries).set({ pinned }).where(owned).run();
-		return 'done';
-	});
 }

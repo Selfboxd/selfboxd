@@ -6,7 +6,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
-	let { form }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -19,7 +19,7 @@
 	{#if form?.error}
 		<FormError message={errorMessage(form.error)} />
 	{/if}
-	<ListForm />
+	<ListForm knownTags={data.knownTags} />
 	<button class="button button-primary">{m.log_save()}</button>
 </form>
 

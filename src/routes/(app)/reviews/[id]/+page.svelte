@@ -98,7 +98,7 @@
 		{/if}
 	</article>
 
-	<aside class="panel">
+	<aside class="panel action-panel">
 		<button type="button" onclick={edit}>{m.review_page_edit()}</button>
 		<a href={workPath}>{m.review_page_work({ title: entry.work.title })}</a>
 		<a href={resolve('/(app)/reviews')}>{m.review_page_all()}</a>
@@ -229,36 +229,6 @@
 		color: var(--color-text);
 		font-size: var(--font-size-control);
 		line-height: 1.8;
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		border-radius: var(--radius-small);
-		background: var(--color-panel);
-	}
-
-	.panel button,
-	.panel a {
-		padding: var(--space-3) var(--space-4);
-		border: 0;
-		border-bottom: 1px solid var(--color-background);
-		background: none;
-		color: var(--color-text-panel);
-		font: inherit;
-		font-size: var(--font-size-control);
-		text-align: center;
-		cursor: pointer;
-	}
-
-	.panel :last-child {
-		border-bottom: 0;
-	}
-
-	.panel button:hover,
-	.panel a:hover {
-		color: var(--color-heading);
 	}
 
 	@media (max-width: 60rem) {

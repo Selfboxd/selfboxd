@@ -295,9 +295,9 @@
 	}
 
 	th {
-		padding: var(--space-2);
+		padding: var(--space-1) var(--space-2);
 		color: var(--color-text-muted);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-filter);
 		font-weight: 400;
 		letter-spacing: var(--letter-spacing-caps);
 		text-align: center;

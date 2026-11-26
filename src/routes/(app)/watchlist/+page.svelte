@@ -136,11 +136,11 @@
 
 <div class="layout">
 	<section>
-		<h1 class="section-title">
-			{data.total === 1 ? m.watchlist_count_one() : m.watchlist_count({ count: data.total })}
-		</h1>
-		{#if data.total > 0}
-			<div class="bar">
+		<header class="head">
+			<h1>
+				{data.total === 1 ? m.watchlist_count_one() : m.watchlist_count({ count: data.total })}
+			</h1>
+			{#if data.total > 0}
 				<FilterMenus {menus}>
 					{#snippet link(item: FilterEntry)}
 						<a
@@ -151,8 +151,8 @@
 						</a>
 					{/snippet}
 				</FilterMenus>
-			</div>
-		{/if}
+			{/if}
+		</header>
 		{#if data.items.length === 0}
 			<p class="empty">{data.total === 0 ? m.watchlist_empty() : m.watchlist_empty_tag()}</p>
 		{:else}
@@ -173,43 +173,49 @@
 	</section>
 
 	<aside>
-		<div class="panel">
-			<form method="POST" action="?/privacy" use:enhance>
-				<input type="hidden" name="private" value={String(!data.isPrivate)} />
-				<button>{data.isPrivate ? m.watchlist_make_public() : m.watchlist_make_private()}</button>
-			</form>
-			{#if data.total > 0}
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- a file download, not a page -->
-				<a href={resolve('/(app)/watchlist/export')} download>{m.watchlist_export()}</a>
-				{#if confirming}
-					<form
-						method="POST"
-						action="?/clear"
-						class="confirm"
-						use:enhance={() =>
-							async ({ update }) => {
-								confirming = false;
-								await update();
-							}}
-					>
-						<p>{m.watchlist_clear_confirm({ count: data.total })}</p>
-						<div class="buttons">
-							<button class="button button-danger">{m.watchlist_clear()}</button>
-							<button
-								class="button button-secondary"
-								type="button"
-								onclick={() => (confirming = false)}
-							>
-								{m.public_cancel()}
-							</button>
-						</div>
+		{#if data.published || data.total > 0}
+			<div class="panel action-panel">
+				{#if data.published}
+					<form method="POST" action="?/privacy" use:enhance>
+						<input type="hidden" name="private" value={String(!data.isPrivate)} />
+						<button>
+							{data.isPrivate ? m.watchlist_make_public() : m.watchlist_make_private()}
+						</button>
 					</form>
-				{:else}
-					<button type="button" onclick={() => (confirming = true)}>{m.watchlist_clear()}</button>
 				{/if}
-			{/if}
-		</div>
-		{#if data.isPrivate}<p class="private">{m.watchlist_private_notice()}</p>{/if}
+				{#if data.total > 0}
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- a file download, not a page -->
+					<a href={resolve('/(app)/watchlist/export')} download>{m.watchlist_export()}</a>
+					{#if confirming}
+						<form
+							method="POST"
+							action="?/clear"
+							class="confirm"
+							use:enhance={() =>
+								async ({ update }) => {
+									confirming = false;
+									await update();
+								}}
+						>
+							<p>{m.watchlist_clear_confirm({ count: data.total })}</p>
+							<div class="buttons">
+								<button class="button button-danger">{m.watchlist_clear()}</button>
+								<button
+									class="button button-secondary"
+									type="button"
+									onclick={() => (confirming = false)}
+								>
+									{m.public_cancel()}
+								</button>
+							</div>
+						</form>
+					{:else}
+						<button type="button" onclick={() => (confirming = true)}>{m.watchlist_clear()}</button>
+					{/if}
+				{/if}
+			</div>
+		{/if}
+		{#if data.published && data.isPrivate}<p class="private">{m.watchlist_private_notice()}</p>{/if}
 
 		<h2 class="section-title">{m.watchlist_how_title()}</h2>
 		<p class="how">{m.watchlist_how()}</p>
@@ -241,13 +247,28 @@
 		align-items: start;
 	}
 
-	.bar {
+	.head {
 		display: flex;
-		justify-content: flex-end;
-		margin-top: calc(-1 * var(--space-2));
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-4);
+		align-items: end;
+		justify-content: space-between;
 		margin-bottom: var(--space-6);
-		padding-bottom: var(--space-2);
+		padding-bottom: var(--space-1);
 		border-bottom: 1px solid var(--color-border);
+	}
+
+	.head > :global(:last-child) {
+		margin-inline-start: auto;
+	}
+
+	h1 {
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: var(--font-size-control);
+		font-weight: 400;
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
 	}
 
 	.empty {
@@ -300,39 +321,7 @@
 	}
 
 	.panel {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
 		margin-bottom: var(--space-2);
-		border-radius: var(--radius-small);
-		background: var(--color-panel);
-	}
-
-	.panel > button,
-	.panel > a,
-	.panel > form > button {
-		display: block;
-		width: 100%;
-		padding: var(--space-3) var(--space-4);
-		border: 0;
-		border-bottom: 1px solid var(--color-background);
-		background: none;
-		color: var(--color-text-panel);
-		font: inherit;
-		font-size: var(--font-size-control);
-		text-align: center;
-		cursor: pointer;
-	}
-
-	.panel > :last-child,
-	.panel > form:last-child > button {
-		border-bottom: 0;
-	}
-
-	.panel > button:hover,
-	.panel > a:hover,
-	.panel > form > button:hover {
-		color: var(--color-heading);
 	}
 
 	.confirm {
@@ -340,6 +329,7 @@
 		flex-direction: column;
 		gap: var(--space-2);
 		padding: var(--space-3) var(--space-4);
+		border-top: 1px solid var(--color-dialog-divider);
 		color: var(--color-text-strong);
 		font-size: var(--font-size-control);
 	}

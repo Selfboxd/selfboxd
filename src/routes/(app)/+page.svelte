@@ -54,8 +54,7 @@
 </svelte:head>
 
 <header class="welcome">
-	<h1>{m.home_welcome({ username: data.user?.username ?? '' })}</h1>
-	<p>{m.home_tagline()}</p>
+	<h1>{m.home_welcome({ username: data.user?.username ?? '' })} {m.home_tagline()}</h1>
 </header>
 
 {#if data.state === 'not_configured'}
@@ -146,21 +145,19 @@
 
 <style>
 	.welcome {
-		padding: var(--space-8) 0 var(--space-12);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin: var(--space-4) 0 var(--space-12);
 		text-align: center;
 	}
 
 	h1 {
-		color: var(--color-text-strong);
-		font-size: var(--font-size-hero);
+		max-width: 40rem;
+		color: var(--color-text);
+		font-size: var(--font-size-title);
 		font-style: italic;
-		line-height: 1.2;
-	}
-
-	.welcome p {
-		margin-top: var(--space-2);
-		color: var(--color-text-muted);
-		font-size: var(--font-size-prose);
+		line-height: 1.3;
 	}
 
 	section {

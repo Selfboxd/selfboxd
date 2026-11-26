@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Qualquer tag",
 	"watchlist_sort_added": "Adição",
 	"watchlist_sort_added_oldest": "Adição mais antiga",
-	"watchlist_make_private": "Tornar a watchlist privada",
-	"watchlist_make_public": "Mostrar a watchlist no perfil público",
+	"watchlist_make_private": "Tornar privada",
+	"watchlist_make_public": "Tornar pública",
 	"watchlist_private_notice": "Privada: seu perfil público não a mostra.",
 	"watchlist_made_private": "Sua watchlist agora é privada.",
 	"watchlist_made_public": "Sua watchlist volta a aparecer no seu perfil público.",
@@ -681,5 +681,9 @@
 	"stats_times": "{count} vezes",
 	"stats_cast": "Elenco",
 	"stats_directors_title": "Diretores",
-	"stats_studios": "Estúdios"
+	"stats_studios": "Estúdios",
+	"list_field_tags": "Etiquetas",
+	"list_tags_hint": "Adicione a etiqueta profile para fixar a lista no seu perfil, no máximo duas.",
+	"reviews_pin_hint": "Adicione a etiqueta profile a uma crítica para fixá-la no seu perfil, no máximo duas.",
+	"profile_pinned_lists": "Listas fixadas"
 }
