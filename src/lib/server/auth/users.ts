@@ -87,6 +87,19 @@ export function setAvatarVersion(db: AppDatabase, userId: number, version: numbe
 	db.update(users).set({ avatarVersion: version }).where(eq(users.id, userId)).run();
 }
 
+/** Whether the watchlist of an account stays out of its public profile. */
+export function isWatchlistPrivate(db: AppDatabase, userId: number): boolean {
+	return (
+		db.select({ value: users.watchlistPrivate }).from(users).where(eq(users.id, userId)).get()
+			?.value ?? false
+	);
+}
+
+/** Keeps the watchlist of an account out of its public profile, or shows it there again. */
+export function setWatchlistPrivate(db: AppDatabase, userId: number, isPrivate: boolean) {
+	db.update(users).set({ watchlistPrivate: isPrivate }).where(eq(users.id, userId)).run();
+}
+
 export function setRatingScale(db: AppDatabase, userId: number, ratingScale: RatingScale) {
 	db.update(users).set({ ratingScale }).where(eq(users.id, userId)).run();
 }

@@ -47,6 +47,14 @@ export function deleteFromWatchlist(db: AppDatabase, userId: number, workId: num
 	});
 }
 
+/** Empties the watchlist of an account. */
+export function clearWatchlist(db: AppDatabase, userId: number): void {
+	db.transaction((transaction) => {
+		transaction.delete(watchlistItems).where(eq(watchlistItems.userId, userId)).run();
+		deleteUnusedTags(transaction, userId);
+	});
+}
+
 function tagsByItem(db: DatabaseExecutor, itemIds: number[]): Map<number, string[]> {
 	const names = new Map<number, string[]>();
 	if (itemIds.length === 0) return names;

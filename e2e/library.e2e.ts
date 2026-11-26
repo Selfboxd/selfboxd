@@ -113,11 +113,11 @@ test.describe('watchlist', () => {
 
 		await page.goto('/watchlist');
 
-		const items = page.getByRole('main').getByRole('listitem');
-		await expect(items.nth(0).getByRole('link')).toHaveAttribute('href', '/film/335984');
-		await expect(items.nth(1).getByRole('link')).toHaveAttribute('href', '/film/78');
-		await expect(items.nth(1)).toContainText('A classic I never saw');
-		await expect(items.nth(1)).toContainText('classics');
+		await expect(page.getByRole('heading', { name: 'You want to see 2 titles' })).toBeVisible();
+		const items = page.locator('main ul.items > li');
+		await expect(items.nth(0).getByRole('link').first()).toHaveAttribute('href', '/film/335984');
+		await expect(items.nth(1).getByRole('link').first()).toHaveAttribute('href', '/film/78');
+		await expect(items.nth(1)).toHaveAttribute('title', 'A classic I never saw');
 	});
 
 	test('filters by tag', async ({ page }) => {
@@ -125,7 +125,9 @@ test.describe('watchlist', () => {
 		await addToWatchlist(page, 335984, '', 'recent');
 
 		await page.goto('/watchlist');
-		await page.getByRole('link', { name: 'classics' }).click();
+		const bar = page.getByRole('main').locator('.bar');
+		await bar.getByRole('button', { name: 'Tag' }).hover();
+		await bar.getByRole('link', { name: 'classics', exact: true }).click();
 
 		await expect(page).toHaveURL('/watchlist?tag=classics');
 		await expect(page.locator('a[href="/film/78"]')).toBeVisible();
@@ -181,7 +183,53 @@ test.describe('watchlist', () => {
 		await expect(dialog).toBeHidden();
 
 		await page.goto('/watchlist');
-		await expect(page.getByText('Second note')).toBeVisible();
+		await expect(page.locator('main ul.items > li').first()).toHaveAttribute(
+			'title',
+			'Second note'
+		);
+	});
+
+	test('narrows by kind, sorts, and adds a title from the search', async ({ page }) => {
+		await addToWatchlist(page, 78);
+		await page.goto('/watchlist');
+
+		await page.getByRole('button', { name: 'Search title…' }).click();
+		const search = page.getByRole('dialog', { name: 'Add to your watchlist' });
+		await search.getByLabel('Name of the film or series').fill('neon');
+		await search.getByRole('button', { name: /Neon Precinct/ }).click();
+		await expect(page.getByRole('status')).toHaveText('Neon Precinct is on your watchlist.');
+		await expect(page.getByRole('heading', { name: 'You want to see 2 titles' })).toBeVisible();
+
+		const bar = page.getByRole('main').locator('.bar');
+		await bar.getByRole('button', { name: 'Type' }).hover();
+		await bar.getByRole('link', { name: 'Series', exact: true }).click();
+		await expect(page).toHaveURL('/watchlist?kind=series');
+		await expect(page.locator('main a[href="/series/1400"]').first()).toBeVisible();
+		await expect(page.locator('main a[href="/film/78"]')).toHaveCount(0);
+	});
+
+	test('exports, turns private and clears the watchlist', async ({ page }) => {
+		await addToWatchlist(page, 78, 'Why not', 'classics');
+		await page.goto('/watchlist');
+		const panel = page.getByRole('complementary');
+
+		const download = page.waitForEvent('download');
+		await panel.getByRole('link', { name: 'Export watchlist' }).click();
+		const file = await (await download).path();
+		const csv = (await import('node:fs')).readFileSync(file, 'utf8');
+		expect(csv).toContain('Date,Name,Year,Type,TMDB ID,Note,Tags');
+		expect(csv).toContain(',Blade Runner,1982,film,78,Why not,classics');
+
+		await panel.getByRole('button', { name: 'Make the watchlist private' }).click();
+		await expect(page.getByRole('status')).toHaveText('Your watchlist is now private.');
+		await expect(panel.getByText('Private: your public profile does not show it.')).toBeVisible();
+		await panel.getByRole('button', { name: 'Show the watchlist on the public profile' }).click();
+		await expect(panel.getByText('Private: your public profile does not show it.')).toHaveCount(0);
+
+		await panel.getByRole('button', { name: 'Clear watchlist' }).click();
+		await expect(panel.getByText('Remove all 1 titles from your watchlist?')).toBeVisible();
+		await panel.getByRole('button', { name: 'Clear watchlist' }).click();
+		await expect(page.getByText('Your watchlist is empty.')).toBeVisible();
 	});
 });
 

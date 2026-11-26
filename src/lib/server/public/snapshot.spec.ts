@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createUser, type User } from '../auth/users';
+import { createUser, type User, setWatchlistPrivate } from '../auth/users';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
 import { createDiaryEntry } from '../library/diary';
 import { setImageChoice } from '../library/images';
@@ -86,12 +86,24 @@ describe('public profile snapshot', () => {
 			watched: [{ work: 0, rating: 9, liked: true }],
 			likes: [0],
 			watchlist: [{ work: 1 }],
+			watchlistHidden: false,
 			lists: [{ name: 'Neon', ranked: true, items: [{ work: 1 }, { work: 0 }] }]
 		});
 		expect(snapshot.works).toEqual([
 			{ kind: 'film', id: 78, title: 'Blade Runner', year: 1982, posterPath: '/default.jpg' },
 			{ kind: 'series', id: 1400, title: 'Neon Precinct', year: 2019, posterPath: null }
 		]);
+	});
+
+	it('leaves out a private watchlist', () => {
+		addToWatchlist(database.db, ada.id, series, { note: 'Later', tags: [] });
+		setWatchlistPrivate(database.db, ada.id, true);
+
+		expect(buildSnapshot(database.db, ada.id)).toMatchObject({
+			watchlist: [],
+			watchlistHidden: true
+		});
+		expect(buildSnapshot(database.db, ada.id).works).toEqual([]);
 	});
 
 	it('sends the poster chosen by the account', () => {
