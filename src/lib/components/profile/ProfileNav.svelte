@@ -11,6 +11,7 @@
 	const tabs = $derived([
 		{ href: resolve('/(app)/activity'), label: m.nav_activity() },
 		{ href: resolve('/(app)/watched'), label: m.nav_films() },
+		{ href: resolve('/(app)/watched/series'), label: m.nav_series() },
 		{ href: resolve('/(app)/diary'), label: m.nav_diary() },
 		{ href: resolve('/(app)/reviews'), label: m.profile_tab_reviews() },
 		{ href: resolve('/(app)/watchlist'), label: m.nav_watchlist() },
@@ -18,6 +19,16 @@
 		{ href: resolve('/(app)/likes'), label: m.profile_tab_likes() },
 		{ href: resolve('/(app)/tags'), label: m.profile_tab_tags() }
 	]);
+
+	/** Whether a tab is the open page, a sub-page counting for its tab unless it has its own. */
+	function current(href: string): boolean {
+		const path = page.url.pathname;
+		if (path === href) return true;
+		return (
+			path.startsWith(`${href}/`) &&
+			!tabs.some((tab) => tab.href !== href && path.startsWith(tab.href))
+		);
+	}
 </script>
 
 <nav class:filled={!onProfile} aria-label={m.nav_profile()}>
@@ -32,7 +43,7 @@
 			<a href={profile} aria-current="page">{m.nav_profile()}</a>
 		{/if}
 		{#each tabs as tab (tab.href)}
-			<a href={tab.href} aria-current={page.url.pathname.startsWith(tab.href) ? 'page' : undefined}>
+			<a href={tab.href} aria-current={current(tab.href) ? 'page' : undefined}>
 				{tab.label}
 			</a>
 		{/each}

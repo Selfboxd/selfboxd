@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toasts } from '#lib/components/toast/toasts.svelte.js';
 	import { invalidate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { WorkImage } from '#lib/catalog/images.js';
@@ -104,7 +105,12 @@
 
 	async function useAsBanner() {
 		if (!selected) return;
-		notice = (await send({ banner: selected })) ? m.images_banner_saved() : m.images_failed();
+		if (await send({ banner: selected })) {
+			notice = null;
+			toasts.show(m.images_banner_saved());
+		} else {
+			notice = m.images_failed();
+		}
 	}
 </script>
 

@@ -50,82 +50,68 @@
 
 <div class="public">
 	<header class="intro">
-		<h2 class="section-title">{m.settings_tab_public()}</h2>
 		<p class="lead">{m.public_intro({ domain: data.domain })}</p>
 		<p class="hint">{m.public_how()}</p>
 	</header>
 
 	{#if !data.profile}
-		<div class="cards">
-			<form method="POST" action="?/enable" class="card" use:enhance={submit('enable')}>
+		<form method="POST" action="?/enable" class="row" use:enhance={submit('enable')}>
+			<div class="label">
 				<h3>{m.public_enable()}</h3>
+				<p class="hint">{m.public_handle_hint()}</p>
+			</div>
+			<div class="controls">
 				{#if failed('enable')}<FormError message={failed('enable') ?? ''} />{/if}
-				<div class="field">
-					<label class="field-label" for="{id}-handle">{m.public_handle()}</label>
-					<div class="address">
-						<span>{data.domain}/</span>
-						<input
-							id="{id}-handle"
-							name="handle"
-							value={form && 'handle' in form ? form.handle : data.suggested}
-							pattern={'[a-z0-9_]{2,30}'}
-							maxlength="30"
-							autocomplete="off"
-							spellcheck="false"
-							required
-						/>
-					</div>
-					<p class="hint">{m.public_handle_hint()}</p>
-				</div>
-				<div class="field">
-					<span class="field-label">{m.public_code()}</span>
-					<CodeInput name="accessCode" label={m.public_code_title()} />
-					<p class="hint">{m.public_code_hint()}</p>
-				</div>
-				<button class="button button-primary" disabled={busy === 'enable'}>
-					{m.public_enable()}
-				</button>
-			</form>
-
-			<form method="POST" action="?/restore" class="card" use:enhance={submit('restore')}>
-				<h3>{m.public_restore_title()}</h3>
-				{#if failed('restore')}<FormError message={failed('restore') ?? ''} />{/if}
-				<p class="hint">{m.public_restore_hint()}</p>
-				<div class="field">
-					<label class="field-label" for="{id}-recovery">{m.public_recovery()}</label>
+				<label class="sr-only" for="{id}-handle">{m.public_handle()}</label>
+				<div class="address">
+					<span>{data.domain}/</span>
 					<input
-						id="{id}-recovery"
-						class="mono"
-						name="recovery"
+						id="{id}-handle"
+						name="handle"
+						value={form && 'handle' in form ? form.handle : data.suggested}
+						pattern={'[a-z0-9_]{2,30}'}
+						maxlength="30"
 						autocomplete="off"
 						spellcheck="false"
-						placeholder="SBXD1-…"
 						required
 					/>
 				</div>
+				<span class="field-label">{m.public_code()}</span>
+				<CodeInput name="accessCode" label={m.public_code_title()} />
+				<p class="hint">{m.public_code_hint()}</p>
+				<button class="button button-primary" disabled={busy === 'enable'}>
+					{m.public_enable()}
+				</button>
+			</div>
+		</form>
+
+		<form method="POST" action="?/restore" class="row" use:enhance={submit('restore')}>
+			<div class="label">
+				<h3>{m.public_restore_title()}</h3>
+				<p class="hint">{m.public_restore_hint()}</p>
+			</div>
+			<div class="controls">
+				{#if failed('restore')}<FormError message={failed('restore') ?? ''} />{/if}
+				<label class="sr-only" for="{id}-recovery">{m.public_recovery()}</label>
+				<input
+					id="{id}-recovery"
+					class="field-input mono"
+					name="recovery"
+					autocomplete="off"
+					spellcheck="false"
+					placeholder="SBXD1-…"
+					required
+				/>
 				<button class="button button-secondary" disabled={busy === 'restore'}>
 					{m.public_restore()}
 				</button>
-			</form>
-		</div>
+			</div>
+		</form>
 	{:else}
 		{@const profile = data.profile}
-		<section class="card status">
-			<p class="live">
-				<span class="dot" class:waiting={profile.pending || profile.lastError}></span>
-				{m.public_live()}
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- the profile lives on the platform -->
-				<a href={profile.url} target="_blank" rel="noopener noreferrer">
-					{profile.url.replace(/^https?:\/\//, '')}
-					<Icon name="external" />
-				</a>
-			</p>
-			{#if failed('sync')}
-				<FormError message={failed('sync') ?? ''} />
-			{:else if done('sync')}
-				<FormNotice message={m.public_sent()} />
-			{/if}
-			<div class="row">
+		<section class="row">
+			<div class="label">
+				<h3>{m.public_address()}</h3>
 				{#if profile.pending || profile.lastError}
 					<p class="hint" role="status">
 						{m.public_pending()}
@@ -134,6 +120,21 @@
 				{:else if profile.syncedAt}
 					<p class="hint">{m.public_synced({ date: formatDate(new Date(profile.syncedAt)) })}</p>
 				{/if}
+			</div>
+			<div class="controls">
+				{#if failed('sync')}
+					<FormError message={failed('sync') ?? ''} />
+				{:else if done('sync')}
+					<FormNotice message={m.public_sent()} />
+				{/if}
+				<p class="live">
+					<span class="dot" class:waiting={profile.pending || profile.lastError}></span>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- the profile lives on the platform -->
+					<a href={profile.url} target="_blank" rel="noopener noreferrer">
+						{profile.url.replace(/^https?:\/\//, '')}
+						<Icon name="external" />
+					</a>
+				</p>
 				<form method="POST" action="?/sync" use:enhance={submit('sync')}>
 					<button class="button button-secondary" disabled={busy === 'sync'}>
 						{m.public_send_now()}
@@ -142,36 +143,43 @@
 			</div>
 		</section>
 
-		<div class="cards">
-			<form method="POST" action="?/code" class="card" use:enhance={submit('code')}>
+		<form method="POST" action="?/code" class="row" use:enhance={submit('code')}>
+			<div class="label">
 				<h3>{m.public_code_title()}</h3>
-				{#if failed('code')}<FormError message={failed('code') ?? ''} />{/if}
 				<p class="hint">
 					{profile.accessCode
 						? m.public_code_on({ code: profile.accessCode })
 						: m.public_code_off()}
 				</p>
+			</div>
+			<div class="controls">
+				{#if failed('code')}<FormError message={failed('code') ?? ''} />{/if}
 				<CodeInput name="accessCode" label={m.public_code_title()} />
-				<div class="row">
+				<div class="buttons">
 					<button class="button button-primary" disabled={busy === 'code'}>
 						{m.public_code_save()}
 					</button>
 					{#if profile.accessCode}
-						<button class="button button-danger" name="remove" value="on" formnovalidate>
+						<button class="button button-secondary" name="remove" value="on" formnovalidate>
 							{m.public_code_remove()}
 						</button>
 					{/if}
 				</div>
-			</form>
+			</div>
+		</form>
 
-			<section class="card">
+		<section class="row">
+			<div class="label">
 				<h3>{m.public_recovery()}</h3>
-				{#if done('rotate')}<FormNotice message={m.public_rotated()} />{/if}
 				<p class="hint">{m.public_recovery_hint()}</p>
+			</div>
+			<div class="controls">
+				{#if done('rotate')}<FormNotice message={m.public_rotated()} />{/if}
+				{#if failed('rotate')}<FormError message={failed('rotate') ?? ''} />{/if}
 				{#if revealed || done('rotate')}
 					<div class="secret">
 						<input
-							class="mono"
+							class="field-input mono"
 							readonly
 							value={profile.recoveryKey}
 							aria-label={m.public_recovery()}
@@ -186,44 +194,55 @@
 							<Icon name={copied ? 'check' : 'copy'} />
 						</button>
 					</div>
-				{:else}
-					<button class="button button-secondary" type="button" onclick={() => (revealed = true)}>
-						{m.public_recovery_show()}
-					</button>
 				{/if}
-				<form method="POST" action="?/rotate" class="rotate" use:enhance={submit('rotate')}>
-					{#if failed('rotate')}<FormError message={failed('rotate') ?? ''} />{/if}
-					<p class="hint">{m.public_rotate_hint()}</p>
-					<button class="button button-secondary" disabled={busy === 'rotate'}>
-						{m.public_rotate_title()}
-					</button>
-				</form>
-			</section>
-		</div>
+				<div class="buttons">
+					{#if !revealed && !done('rotate')}
+						<button class="button button-secondary" type="button" onclick={() => (revealed = true)}>
+							{m.public_recovery_show()}
+						</button>
+					{/if}
+					<form method="POST" action="?/rotate" use:enhance={submit('rotate')}>
+						<button
+							class="button button-secondary"
+							disabled={busy === 'rotate'}
+							title={m.public_rotate_hint()}
+						>
+							{m.public_rotate_title()}
+						</button>
+					</form>
+				</div>
+			</div>
+		</section>
 
-		<section class="card danger">
-			<h3>{m.public_delete_title()}</h3>
-			{#if failed('disable')}<FormError message={failed('disable') ?? ''} />{/if}
-			<p class="hint">{m.public_delete_hint()}</p>
-			{#if confirming}
-				<form method="POST" action="?/disable" class="row" use:enhance={submit('disable')}>
-					<p class="confirm">{m.public_delete_confirm()}</p>
-					<button class="button button-danger" disabled={busy === 'disable'}>
+		<section class="row">
+			<div class="label">
+				<h3>{m.public_delete_title()}</h3>
+				<p class="hint">{m.public_delete_hint()}</p>
+			</div>
+			<div class="controls">
+				{#if failed('disable')}<FormError message={failed('disable') ?? ''} />{/if}
+				{#if confirming}
+					<form method="POST" action="?/disable" class="confirm" use:enhance={submit('disable')}>
+						<p>{m.public_delete_confirm()}</p>
+						<div class="buttons">
+							<button class="button button-danger" disabled={busy === 'disable'}>
+								{m.public_delete_title()}
+							</button>
+							<button
+								class="button button-secondary"
+								type="button"
+								onclick={() => (confirming = false)}
+							>
+								{m.public_cancel()}
+							</button>
+						</div>
+					</form>
+				{:else}
+					<button class="button button-danger" type="button" onclick={() => (confirming = true)}>
 						{m.public_delete_title()}
 					</button>
-					<button
-						class="button button-secondary"
-						type="button"
-						onclick={() => (confirming = false)}
-					>
-						{m.public_cancel()}
-					</button>
-				</form>
-			{:else}
-				<button class="button button-danger" type="button" onclick={() => (confirming = true)}>
-					{m.public_delete_title()}
-				</button>
-			{/if}
+				{/if}
+			</div>
 		</section>
 	{/if}
 </div>
@@ -232,8 +251,11 @@
 	.public {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-6);
 		max-width: var(--settings-wide);
+	}
+
+	.intro {
+		padding-bottom: var(--space-6);
 	}
 
 	.lead {
@@ -246,25 +268,18 @@
 		font-size: var(--font-size-small);
 	}
 
-	.cards {
+	.row {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-		gap: var(--space-4);
-		align-items: start;
+		grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+		gap: var(--space-3) var(--space-8);
+		padding: var(--space-6) 0;
+		border-top: 1px solid var(--color-border-subtle);
 	}
 
-	.card {
+	.label {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
-		padding: var(--space-4);
-		border: 1px solid var(--color-border-subtle);
-		border-radius: var(--radius-medium);
-		background: var(--color-background-raised);
-	}
-
-	.card > .button {
-		align-self: flex-start;
+		gap: var(--space-1);
 	}
 
 	h3 {
@@ -272,6 +287,26 @@
 		font-family: var(--font-body);
 		font-size: var(--font-size-body);
 		font-weight: 700;
+	}
+
+	.controls {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		align-items: flex-start;
+	}
+
+	.controls > .address,
+	.controls > input,
+	.controls > .secret {
+		width: 100%;
+	}
+
+	.buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		align-items: center;
 	}
 
 	.address {
@@ -300,7 +335,6 @@
 		border: 0;
 		outline: none;
 		background: none;
-		box-shadow: none;
 		color: var(--color-heading);
 		font: inherit;
 	}
@@ -310,16 +344,10 @@
 		font-size: var(--font-size-small);
 	}
 
-	.status {
-		gap: var(--space-2);
-	}
-
 	.live {
 		display: flex;
-		flex-wrap: wrap;
 		gap: var(--space-2);
 		align-items: center;
-		color: var(--color-text-strong);
 	}
 
 	.live a {
@@ -345,18 +373,6 @@
 		background: var(--color-watchlist);
 	}
 
-	.row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-2) var(--space-3);
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.card .row {
-		justify-content: flex-start;
-	}
-
 	.secret {
 		display: flex;
 		gap: var(--space-1);
@@ -379,25 +395,23 @@
 	}
 
 	.tool:hover {
-		background: var(--color-surface-raised);
+		background: var(--color-well-hover);
 		color: var(--color-heading);
 	}
 
-	.rotate {
+	.confirm {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
-		align-items: flex-start;
-		padding-top: var(--space-3);
-		border-top: 1px solid var(--color-border-subtle);
 	}
 
-	.danger {
-		border-color: var(--color-danger-soft);
+	.confirm p {
+		color: var(--color-text-strong);
 	}
 
-	.confirm {
-		width: 100%;
-		color: var(--color-danger-soft-text);
+	@media (max-width: 48rem) {
+		.row {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 </style>

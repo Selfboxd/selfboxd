@@ -89,7 +89,6 @@ test.describe('profile', () => {
 			.getByRole('textbox', { name: 'Instagram' })
 			.fill('https://instagram.com/ada.watches');
 		await page.getByRole('textbox', { name: 'X', exact: true }).fill('@ada_x');
-		await page.getByRole('textbox', { name: 'Discord' }).fill('ada.l');
 		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByRole('status')).toHaveText('Your profile has been saved.');
 
@@ -106,7 +105,6 @@ test.describe('profile', () => {
 			'href',
 			'https://x.com/ada_x'
 		);
-		await expect(page.getByText('ada.l')).toBeVisible();
 
 		await page.goto('/settings/profile');
 		await page.getByRole('textbox', { name: 'Website' }).fill('javascript:alert(1)');
@@ -147,7 +145,7 @@ test.describe('profile', () => {
 		const dialog = page.getByRole('dialog', { name: 'Select your preferred backdrop' });
 		await dialog.getByRole('option').last().getByRole('button').click();
 		await dialog.getByRole('button', { name: 'Use as profile banner' }).click();
-		await expect(dialog.getByRole('status')).toHaveText('Your profile banner has been changed.');
+		await expect(page.getByRole('status')).toHaveText('Your profile banner has been changed.');
 		await dialog.getByRole('button', { name: 'Close' }).click();
 
 		await page.goto('/profile');
@@ -180,7 +178,9 @@ test.describe('profile', () => {
 		await expect(page.getByRole('heading', { name: 'Recent activity' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Recent reviews' })).toBeVisible();
 		await expect(page.getByText('Tears in rain.')).toBeVisible();
-		await expect(page.getByRole('img', { name: 'Ratings' })).toBeVisible();
+		const ratings = page.getByRole('list', { name: 'Ratings' });
+		await ratings.getByRole('button', { name: '5 out of 5 stars: 1' }).hover();
+		await expect(ratings.getByText('ratings (100%)')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Rainy nights' })).toBeVisible();
 		await expect(page.getByText('You watched Blade Runner')).toBeVisible();
 		await page.getByRole('link', { name: 'cinema' }).click();

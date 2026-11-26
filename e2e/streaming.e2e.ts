@@ -8,7 +8,7 @@ async function chooseServices(page: Page, names: string[]) {
 		.locator('form', { has: page.getByRole('searchbox', { name: 'Find a service' }) });
 	for (const name of names) await services.getByRole('button', { name, exact: true }).click();
 	await services.getByRole('button', { name: 'Save' }).click();
-	await expect(services.getByRole('status')).toHaveText('Your preferences have been saved.');
+	await expect(page.getByRole('status')).toHaveText('Your preferences have been saved.');
 }
 
 async function choose(page: Page, menu: string, option: string) {

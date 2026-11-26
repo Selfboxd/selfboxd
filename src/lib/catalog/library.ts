@@ -133,10 +133,9 @@ export interface ProfileLinks {
 	website: string;
 	instagram: string;
 	x: string;
-	discord: string;
 }
 
-export const emptyLinks: ProfileLinks = { website: '', instagram: '', x: '', discord: '' };
+export const emptyLinks: ProfileLinks = { website: '', instagram: '', x: '' };
 
 /** A bio shown beside the profile rather than under the name: long or on several lines. */
 export function isLongBio(bio: string): boolean {

@@ -32,7 +32,7 @@ export interface Snapshot {
 	location: string;
 	ratingScale: 'stars' | 'ten';
 	bannerPath: string | null;
-	links: { website: string; instagram: string; x: string; discord: string };
+	links: { website: string; instagram: string; x: string };
 	works: SnapshotWork[];
 	favourites: { slot: number; work: number }[];
 	diary: {

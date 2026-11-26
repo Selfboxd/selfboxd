@@ -197,7 +197,7 @@
 	"log_search_failed": "The search failed. Try again.",
 	"action_show_activity": "Show your activity",
 	"action_edit_entry": "Edit entry or add review…",
-	"watched_title": "Watched",
+	"watched_title": "Films",
 	"watched_empty": "You have not marked any film as watched yet.",
 	"activity_empty": "Nothing here yet. Log a film, like it or add it to your watchlist.",
 	"activity_event_logged": "You watched {title}",
@@ -489,7 +489,6 @@
 	"public_restore_hint": "Moved to a new instance? Paste the recovery key of your profile to take it back.",
 	"public_recovery": "Recovery key",
 	"public_restore": "Restore",
-	"public_live": "Your profile is online at",
 	"public_synced": "Up to date, sent {date}.",
 	"public_pending": "Changes wait to be sent; they will be sent as soon as the platform can be reached.",
 	"public_send_now": "Send now",
@@ -563,5 +562,9 @@
 	"search_tag_count": "{count} entries",
 	"search_broadened": "Nothing matches “{query}” exactly. Showing results for “{broader}”.",
 	"search_suggestions": "Popular films this week, in the meantime",
-	"search_catalogue": "Films, series and people"
+	"search_catalogue": "Films, series and people",
+	"public_address": "Your public profile",
+	"histogram_ratings": "ratings ({percent})",
+	"watched_series_title": "Series",
+	"watched_series_empty": "You have not marked any series as watched yet."
 }

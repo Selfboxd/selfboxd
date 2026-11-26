@@ -36,8 +36,7 @@
 			label: 'Instagram',
 			placeholder: 'Instagram'
 		},
-		{ name: 'x', key: 'x', icon: 'x', label: 'X', placeholder: 'X' },
-		{ name: 'discord', key: 'discord', icon: 'discord', label: 'Discord', placeholder: 'Discord' }
+		{ name: 'x', key: 'x', icon: 'x', label: 'X', placeholder: 'X' }
 	] as const;
 
 	const id = $props.id();

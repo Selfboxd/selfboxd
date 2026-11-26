@@ -52,6 +52,7 @@
 	--color-dialog-footer: rgb(20 24 28 / 25%);
 	--color-well: #2c3440;
 	--color-well-hover: #364050;
+	--color-tooltip: #445566;
 	--color-text-faint: #445566;
 	--color-field-light: #ccddee;
 	--color-field-light-text: #223344;
@@ -151,6 +152,8 @@
 	--select-max-height: 18rem;
 	--search-open-width: 13.5rem;
 	--browse-height: 1.75rem;
+	--details-label-width: 8.5rem;
+	--toast-width: 22rem;
 	--search-height: 1.875rem;
 	--menu-row-height: 2.5rem;
 	--poster-tiny: 2.1875rem;

@@ -140,7 +140,7 @@
 	h1 {
 		color: var(--color-text);
 		font-family: var(--font-body);
-		font-size: var(--font-size-large);
+		font-size: var(--font-size-control);
 		font-weight: 400;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;

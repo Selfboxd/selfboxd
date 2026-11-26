@@ -197,7 +197,7 @@
 	"log_search_failed": "Die Suche ist fehlgeschlagen. Versuche es erneut.",
 	"action_show_activity": "Deine Aktivität anzeigen",
 	"action_edit_entry": "Eintrag bearbeiten oder Rezension hinzufügen…",
-	"watched_title": "Gesehene Filme",
+	"watched_title": "Filme",
 	"watched_empty": "Du hast noch keinen Film als gesehen markiert.",
 	"activity_empty": "Noch nichts vorhanden. Trage einen Film ein, like ihn oder setze ihn auf deine Watchlist.",
 	"activity_event_logged": "Du hast {title} gesehen",
@@ -489,7 +489,6 @@
 	"public_restore_hint": "Auf eine neue Instanz umgezogen? Füge den Wiederherstellungsschlüssel deines Profils ein, um es zurückzuholen.",
 	"public_recovery": "Wiederherstellungsschlüssel",
 	"public_restore": "Wiederherstellen",
-	"public_live": "Dein Profil ist online unter",
 	"public_synced": "Aktuell, gesendet am {date}.",
 	"public_pending": "Änderungen warten auf das Senden; sie gehen raus, sobald die Plattform erreichbar ist.",
 	"public_send_now": "Jetzt senden",
@@ -563,5 +562,9 @@
 	"search_tag_count": "{count} Einträge",
 	"search_broadened": "Nichts passt genau zu „{query}“. Ergebnisse für „{broader}“.",
 	"search_suggestions": "Inzwischen: beliebte Filme dieser Woche",
-	"search_catalogue": "Filme, Serien und Personen"
+	"search_catalogue": "Filme, Serien und Personen",
+	"public_address": "Dein öffentliches Profil",
+	"histogram_ratings": "Bewertungen ({percent})",
+	"watched_series_title": "Serien",
+	"watched_series_empty": "Du hast noch keine Serie als gesehen markiert."
 }

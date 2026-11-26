@@ -5,5 +5,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
 	const { user } = requireUser(locals);
-	return { films: listWatched(getDatabase(), user.id) };
+	return {
+		films: listWatched(getDatabase(), user.id).filter((entry) => entry.work.kind === 'film')
+	};
 };

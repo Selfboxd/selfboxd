@@ -4,6 +4,7 @@
 	import '#lib/styles/forms.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import SiteFooter from '#lib/components/SiteFooter.svelte';
+	import Toaster from '#lib/components/toast/Toaster.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -16,3 +17,5 @@
 {@render children()}
 
 <SiteFooter />
+
+<Toaster />
