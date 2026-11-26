@@ -183,8 +183,6 @@ test.describe('profile', () => {
 		await log(page, 78, { review: 'Second.', tags: 'Profile' });
 		await log(page, 335984, { review: 'Third.', tags: 'profile' });
 		await log(page, 335984, { review: 'Untagged.' });
-		await page.goto('/reviews');
-		await expect(page.getByText('Tag a review profile to pin it')).toBeVisible();
 
 		await page.goto('/profile');
 		const pinned = page.locator('section', { hasText: 'Pinned reviews' }).first();

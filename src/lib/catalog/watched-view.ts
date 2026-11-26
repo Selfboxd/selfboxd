@@ -10,13 +10,15 @@ export const watchedSorts = [
 
 export type WatchedSort = (typeof watchedSorts)[number];
 
-export const posterSizes = ['small', 'large'] as const;
-
-export type PosterSize = (typeof posterSizes)[number];
+/** Ratings from `min` to `max`, both from 1 to 10. */
+export interface RatingRange {
+	min: number;
+	max: number;
+}
 
 export interface WatchedOptions {
-	/** Stored rating from 1 to 10, `none` for works without one, `null` for any. */
-	rating: number | 'none' | null;
+	/** Range of stored ratings, `none` for works without one, `null` for any. */
+	rating: RatingRange | 'none' | null;
 	/** First year of the decade the works were released in. */
 	decade: number | null;
 	genre: string | null;
@@ -24,7 +26,6 @@ export interface WatchedOptions {
 	service: number | null;
 	liked: boolean;
 	sort: WatchedSort;
-	size: PosterSize;
 }
 
 /** A watched work, with its genres and services when they were loaded. */
@@ -42,9 +43,24 @@ export const defaultWatchedOptions: WatchedOptions = {
 	genre: null,
 	service: null,
 	liked: false,
-	sort: 'watched',
-	size: 'small'
+	sort: 'watched'
 };
+
+/** Reads a rating or a range of ratings such as `7` or `5-8`. */
+export function parseRatingRange(value: string | null): RatingRange | 'none' | null {
+	if (value === 'none') return 'none';
+	const match = value === null ? null : /^(10|[1-9])(?:-(10|[1-9]))?$/.exec(value);
+	if (!match) return null;
+	const first = Number(match[1]);
+	const second = match[2] === undefined ? first : Number(match[2]);
+	return { min: Math.min(first, second), max: Math.max(first, second) };
+}
+
+/** Writes a rating range for a query string. */
+export function ratingRangeText(range: RatingRange | 'none'): string {
+	if (range === 'none') return 'none';
+	return range.min === range.max ? String(range.min) : `${String(range.min)}-${String(range.max)}`;
+}
 
 /** Reads the options from a query string, ignoring invalid values. */
 export function parseWatchedOptions(params: URLSearchParams): WatchedOptions {
@@ -53,31 +69,24 @@ export function parseWatchedOptions(params: URLSearchParams): WatchedOptions {
 	const service = params.get('service');
 	const genre = params.get('genre')?.trim();
 	return {
-		rating:
-			rating === 'none'
-				? 'none'
-				: rating !== null && /^(10|[1-9])$/.test(rating)
-					? Number(rating)
-					: null,
+		rating: parseRatingRange(rating),
 		decade: decade !== null && /^\d{3}0$/.test(decade) ? Number(decade) : null,
 		genre: genre ? genre.slice(0, 100) : null,
 		service: service !== null && /^\d{1,9}$/.test(service) ? Number(service) : null,
 		liked: params.get('liked') === '1',
-		sort: watchedSorts.find((sort) => sort === params.get('sort')) ?? 'watched',
-		size: posterSizes.find((size) => size === params.get('size')) ?? 'small'
+		sort: watchedSorts.find((sort) => sort === params.get('sort')) ?? 'watched'
 	};
 }
 
 /** Query string of the options, leaving out default values. */
 export function watchedQuery(options: WatchedOptions): string {
 	const params = new URLSearchParams();
-	if (options.rating !== null) params.set('rating', String(options.rating));
+	if (options.rating !== null) params.set('rating', ratingRangeText(options.rating));
 	if (options.decade !== null) params.set('decade', String(options.decade));
 	if (options.genre !== null) params.set('genre', options.genre);
 	if (options.service !== null) params.set('service', String(options.service));
 	if (options.liked) params.set('liked', '1');
 	if (options.sort !== 'watched') params.set('sort', options.sort);
-	if (options.size !== 'small') params.set('size', options.size);
 	return params.toString();
 }
 
@@ -97,12 +106,17 @@ const sorters: Record<WatchedSort, ((a: WatchedRow, b: WatchedRow) => number) | 
 	name: (a, b) => a.work.title.localeCompare(b.work.title)
 };
 
+function inRange(rating: number | null, range: WatchedOptions['rating']): boolean {
+	if (range === null) return true;
+	if (range === 'none') return rating === null;
+	return rating !== null && rating >= range.min && rating <= range.max;
+}
+
 /** Works matching the options, in their order; the default order is kept as given. */
 export function applyWatchedOptions<T extends WatchedRow>(rows: T[], options: WatchedOptions): T[] {
 	const kept = rows.filter(
 		(row) =>
-			(options.rating === null ||
-				(options.rating === 'none' ? row.rating === null : row.rating === options.rating)) &&
+			inRange(row.rating, options.rating) &&
 			(options.decade === null ||
 				(row.work.year !== null &&
 					row.work.year >= options.decade &&

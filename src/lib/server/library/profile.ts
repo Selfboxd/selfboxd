@@ -1,4 +1,4 @@
-import { and, count, desc, eq, isNotNull, like } from 'drizzle-orm';
+import { and, count, countDistinct, desc, eq, isNotNull, like } from 'drizzle-orm';
 import {
 	emptyLinks,
 	favouriteSlots,
@@ -7,7 +7,8 @@ import {
 	type ProfileStats,
 	type TagCount,
 	type WatchedWork,
-	type Work
+	type Work,
+	type WorkKind
 } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
 import {
@@ -106,16 +107,22 @@ export function getProfileStats(
 	now = new Date()
 ): ProfileStats {
 	const total = (query: { get: () => { value: number } | undefined }) => query.get()?.value ?? 0;
-	return {
-		watched: total(
+	const watched = (kind: WorkKind) =>
+		total(
 			db
 				.select({ value: count() })
 				.from(workStates)
-				.where(and(eq(workStates.userId, userId), eq(workStates.watched, true)))
-		),
+				.innerJoin(works, eq(workStates.workId, works.id))
+				.where(
+					and(eq(workStates.userId, userId), eq(workStates.watched, true), eq(works.kind, kind))
+				)
+		);
+	return {
+		films: watched('film'),
+		series: watched('series'),
 		thisYear: total(
 			db
-				.select({ value: count() })
+				.select({ value: countDistinct(diaryEntries.workId) })
 				.from(diaryEntries)
 				.where(
 					and(

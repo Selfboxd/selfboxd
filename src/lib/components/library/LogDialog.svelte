@@ -1,5 +1,13 @@
+<script lang="ts" module>
+	import { SvelteSet } from 'svelte/reactivity';
+
+	/** Works logged in this visit, whose next viewing is a rewatch even before the page reloads. */
+	const logged = new SvelteSet<string>();
+</script>
+
 <script lang="ts">
-	import { enhance, type ActionResult } from '$app/forms';
+	import { untrack } from 'svelte';
+	import { deserialize, type ActionResult } from '$app/forms';
 	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
@@ -81,6 +89,8 @@
 			entryId = null;
 			film = target.film;
 			({ rating, liked, rewatch } = target.defaults);
+			const key = `${target.film.kind}:${target.film.id}`;
+			rewatch ||= untrack(() => logged.has(key));
 			season = target.defaults.season == null ? '' : String(target.defaults.season);
 			watchedOn = today();
 			review = '';
@@ -101,28 +111,50 @@
 		}
 	}
 
-	/** Closes the dialog at once; the change is saved in the background. */
-	function submitted() {
+	/** Posts a form, asking the browser to finish the request even if the page is left. */
+	async function post(form: HTMLFormElement, body: FormData): Promise<Response> {
+		const init = {
+			method: 'POST',
+			body,
+			headers: { accept: 'application/json', 'x-sveltekit-action': 'true' }
+		};
+		try {
+			return await fetch(form.action, { ...init, keepalive: true });
+		} catch {
+			return await fetch(form.action, init);
+		}
+	}
+
+	/**
+	 * Closes the dialog at once and saves in the background; the request outlives the page, so
+	 * leaving right away keeps the change.
+	 */
+	async function send(event: SubmitEvent & { currentTarget: HTMLFormElement }, deleting = false) {
+		event.preventDefault();
+		if (deleting && !confirm(m.log_delete_confirm())) return;
+		const form = event.currentTarget;
+		const body = new FormData(form, event.submitter);
+		if (!deleting) logged.add(`${film.kind}:${film.id}`);
 		error = undefined;
 		dialog?.close();
-		return async ({ result }: { result: ActionResult<ActionData, ActionData> }) => {
-			await finish(result);
-		};
+		try {
+			const response = await post(form, body);
+			await finish(deserialize<ActionData, ActionData>(await response.text()));
+		} catch {
+			error = 'generic';
+			dialog?.showModal();
+		}
 	}
 
 	/** Reloads the page data after a success, or opens the dialog again on the error. */
 	async function finish(result: ActionResult<ActionData, ActionData>) {
-		if (result.type === 'success') {
+		if (result.type === 'success' || result.type === 'redirect') {
 			await refreshAll();
 		} else {
 			const code = result.type === 'failure' ? result.data?.error : undefined;
 			error = typeof code === 'string' ? code : 'generic';
 			dialog?.showModal();
 		}
-	}
-
-	function confirmDeletion(event: SubmitEvent) {
-		if (!confirm(m.log_delete_confirm())) event.preventDefault();
 	}
 </script>
 
@@ -139,7 +171,7 @@
 		</button>
 	</header>
 
-	<form id="{id}-form" method="POST" action="{filmPath}?/log" use:enhance={submitted}>
+	<form id="{id}-form" method="POST" action="{filmPath}?/log" onsubmit={(event) => send(event)}>
 		{#if entryId !== null}
 			<input type="hidden" name="entryId" value={entryId} />
 		{/if}
@@ -249,12 +281,7 @@
 
 	<footer>
 		{#if entryId !== null}
-			<form
-				method="POST"
-				action="{filmPath}?/deleteEntry"
-				use:enhance={submitted}
-				onsubmit={confirmDeletion}
-			>
+			<form method="POST" action="{filmPath}?/deleteEntry" onsubmit={(event) => send(event, true)}>
 				<input type="hidden" name="entryId" value={entryId} />
 				<button class="pill delete">{m.log_delete()}</button>
 			</form>

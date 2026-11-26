@@ -16,23 +16,22 @@ const rows = [
 describe('watched view', () => {
 	it('reads and writes its query string, ignoring invalid values', () => {
 		const options = parseWatchedOptions(
-			new URLSearchParams('rating=9&decade=1980&liked=1&sort=name&size=large&service=8')
+			new URLSearchParams('rating=9-5&decade=1980&liked=1&sort=name&service=8')
 		);
 		expect(options).toEqual({
-			rating: 9,
+			rating: { min: 5, max: 9 },
 			decade: 1980,
 			genre: null,
 			service: 8,
 			liked: true,
-			sort: 'name',
-			size: 'large'
+			sort: 'name'
 		});
-		expect(watchedQuery(options)).toBe(
-			'rating=9&decade=1980&service=8&liked=1&sort=name&size=large'
-		);
+		expect(watchedQuery(options)).toBe('rating=5-9&decade=1980&service=8&liked=1&sort=name');
+		expect(watchedQuery({ ...options, rating: { min: 7, max: 7 } })).toContain('rating=7&');
 		expect(
-			parseWatchedOptions(new URLSearchParams('rating=11&decade=1985&sort=x&size=huge&service=a'))
+			parseWatchedOptions(new URLSearchParams('rating=11&decade=1985&sort=x&service=a'))
 		).toEqual(defaultWatchedOptions);
+		expect(parseWatchedOptions(new URLSearchParams('rating=none')).rating).toBe('none');
 		expect(watchedQuery(defaultWatchedOptions)).toBe('');
 	});
 
@@ -46,6 +45,10 @@ describe('watched view', () => {
 		expect(titles({ sort: 'release_oldest' })).toEqual(['Alien', 'Blade Runner', 'Arrival']);
 		expect(titles({ sort: 'rating' })).toEqual(['Blade Runner', 'Arrival', 'Alien']);
 		expect(titles({ rating: 'none' })).toEqual(['Alien']);
+		expect(titles({ rating: { min: 7, max: 9 } })).toEqual(['Blade Runner', 'Arrival']);
+		expect(titles({ rating: { min: 8, max: 8 } })).toEqual([]);
+		expect(titles({ rating: { min: 7, max: 9 } })).toEqual(['Blade Runner', 'Arrival']);
+		expect(titles({ rating: { min: 8, max: 8 } })).toEqual([]);
 		expect(titles({ decade: 1970 })).toEqual(['Alien']);
 		expect(titles({ genre: 'Drama' })).toEqual(['Blade Runner', 'Arrival']);
 		expect(titles({ liked: true })).toEqual(['Blade Runner']);

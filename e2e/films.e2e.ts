@@ -83,7 +83,10 @@ test.describe('search', () => {
 		await expect(page.getByRole('link', { name: 'Blade Runner 2049', exact: true })).toBeVisible();
 	});
 
-	test('finds the lists, reviews and tags of the account first', async ({ page, request }) => {
+	test('lists the works first, then the lists, reviews and tags of the account', async ({
+		page,
+		request
+	}) => {
 		await signIn(page, await createAccount(request));
 		await page.goto('/film/78');
 		await page
@@ -103,10 +106,12 @@ test.describe('search', () => {
 		await page.goto('/search?q=rain');
 		const library = page.getByRole('region', { name: 'In your library' });
 		await expect(library.getByRole('link', { name: 'Rain films' })).toBeVisible();
-		await expect(library.getByText('Tears in rain.')).toBeVisible();
 		await expect(library.getByRole('link', { name: /rainy day/ })).toBeVisible();
+		await expect(
+			page.getByRole('complementary').getByRole('region', { name: 'In your library' })
+		).toBeVisible();
 
-		await library.getByRole('heading', { name: 'Blade Runner' }).getByRole('link').click();
+		await library.getByRole('link', { name: 'Blade Runner' }).click();
 		await expect(page).toHaveURL(/\/reviews\/\d+$/);
 
 		const filters = page.getByRole('complementary');

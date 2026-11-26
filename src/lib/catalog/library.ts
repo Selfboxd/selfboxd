@@ -152,9 +152,11 @@ export interface Profile {
 }
 
 export interface ProfileStats {
-	/** Number of works marked as watched. */
-	watched: number;
-	/** Number of diary entries dated in the current year. */
+	/** Number of films marked as watched. */
+	films: number;
+	/** Number of series marked as watched. */
+	series: number;
+	/** Number of films and series with a diary entry dated in the current year. */
 	thisYear: number;
 	lists: number;
 }

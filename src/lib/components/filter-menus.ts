@@ -1,3 +1,4 @@
+import type { Snippet } from 'svelte';
 import type { IconName } from './Icon.svelte';
 
 /** One choice of a filter menu: the query string it leads to and whether it is in effect. */
@@ -13,4 +14,6 @@ export interface FilterMenu {
 	/** Icon shown instead of the text of the trigger. */
 	icon?: IconName;
 	entries: FilterEntry[];
+	/** Drawn below the entries, such as a range picker. */
+	after?: Snippet;
 }
