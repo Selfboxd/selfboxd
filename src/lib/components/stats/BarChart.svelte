@@ -159,7 +159,7 @@
 		border-radius: var(--radius-small);
 		background: var(--color-tooltip);
 		box-shadow: var(--shadow-menu);
-		color: var(--color-heading);
+		color: var(--color-tooltip-text);
 		font-size: var(--font-size-small);
 		white-space: nowrap;
 		pointer-events: none;

@@ -26,7 +26,7 @@
 		border-radius: var(--radius-small);
 		background: var(--color-tooltip);
 		box-shadow: var(--shadow-menu);
-		color: var(--color-heading);
+		color: var(--color-tooltip-text);
 		font-size: var(--font-size-control);
 		font-weight: 600;
 		line-height: 1.4;
