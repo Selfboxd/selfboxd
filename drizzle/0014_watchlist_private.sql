@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `watchlist_private` integer DEFAULT false NOT NULL;

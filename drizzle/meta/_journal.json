@@ -99,6 +99,13 @@
       "when": 1795665759246,
       "tag": "0013_drop_discord",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1795667086111,
+      "tag": "0014_watchlist_private",
+      "breakpoints": true
     }
   ]
 }

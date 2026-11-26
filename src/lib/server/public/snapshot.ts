@@ -51,6 +51,8 @@ export interface Snapshot {
 	watched: { work: number; rating: number | null; liked: boolean }[];
 	likes: number[];
 	watchlist: { work: number; addedAt: string }[];
+	/** Whether the account keeps its watchlist private, in which case it is left out. */
+	watchlistHidden: boolean;
 	lists: {
 		id: number;
 		name: string;
@@ -76,7 +78,11 @@ function day(date: Date | string): string {
  */
 export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 	const user = db
-		.select({ username: users.username, ratingScale: users.ratingScale })
+		.select({
+			username: users.username,
+			ratingScale: users.ratingScale,
+			watchlistPrivate: users.watchlistPrivate
+		})
 		.from(users)
 		.where(eq(users.id, userId))
 		.get();
@@ -122,10 +128,12 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		.reverse()
 		.map((entry) => ({ work: index(entry.work), rating: entry.rating, liked: entry.liked }));
 	const likes = listLiked(db, userId).map((entry) => index(entry.work));
-	const watchlist = listWatchlist(db, userId).map((item) => ({
-		work: index(item.work),
-		addedAt: day(item.addedAt)
-	}));
+	const watchlist = user.watchlistPrivate
+		? []
+		: listWatchlist(db, userId).map((item) => ({
+				work: index(item.work),
+				addedAt: day(item.addedAt)
+			}));
 	const lists = listLists(db, userId).flatMap((summary) => {
 		const list = getList(db, userId, summary.id);
 		if (!list) return [];
@@ -158,6 +166,7 @@ export function buildSnapshot(db: DatabaseExecutor, userId: number): Snapshot {
 		watched,
 		likes,
 		watchlist,
+		watchlistHidden: user.watchlistPrivate,
 		lists
 	};
 }

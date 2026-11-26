@@ -27,6 +27,8 @@ export const users = sqliteTable('users', {
 	xHandle: text('x_handle').notNull().default(''),
 	/** ISO 3166-1 code of the country of the account, for releases and streaming offers. */
 	country: text('country'),
+	/** Whether the watchlist stays out of the public profile. */
+	watchlistPrivate: integer('watchlist_private', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.default(sql`(unixepoch())`)

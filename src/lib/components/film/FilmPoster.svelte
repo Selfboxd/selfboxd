@@ -16,7 +16,7 @@
 			kind?: WorkKind;
 		};
 		/** Rendered width of the poster. */
-		size?: 'tiny' | 'small' | 'medium' | 'large';
+		size?: 'tiny' | 'small' | 'medium' | 'large' | 'fill';
 		/** Whether the poster links to the page of the film. */
 		linked?: boolean;
 		/** Whether hovering the poster offers the quick actions; follows `linked` by default. */
@@ -31,7 +31,8 @@
 		tiny: 'w92',
 		small: 'w154',
 		medium: 'w342',
-		large: 'w500'
+		large: 'w500',
+		fill: 'w342'
 	};
 
 	/** Poster the account chose for the work; a season keeps its own. */
@@ -110,6 +111,10 @@
 
 	.large {
 		width: var(--poster-large);
+	}
+
+	.fill {
+		width: 100%;
 	}
 
 	img {

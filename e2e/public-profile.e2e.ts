@@ -14,6 +14,7 @@ interface Published {
 			works: { id: number; posterPath: string | null }[];
 			diary: { work: number; review: string }[];
 			watchlist: unknown[];
+			watchlistHidden: boolean;
 			lists: { name: string; items: { work: number; note: string }[] }[];
 		};
 	} | null;
@@ -86,6 +87,27 @@ test.describe('public profile', () => {
 		expect(after?.payload?.profile.diary[0]?.review).toBe('Tears in rain.');
 		expect(after?.payload?.profile.works[0]?.id).toBe(78);
 		expect(JSON.stringify(after)).not.toContain('localhost:4173');
+	});
+
+	test('leaves a private watchlist out of the copy', async ({ page, request }) => {
+		await enable(page);
+		const handle = handleOf(account);
+		await page.goto('/film/78');
+		await page
+			.getByRole('region', { name: 'Your actions' })
+			.getByRole('button', { name: 'Watchlist', exact: true })
+			.click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Add' }).click();
+		await expect
+			.poll(async () => (await published(request, handle))?.payload?.profile.watchlist.length)
+			.toBe(1);
+
+		await page.goto('/watchlist');
+		await page.getByRole('button', { name: 'Make the watchlist private' }).click();
+		await expect
+			.poll(async () => (await published(request, handle))?.payload?.profile.watchlistHidden)
+			.toBe(true);
+		expect((await published(request, handle))?.payload?.profile.watchlist).toEqual([]);
 	});
 
 	test('sends the poster chosen by the account', async ({ page, request }) => {
