@@ -271,3 +271,46 @@ export const workImages = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.userId, table.workId] })]
 );
+
+/** Public profile of an account on the platform, published with its own key pair. */
+export const publicProfiles = sqliteTable('public_profiles', {
+	userId: integer('user_id')
+		.primaryKey()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	/** Address of the profile on the platform, such as `ada` for `sbxd.link/ada`. */
+	handle: text('handle').notNull(),
+	/** Ed25519 private key of the account, as base64url of its 32-byte seed. */
+	keySeed: text('key_seed').notNull(),
+	/** Four-digit code protecting the profile, or `null` for a profile open to everyone. */
+	accessCode: text('access_code'),
+	/** Whether a change still waits to be sent to the platform. */
+	pending: integer('pending', { mode: 'boolean' }).notNull().default(true),
+	syncedAt: integer('synced_at', { mode: 'timestamp_ms' }),
+	/** Code of the last error the platform or the network gave, if the last send failed. */
+	lastError: text('last_error')
+});
+
+/** Lists of an account shared on the platform, with what it needs to change or stop sharing. */
+export const sharedLists = sqliteTable(
+	'shared_lists',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		source: text('source', { enum: ['personal', 'public', 'chart'] }).notNull(),
+		reference: text('reference').notNull(),
+		/** Address of the shared list on the platform. */
+		url: text('url').notNull(),
+		code: text('code').notNull(),
+		manageToken: text('manage_token').notNull(),
+		sharedAt: integer('shared_at', { mode: 'timestamp_ms' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('shared_lists_user_source_reference_unique').on(
+			table.userId,
+			table.source,
+			table.reference
+		)
+	]
+);

@@ -13,6 +13,10 @@ import {
 	watchlistWorks,
 	listChoices,
 	refineEntries,
+	shareAction,
+	shareItems,
+	sharedAddress,
+	unshareAction,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { getTmdbContext } from '#lib/server/tmdb/index.js';
@@ -75,7 +79,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		decades: listDecades(all),
 		genres,
 		backdropPath,
-		liked: likesList(user.id, { chart })
+		liked: likesList(user.id, { chart }),
+		shared: sharedAddress(user.id, { chart })
 	};
 };
 
@@ -105,6 +110,29 @@ export const actions: Actions = {
 			films.map((film) => workInput(film))
 		);
 		redirect(303, `/profile/lists/${String(cloned)}`);
+	},
+
+	share: async ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const { chart, context } = chartContext(params.chart);
+		const films = await leadingFilms(context, chart);
+		return shareAction(
+			user.id,
+			{ chart },
+			{
+				name: chartName(chart),
+				description: '',
+				owner: 'TMDB',
+				ranked: true,
+				items: shareItems(films.map((film) => workInput(film)))
+			}
+		);
+	},
+
+	unshare: ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const { chart } = chartContext(params.chart);
+		return unshareAction(user.id, { chart });
 	},
 
 	watchlist: async ({ locals, params }) => {

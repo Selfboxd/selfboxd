@@ -11,10 +11,18 @@ import { deleteExpiredSessions, findSession } from '#lib/server/auth/sessions.js
 import { toPublicUser } from '#lib/server/auth/users.js';
 import { getDatabase } from '#lib/server/db/index.js';
 import { securityHeaders } from '#lib/server/security/headers.js';
+import { profileChanged, resumePendingProfiles } from '#lib/server/public/sync.js';
 
 export const init: ServerInit = () => {
 	deleteExpiredSessions(getDatabase());
+	resumePendingProfiles();
 };
+
+/** Page whose actions send the public profile themselves. */
+const publicSettings = '/settings/public';
+
+/** Methods that only read; every other one may change what a public profile shows. */
+const readMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 const handleSecurityHeaders: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
@@ -37,7 +45,7 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 		);
 	});
 
-const handleAuth: Handle = ({ event, resolve }) => {
+const handleAuth: Handle = async ({ event, resolve }) => {
 	const db = getDatabase();
 	const token = readSessionToken(event);
 	const authenticated = token ? findSession(db, token) : undefined;
@@ -53,7 +61,16 @@ const handleAuth: Handle = ({ event, resolve }) => {
 	if (decision.type === 'redirect') redirect(303, decision.location);
 	if (decision.type === 'deny') return apiError(decision.status, decision.code);
 
-	return resolve(event);
+	const response = await resolve(event);
+	if (
+		event.locals.user &&
+		!readMethods.has(event.request.method) &&
+		response.status < 400 &&
+		!event.url.pathname.startsWith(publicSettings)
+	) {
+		profileChanged(event.locals.user.id);
+	}
+	return response;
 };
 
 export const handle: Handle = sequence(handleSecurityHeaders, handleParaglide, handleAuth);

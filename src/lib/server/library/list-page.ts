@@ -19,6 +19,9 @@ import { loadWorkDetails } from './resolve';
 import { chosenServices, streamingOn } from './services';
 import { addAllToWatchlist } from './watchlist';
 import { saveWork, type WorkInput } from './works';
+import { fail } from '@sveltejs/kit';
+import type { ShareRequest } from '../public/platform';
+import { sharedUrl, shareList, stopSharing } from '../public/shares';
 
 /** A work of a list as the page shows it, before what the account did with it is known. */
 export interface ListedWork {
@@ -155,4 +158,32 @@ export function likesList(userId: number, target: ListTarget): boolean {
 export function likeList(userId: number, form: FormData, list: LikedList) {
 	setListLiked(getDatabase(), userId, list, formFlag(form, 'liked'));
 	return { action: 'like' as const, success: true };
+}
+
+/** Shares a list of the page on the platform and answers with its address. */
+export async function shareAction(userId: number, target: ListTarget, list: ShareRequest) {
+	const result = await shareList(getDatabase(), userId, target, list);
+	if (!result.ok) return fail(502, { action: 'share' as const, error: result.error });
+	return { action: 'share' as const, url: result.url };
+}
+
+/** Stops sharing a list of the page. */
+export async function unshareAction(userId: number, target: ListTarget) {
+	const result = await stopSharing(getDatabase(), userId, target);
+	if (!result.ok) return fail(502, { action: 'unshare' as const, error: result.error });
+	return { action: 'unshare' as const };
+}
+
+/** Address of the list of the page when the account shared it. */
+export function sharedAddress(userId: number, target: ListTarget): string | null {
+	return sharedUrl(getDatabase(), userId, target);
+}
+
+/** The TMDB identifiers of works, as a shared list sends them. */
+export function shareItems(works: WorkInput[], notes: string[] = []): ShareRequest['items'] {
+	return works.map((work, index) => ({
+		kind: work.kind,
+		id: Number(work.externalId),
+		note: notes[index] ?? ''
+	}));
 }

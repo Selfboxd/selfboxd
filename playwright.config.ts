@@ -4,6 +4,7 @@ const port = 4173;
 const baseURL = `http://localhost:${String(port)}`;
 const dataDir = '.e2e-data';
 const tmdbPort = 4174;
+const platformPort = 4177;
 
 export default defineConfig({
 	testDir: 'e2e',
@@ -25,6 +26,12 @@ export default defineConfig({
 			env: { PORT: String(tmdbPort) }
 		},
 		{
+			command: 'node e2e/support/platform/server.ts',
+			port: platformPort,
+			reuseExistingServer: false,
+			env: { PORT: String(platformPort) }
+		},
+		{
 			command: `rm -rf ${dataDir} && npm run build && node build`,
 			port,
 			reuseExistingServer: false,
@@ -36,7 +43,8 @@ export default defineConfig({
 				TMDB_API_URL: `http://localhost:${String(tmdbPort)}/3`,
 				MDBLIST_API_URL: `http://localhost:${String(tmdbPort)}/mdblist`,
 				JOURNAL_FEED_URL: `http://localhost:${String(tmdbPort)}/journal/rss/`,
-				TMDB_IMAGE_URL: `${baseURL}/tmdb-images`
+				TMDB_IMAGE_URL: `${baseURL}/tmdb-images`,
+				PLATFORM_URL: `http://localhost:${String(platformPort)}`
 			}
 		}
 	]

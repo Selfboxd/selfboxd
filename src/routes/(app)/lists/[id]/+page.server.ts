@@ -18,6 +18,10 @@ import {
 	watchlistWorks,
 	listChoices,
 	refineEntries,
+	shareAction,
+	shareItems,
+	sharedAddress,
+	unshareAction,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { listMarks, markKey } from '#lib/server/library/marks.js';
@@ -82,7 +86,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		genres,
 		backdropPath,
 		progress,
-		liked: likesList(user.id, { public: id })
+		liked: likesList(user.id, { public: id }),
+		shared: sharedAddress(user.id, { public: id })
 	};
 };
 
@@ -119,6 +124,28 @@ export const actions: Actions = {
 		const { list, works } = await listWorks(params.id);
 		const cloned = cloneWorks(user.id, list.name, '', works);
 		redirect(303, `/profile/lists/${String(cloned)}`);
+	},
+
+	share: async ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const { list, works } = await listWorks(params.id);
+		return shareAction(
+			user.id,
+			{ public: list.id },
+			{
+				name: list.name,
+				description: '',
+				owner: list.owner ?? '',
+				ranked: true,
+				items: shareItems(works)
+			}
+		);
+	},
+
+	unshare: ({ locals, params }) => {
+		const { user } = requireUser(locals);
+		const { id } = listContext(params.id);
+		return unshareAction(user.id, { public: id });
 	},
 
 	watchlist: async ({ locals, params }) => {

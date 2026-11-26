@@ -17,6 +17,10 @@ export const variables = defineEnvVars({
 		description: 'Address of the RSS feed shown on the Journal page.',
 		schema: (value) => value || 'https://letterboxd.com/journal/rss/'
 	},
+	PLATFORM_URL: {
+		description: 'Address of the Selfboxd platform hosting public profiles and shared lists.',
+		schema: (value) => value || 'https://sbxd.link'
+	},
 	TMDB_IMAGE_URL: {
 		description: 'Base URL of the TMDB image host.',
 		public: true,

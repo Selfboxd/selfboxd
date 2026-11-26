@@ -12,6 +12,7 @@
 		{ href: resolve('/(app)/settings/avatar'), label: m.settings_tab_avatar() },
 		{ href: resolve('/(app)/settings/preferences'), label: m.settings_tab_preferences() },
 		{ href: resolve('/(app)/settings/streaming'), label: m.settings_tab_streaming() },
+		{ href: resolve('/(app)/settings/public'), label: m.settings_tab_public() },
 		...(data.user?.isAdmin
 			? [
 					{ href: resolve('/(app)/settings/accounts'), label: m.settings_tab_accounts() },
