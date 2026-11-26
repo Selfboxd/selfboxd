@@ -21,6 +21,7 @@
 	<CatalogueBrowse
 		kind="film"
 		genres={data.genres}
+		services={data.services}
 		filter={data.filter}
 		visibility={data.visibility}
 		works={data.works}

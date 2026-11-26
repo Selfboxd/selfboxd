@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import type { Snippet } from 'svelte';
 	import type { BrowseTarget } from './browse-target.js';
+	import type { Service } from '#lib/catalog/streaming.js';
 	import {
 		browseQuery,
 		browseDecades,
@@ -31,6 +32,8 @@
 		/** Shown between the heading and the works. */
 		children?: Snippet;
 		genres: Genre[];
+		/** Streaming services of the account, offered as a filter. */
+		services?: Service[];
 		filter: BrowseFilter;
 		visibility: ListVisibility;
 		works: (FilmSummary & { watched: boolean })[];
@@ -47,6 +50,7 @@
 		kicker,
 		children,
 		genres,
+		services = [],
 		filter,
 		visibility,
 		works,
@@ -138,6 +142,19 @@
 				...genres.map((item) => entry(item.name, { genre: item.id }, filter.genre === item.id))
 			]
 		},
+		...(services.length > 0
+			? [
+					{
+						label: services.find((item) => item.id === filter.service)?.name ?? m.filter_service(),
+						entries: [
+							entry(m.filter_any_service(), { service: null }, filter.service === null),
+							...services.map((item) =>
+								entry(item.name, { service: item.id }, filter.service === item.id)
+							)
+						]
+					}
+				]
+			: []),
 		{
 			label: `${m.list_sort_by()} ${sortLabels[filter.sort]()}`,
 			entries: (Object.keys(sortLabels) as BrowseSort[]).map((sort) =>

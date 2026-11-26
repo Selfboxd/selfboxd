@@ -12,6 +12,8 @@ export interface BrowseFilter {
 	year: number | null;
 	/** Identifier of a TMDB genre. */
 	genre: number | null;
+	/** Identifier of a TMDB watch provider the works must stream on. */
+	service: number | null;
 	page: number;
 }
 
@@ -48,6 +50,7 @@ export function browseQuery(
 	if (filter.decade) params.set('decade', String(filter.decade));
 	if (filter.year) params.set('year', String(filter.year));
 	if (filter.genre) params.set('genre', String(filter.genre));
+	if (filter.service) params.set('service', String(filter.service));
 	if (filter.show && filter.show !== 'all') params.set('show', filter.show);
 	if (filter.page && filter.page > 1) params.set('page', String(filter.page));
 	return params.toString();

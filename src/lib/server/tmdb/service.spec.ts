@@ -6,6 +6,8 @@ import {
 	browseSeries,
 	getChart,
 	getPerson,
+	getRegions,
+	getServices,
 	getStudio,
 	getFilm,
 	getSeries,
@@ -320,7 +322,7 @@ describe('TMDB service', () => {
 
 			const result = await browseSeries(
 				context,
-				{ sort: 'popular', decade: null, year: null, genre: 80, page: 1 },
+				{ sort: 'popular', decade: null, year: null, genre: 80, service: null, page: 1 },
 				'en-US'
 			);
 
@@ -385,7 +387,14 @@ describe('TMDB service', () => {
 
 		it('narrows a browse to a studio or a network', async () => {
 			respond = () => Response.json({ page: 1, total_pages: 1, results: [] });
-			const filter = { sort: 'popular', decade: null, year: null, genre: null, page: 1 } as const;
+			const filter = {
+				sort: 'popular',
+				decade: null,
+				year: null,
+				genre: null,
+				service: null,
+				page: 1
+			} as const;
 
 			await browseFilms(context, filter, 'en-US', { studio: 174 });
 			await browseSeries(context, filter, 'en-US', { network: 49 });
@@ -395,5 +404,75 @@ describe('TMDB service', () => {
 			expect(requests[1]?.searchParams.get('with_networks')).toBe('49');
 			expect(requests[2]?.searchParams.has('with_companies')).toBe(false);
 		});
+	});
+
+	describe('streaming', () => {
+		it('lists the countries by name', async () => {
+			respond = () =>
+				Response.json({
+					results: [
+						{ iso_3166_1: 'US', english_name: 'United States' },
+						{ iso_3166_1: 'FR', english_name: 'France' }
+					]
+				});
+
+			expect(await getRegions(context, 'en-US')).toEqual({
+				ok: true,
+				value: [
+					{ code: 'FR', name: 'France' },
+					{ code: 'US', name: 'United States' }
+				]
+			});
+		});
+
+		it('merges the services of films and series of a country, most common first', async () => {
+			respond = (url) =>
+				Response.json({
+					results:
+						url.pathname === '/3/watch/providers/movie'
+							? [
+									{
+										provider_id: 8,
+										provider_name: 'Netflix',
+										logo_path: '/n.jpg',
+										display_priority: 2
+									},
+									{ provider_id: 11, provider_name: 'Mubi', display_priority: 5 }
+								]
+							: [
+									{
+										provider_id: 8,
+										provider_name: 'Netflix',
+										logo_path: '/n.jpg',
+										display_priority: 1
+									}
+								]
+				});
+
+			const services = await getServices(context, 'FR', 'fr-FR');
+
+			expect(services).toEqual({
+				ok: true,
+				value: [
+					{ id: 8, name: 'Netflix', logoPath: '/n.jpg' },
+					{ id: 11, name: 'Mubi', logoPath: null }
+				]
+			});
+			expect(requests.map((url) => url.searchParams.get('watch_region'))).toEqual(['FR', 'FR']);
+		});
+	});
+
+	it('narrows a browse to a streaming service in a country', async () => {
+		respond = () => Response.json({ page: 1, total_pages: 1, results: [] });
+		await browseFilms(
+			context,
+			{ sort: 'popular', decade: null, year: null, genre: null, service: null, page: 1 },
+			'en-US',
+			{ service: { id: 8, region: 'FR' } }
+		);
+
+		expect(requests[0]?.searchParams.get('with_watch_providers')).toBe('8');
+		expect(requests[0]?.searchParams.get('watch_region')).toBe('FR');
+		expect(requests[0]?.searchParams.get('with_watch_monetization_types')).toBe('flatrate');
 	});
 });

@@ -48,7 +48,7 @@ describe('diary options', () => {
 		expect(
 			parseDiaryOptions(
 				new URLSearchParams(
-					'rating=9&year=2025&decade=1980&genre=Drama&tag=35mm&sort=rating&show=rewatches'
+					'rating=9&year=2025&decade=1980&genre=Drama&service=8&tag=35mm&sort=rating&show=rewatches'
 				)
 			)
 		).toEqual({
@@ -56,6 +56,7 @@ describe('diary options', () => {
 			year: 2025,
 			decade: 1980,
 			genre: 'Drama',
+			service: 8,
 			tag: '35mm',
 			sort: 'rating',
 			show: 'rewatches'
@@ -94,6 +95,12 @@ describe('diary entries', () => {
 		expect(ids({ decade: 2010 })).toEqual([2]);
 		expect(ids({ genre: 'Drama' })).toEqual([1]);
 		expect(ids({ tag: '35mm' })).toEqual([1]);
+		expect(
+			applyDiaryOptions(
+				entries.map((row) => ({ ...row, services: row.id === 3 ? [8] : [] })),
+				{ ...defaultDiaryOptions, service: 8 }
+			).map((row) => row.id)
+		).toEqual([3]);
 	});
 
 	it('narrows by how the work was watched', () => {

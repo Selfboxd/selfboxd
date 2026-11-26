@@ -89,6 +89,8 @@ export interface PersonCredit extends FilmSummary {
 	rating: number;
 	/** Identifiers of the TMDB genres of the work. */
 	genres: number[];
+	/** Watch providers streaming the work, when they were loaded. */
+	services?: number[];
 }
 
 export interface PersonDetails {
@@ -151,6 +153,8 @@ export interface PersonOptions {
 	decade: number | null;
 	/** Identifier of a TMDB genre. */
 	genre: number | null;
+	/** Identifier of a TMDB watch provider the works must stream on. */
+	service: number | null;
 	show: ListVisibility;
 }
 
@@ -158,12 +162,14 @@ export interface PersonOptions {
 export function parsePersonOptions(params: URLSearchParams, fallback: PersonRole): PersonOptions {
 	const decade = params.get('decade');
 	const genre = params.get('genre');
+	const service = params.get('service');
 	return {
 		role: personRoles.find((role) => role === params.get('role')) ?? fallback,
 		sort: personSorts.find((sort) => sort === params.get('sort')) ?? 'popular',
 		kind: personKinds.find((kind) => kind === params.get('kind')) ?? 'all',
 		decade: decade !== null && /^\d{3}0$/.test(decade) ? Number(decade) : null,
 		genre: genre !== null && /^\d{1,6}$/.test(genre) ? Number(genre) : null,
+		service: service !== null && /^\d{1,9}$/.test(service) ? Number(service) : null,
 		show: listVisibilities.find((show) => show === params.get('show')) ?? 'all'
 	};
 }
@@ -175,6 +181,7 @@ export function personQuery(options: PersonOptions, fallback: PersonRole): strin
 	if (options.kind !== 'all') params.set('kind', options.kind);
 	if (options.decade !== null) params.set('decade', String(options.decade));
 	if (options.genre !== null) params.set('genre', String(options.genre));
+	if (options.service !== null) params.set('service', String(options.service));
 	if (options.sort !== 'popular') params.set('sort', options.sort);
 	if (options.show !== 'all') params.set('show', options.show);
 	return params.toString();
@@ -210,7 +217,8 @@ export function applyPersonOptions<T extends PersonCredit>(
 					(credit.year !== null &&
 						credit.year >= options.decade &&
 						credit.year < options.decade + 10)) &&
-				(options.genre === null || credit.genres.includes(options.genre))
+				(options.genre === null || credit.genres.includes(options.genre)) &&
+				(options.service === null || (credit.services ?? []).includes(options.service))
 		)
 		.map((credit) => ({ ...credit, watched: watched(credit) }))
 		.filter((credit) => options.show === 'all' || credit.watched === (options.show === 'watched'))

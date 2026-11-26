@@ -3,7 +3,8 @@ import { listVisibilities } from '../../catalog/list-view';
 import { getDatabase } from '../db/index';
 import { parseBrowseFilter } from '../tmdb/browse';
 import { getTmdbContext } from '../tmdb/index';
-import { requestLanguage } from '../tmdb/page';
+import { requestLanguage, requestRegion } from '../tmdb/page';
+import { chosenServices } from './services';
 import {
 	browseFilms,
 	browseSeries,
@@ -27,16 +28,22 @@ export async function loadBrowse(
 	const genres = await (kind === 'series' ? getSeriesGenres : getGenres)(context, language);
 	const known = genres.ok ? genres.value : [];
 	const parsed = parseBrowseFilter(params);
+	const services = await chosenServices(userId);
+	const service = services.find((entry) => entry.id === parsed.service) ?? null;
 	const filter = {
 		...parsed,
-		genre: known.some((genre) => genre.id === parsed.genre) ? parsed.genre : null
+		genre: known.some((genre) => genre.id === parsed.genre) ? parsed.genre : null,
+		service: service?.id ?? null
 	};
+	const narrowed: BrowseScope = service
+		? { ...scope, service: { id: service.id, region: requestRegion() } }
+		: scope;
 	const visibility = listVisibilities.find((name) => name === params.get('show')) ?? 'all';
 	const result = await (kind === 'series' ? browseSeries : browseFilms)(
 		context,
 		filter,
 		language,
-		scope
+		narrowed
 	);
 	if (!result.ok) return { state: 'error' as const, error: result.error };
 
@@ -47,6 +54,7 @@ export async function loadBrowse(
 	return {
 		state: 'ready' as const,
 		genres: known,
+		services,
 		filter,
 		visibility,
 		works,

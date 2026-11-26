@@ -26,19 +26,22 @@ export interface DiaryOptions {
 	/** First year of the decade the works were released in. */
 	decade: number | null;
 	genre: string | null;
+	/** Identifier of a TMDB watch provider the works must stream on. */
+	service: number | null;
 	tag: string | null;
 	sort: DiarySort;
 	show: DiaryShow;
 }
 
 /** A diary entry with the genres of its work, when they were loaded. */
-export type DiaryRow = DiaryEntry & { genres?: string[] };
+export type DiaryRow = DiaryEntry & { genres?: string[]; services?: number[] };
 
 export const defaultDiaryOptions: DiaryOptions = {
 	rating: null,
 	year: null,
 	decade: null,
 	genre: null,
+	service: null,
 	tag: null,
 	sort: 'watched',
 	show: 'all'
@@ -52,6 +55,7 @@ function year(value: string | null): number | null {
 export function parseDiaryOptions(params: URLSearchParams): DiaryOptions {
 	const rating = params.get('rating');
 	const decade = year(params.get('decade'));
+	const service = params.get('service');
 	const text = (name: string) => {
 		const value = params.get(name)?.trim();
 		return value ? value.slice(0, 100) : null;
@@ -66,6 +70,7 @@ export function parseDiaryOptions(params: URLSearchParams): DiaryOptions {
 		year: year(params.get('year')),
 		decade: decade !== null && decade % 10 === 0 ? decade : null,
 		genre: text('genre'),
+		service: service !== null && /^\d{1,9}$/.test(service) ? Number(service) : null,
 		tag: text('tag'),
 		sort: diarySorts.find((sort) => sort === params.get('sort')) ?? 'watched',
 		show: diaryShows.find((show) => show === params.get('show')) ?? 'all'
@@ -79,6 +84,7 @@ export function diaryQuery(options: DiaryOptions): string {
 	if (options.year !== null) params.set('year', String(options.year));
 	if (options.decade !== null) params.set('decade', String(options.decade));
 	if (options.genre !== null) params.set('genre', options.genre);
+	if (options.service !== null) params.set('service', String(options.service));
 	if (options.tag !== null) params.set('tag', options.tag);
 	if (options.sort !== 'watched') params.set('sort', options.sort);
 	if (options.show !== 'all') params.set('show', options.show);
@@ -122,6 +128,7 @@ export function applyDiaryOptions<T extends DiaryRow>(entries: T[], options: Dia
 						entry.work.year >= options.decade &&
 						entry.work.year < options.decade + 10)) &&
 				(options.genre === null || (entry.genres ?? []).includes(options.genre)) &&
+				(options.service === null || (entry.services ?? []).includes(options.service)) &&
 				(options.tag === null || entry.tags.includes(options.tag)) &&
 				shows[options.show](entry)
 		)

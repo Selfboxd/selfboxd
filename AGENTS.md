@@ -172,6 +172,10 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   page load still takes `page`, and `InfinitePages` of `infinite.svelte.ts` loads the next page
   through `preloadData` and appends it, with `LoadMore.svelte` at the end of the items.
 - The diary filters and sorts with `diary-view.ts`, from the menus of its header.
+- An account chooses its country and its streaming services in Settings, Streaming. The country
+  is that of `requestRegion()` for releases and where to watch. The Service menu of browse,
+  person, list and diary pages lists only the services of the account; browse pages narrow
+  through TMDB discover, the others through the cached details of each work (`streamingOn`).
 - The catalogue has no search of its own. Everything is found from the search of the header.
 - Works are films or series (`WorkKind`). Links to a work go through `workRoute(kind)` of
   `src/lib/paths.ts`, given to `resolve`. A series summary uses `title` for its name, so posters

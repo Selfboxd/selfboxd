@@ -459,5 +459,14 @@
 	"add_to_list_title": "リストに追加",
 	"add_to_list_new": "新しいリスト",
 	"add_to_list_name": "新しいリストの名前",
-	"add_to_list_add": "追加"
+	"add_to_list_add": "追加",
+	"settings_tab_streaming": "配信",
+	"streaming_country_title": "国",
+	"streaming_country": "あなたの国",
+	"streaming_country_hint": "公開日と配信情報はこの国のものです。",
+	"streaming_services_title": "サービス",
+	"streaming_services_hint": "利用しているサービスを選んでください。映画やシリーズの絞り込みに使えます。",
+	"streaming_services_empty": "TMDBはこの国の配信サービスを把握していません。",
+	"filter_service": "サービス",
+	"filter_any_service": "すべてのサービス"
 }

@@ -459,5 +459,14 @@
 	"add_to_list_title": "Ajouter à une liste",
 	"add_to_list_new": "Nouvelle liste",
 	"add_to_list_name": "Nom de la nouvelle liste",
-	"add_to_list_add": "Ajouter"
+	"add_to_list_add": "Ajouter",
+	"settings_tab_streaming": "Streaming",
+	"streaming_country_title": "Pays",
+	"streaming_country": "Votre pays",
+	"streaming_country_hint": "Les sorties et les offres de streaming sont celles de ce pays.",
+	"streaming_services_title": "Services",
+	"streaming_services_hint": "Choisissez les services que vous utilisez. Ils servent ensuite à filtrer les films et les séries.",
+	"streaming_services_empty": "TMDB ne connaît aucun service de streaming pour ce pays.",
+	"filter_service": "Service",
+	"filter_any_service": "Tous les services"
 }

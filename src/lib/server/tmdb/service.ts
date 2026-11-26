@@ -13,6 +13,7 @@ import type { SearchResult, WorkSearch, WorkSearchResult } from '../../catalog/s
 import { toSeries, toSeriesSummary } from './series';
 import type { PersonDetails } from '../../catalog/person';
 import type { CompanyKind, Studio } from '../../catalog/studio';
+import type { Region, Service } from '../../catalog/streaming';
 import { toPerson, toStudio } from './person';
 import {
 	collectionSchema,
@@ -26,7 +27,9 @@ import {
 	seriesPageSchema,
 	multiSearchSchema,
 	personSchema,
-	companySchema
+	companySchema,
+	regionListSchema,
+	providerListSchema
 } from './schemas';
 
 export interface TmdbContext {
@@ -217,12 +220,19 @@ export interface FilmPage {
 export interface BrowseScope {
 	studio?: number;
 	network?: number;
+	/** A watch provider the works must stream on, in a country. */
+	service?: { id: number; region: string };
 }
 
 function scopeParams(scope: BrowseScope): Record<string, string> {
 	const params: Record<string, string> = {};
 	if (scope.studio !== undefined) params.with_companies = String(scope.studio);
 	if (scope.network !== undefined) params.with_networks = String(scope.network);
+	if (scope.service !== undefined) {
+		params.with_watch_providers = String(scope.service.id);
+		params.watch_region = scope.service.region;
+		params.with_watch_monetization_types = 'flatrate';
+	}
 	return params;
 }
 
@@ -555,4 +565,66 @@ export async function getStudio(
 		{}
 	);
 	return result.ok ? { ok: true, value: toStudio(result.value) } : result;
+}
+
+/** Countries TMDB knows streaming offers for, by name. */
+export async function getRegions(
+	context: TmdbContext,
+	language: string
+): Promise<Loaded<Region[]>> {
+	const result = await load(
+		context,
+		`regions:${language}`,
+		lifetimes.company,
+		regionListSchema,
+		'/watch/providers/regions',
+		{ language }
+	);
+	if (!result.ok) return result;
+	return {
+		ok: true,
+		value: result.value.results
+			.map((region) => ({ code: region.iso_3166_1, name: region.english_name }))
+			.sort((a, b) => a.name.localeCompare(b.name))
+	};
+}
+
+/** Streaming services offering films or series in a country, the most common first. */
+export async function getServices(
+	context: TmdbContext,
+	region: string,
+	language: string
+): Promise<Loaded<Service[]>> {
+	const loaded = await Promise.all(
+		(['movie', 'tv'] as const).map((type) =>
+			load(
+				context,
+				`providers:${type}:${region}:${language}`,
+				lifetimes.company,
+				providerListSchema,
+				`/watch/providers/${type}`,
+				{ language, watch_region: region }
+			)
+		)
+	);
+	const services = new Map<number, Service & { priority: number }>();
+	for (const result of loaded) {
+		if (!result.ok) return result;
+		for (const provider of result.value.results) {
+			const known = services.get(provider.provider_id);
+			if (known && known.priority <= provider.display_priority) continue;
+			services.set(provider.provider_id, {
+				id: provider.provider_id,
+				name: provider.provider_name,
+				logoPath: provider.logo_path ?? null,
+				priority: provider.display_priority
+			});
+		}
+	}
+	return {
+		ok: true,
+		value: [...services.values()]
+			.sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
+			.map(({ id, name, logoPath }) => ({ id, name, logoPath }))
+	};
 }

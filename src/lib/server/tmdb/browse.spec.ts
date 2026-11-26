@@ -10,15 +10,23 @@ function parse(query: string) {
 
 describe('parseBrowseFilter', () => {
 	it('defaults to the popular films', () => {
-		expect(parse('')).toEqual({ sort: 'popular', decade: null, year: null, genre: null, page: 1 });
+		expect(parse('')).toEqual({
+			sort: 'popular',
+			decade: null,
+			year: null,
+			genre: null,
+			service: null,
+			page: 1
+		});
 	});
 
 	it('reads a complete filter', () => {
-		expect(parse('sort=rating&decade=1980&genre=878&page=3')).toEqual({
+		expect(parse('sort=rating&decade=1980&genre=878&service=8&page=3')).toEqual({
 			sort: 'rating',
 			decade: 1980,
 			year: null,
 			genre: 878,
+			service: 8,
 			page: 3
 		});
 	});

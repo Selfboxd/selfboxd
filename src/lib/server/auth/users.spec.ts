@@ -52,7 +52,14 @@ describe('users', () => {
 		await createUser(database.db, { username: 'ada', password: 'password-1', isAdmin: false });
 
 		expect(listUsers(database.db)).toEqual([
-			{ id: 1, username: 'ada', isAdmin: false, avatarVersion: null, ratingScale: 'stars' }
+			{
+				id: 1,
+				username: 'ada',
+				isAdmin: false,
+				avatarVersion: null,
+				ratingScale: 'stars',
+				country: null
+			}
 		]);
 	});
 

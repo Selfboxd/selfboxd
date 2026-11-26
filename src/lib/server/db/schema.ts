@@ -20,6 +20,8 @@ export const users = sqliteTable('users', {
 	bio: text('bio').notNull().default(''),
 	location: text('location').notNull().default(''),
 	bannerPath: text('banner_path'),
+	/** ISO 3166-1 code of the country of the account, for releases and streaming offers. */
+	country: text('country'),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.default(sql`(unixepoch())`)
@@ -240,4 +242,16 @@ export const likedLists = sqliteTable(
 			table.reference
 		)
 	]
+);
+
+/** Streaming services an account uses, by TMDB provider identifier. */
+export const userServices = sqliteTable(
+	'user_services',
+	{
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		providerId: integer('provider_id').notNull()
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.providerId] })]
 );

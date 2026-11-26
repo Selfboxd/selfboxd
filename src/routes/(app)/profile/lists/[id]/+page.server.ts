@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { Work } from '#lib/catalog/library.js';
-import { applyListOptions, listDecades, parseListOptions } from '#lib/catalog/list-view.js';
+import { applyListOptions, listDecades } from '#lib/catalog/list-view.js';
 import { requireUser } from '#lib/server/auth/guards.js';
 import { getDatabase } from '#lib/server/db/index.js';
 import { parseId } from '#lib/server/library/forms.js';
@@ -12,7 +12,8 @@ import {
 	progressOf,
 	toEntries,
 	watchlistWorks,
-	withGenres,
+	listChoices,
+	refineEntries,
 	workInput
 } from '#lib/server/library/list-page.js';
 import { getList } from '#lib/server/library/lists.js';
@@ -42,16 +43,17 @@ function works(list: ReturnType<typeof ownList>) {
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const { user } = requireUser(locals);
 	const list = ownList(user.id, params.id);
-	const options = parseListOptions(url.searchParams);
+	const { options, services } = await listChoices(user.id, url.searchParams);
 	const all = toEntries(user.id, works(list));
 	const [entries, genres, backdropPath] = await Promise.all([
-		withGenres(all, options),
+		refineEntries(all, options),
 		genreChoices(),
 		loadBackdrop(list.items[0]?.work)
 	]);
 	return {
 		list,
 		options,
+		services,
 		entries: applyListOptions(entries, options),
 		decades: listDecades(all),
 		genres,

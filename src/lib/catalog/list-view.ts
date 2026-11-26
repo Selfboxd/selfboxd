@@ -24,6 +24,8 @@ export interface ListOptions {
 	decade: number | null;
 	/** Name of a genre, as TMDB gives it in the language of the interface. */
 	genre: string | null;
+	/** Identifier of a TMDB watch provider the works must stream on. */
+	service: number | null;
 	visibility: ListVisibility;
 	mode: ListMode;
 }
@@ -32,6 +34,7 @@ export const defaultListOptions: ListOptions = {
 	sort: 'list',
 	decade: null,
 	genre: null,
+	service: null,
 	visibility: 'all',
 	mode: 'grid'
 };
@@ -43,10 +46,12 @@ const genreMaxLength = 60;
 export function parseListOptions(params: URLSearchParams): ListOptions {
 	const decade = params.get('decade');
 	const genre = params.get('genre')?.trim() ?? '';
+	const service = params.get('service');
 	return {
 		sort: listSorts.find((name) => name === params.get('sort')) ?? 'list',
 		decade: decade !== null && /^\d{3}0$/.test(decade) ? Number(decade) : null,
 		genre: genre !== '' && genre.length <= genreMaxLength ? genre : null,
+		service: service !== null && /^\d{1,9}$/.test(service) ? Number(service) : null,
 		visibility: listVisibilities.find((name) => name === params.get('show')) ?? 'all',
 		mode: listModes.find((name) => name === params.get('view')) ?? 'grid'
 	};
@@ -58,6 +63,7 @@ export function isRefined(options: ListOptions): boolean {
 		options.sort !== 'list' ||
 		options.decade !== null ||
 		options.genre !== null ||
+		options.service !== null ||
 		options.visibility !== 'all'
 	);
 }
@@ -68,6 +74,7 @@ export function listOptionsQuery(options: Partial<ListOptions>): string {
 	if (options.sort && options.sort !== 'list') params.set('sort', options.sort);
 	if (options.decade) params.set('decade', String(options.decade));
 	if (options.genre) params.set('genre', options.genre);
+	if (options.service) params.set('service', String(options.service));
 	if (options.visibility && options.visibility !== 'all') params.set('show', options.visibility);
 	if (options.mode && options.mode !== 'grid') params.set('view', options.mode);
 	return params.toString();
@@ -87,6 +94,8 @@ export interface ListEntry {
 	rating: number | null;
 	/** Genres of the work, when they were loaded. */
 	genres?: string[];
+	/** Watch providers streaming the work, when they were loaded. */
+	services?: number[];
 }
 
 function compareYears(a: ListEntry, b: ListEntry, direction: 1 | -1): number {
@@ -98,12 +107,13 @@ function compareYears(a: ListEntry, b: ListEntry, direction: 1 | -1): number {
 
 /** Narrows and orders the entries of a list. Ties keep the order of the list. */
 export function applyListOptions(entries: ListEntry[], options: ListOptions): ListEntry[] {
-	const { decade, genre, visibility } = options;
+	const { decade, genre, service, visibility } = options;
 	const kept = entries.filter(
 		(entry) =>
 			(decade === null ||
 				(entry.film.year !== null && entry.film.year >= decade && entry.film.year < decade + 10)) &&
 			(genre === null || (entry.genres ?? []).includes(genre)) &&
+			(service === null || (entry.services ?? []).includes(service)) &&
 			(visibility === 'all' || entry.watched === (visibility === 'watched'))
 	);
 	const byPosition = (a: ListEntry, b: ListEntry) => a.position - b.position;

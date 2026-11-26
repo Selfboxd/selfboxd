@@ -39,12 +39,13 @@ describe('parseListOptions', () => {
 	it('reads every option and ignores invalid values', () => {
 		expect(
 			parseListOptions(
-				new URLSearchParams('sort=name&decade=1980&genre=Drama&show=watched&view=detail')
+				new URLSearchParams('sort=name&decade=1980&genre=Drama&service=8&show=watched&view=detail')
 			)
 		).toEqual({
 			sort: 'name',
 			decade: 1980,
 			genre: 'Drama',
+			service: 8,
 			visibility: 'watched',
 			mode: 'detail'
 		});

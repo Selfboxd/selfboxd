@@ -32,6 +32,7 @@ const options: PersonOptions = {
 	kind: 'all',
 	decade: null,
 	genre: null,
+	service: null,
 	show: 'all'
 };
 
@@ -64,7 +65,7 @@ describe('person roles', () => {
 describe('person options', () => {
 	it('reads valid options and ignores the others', () => {
 		const params = new URLSearchParams(
-			'role=director&sort=oldest&kind=series&decade=1980&genre=878&show=watched'
+			'role=director&sort=oldest&kind=series&decade=1980&genre=878&service=8&show=watched'
 		);
 		expect(parsePersonOptions(params, 'actor')).toEqual({
 			role: 'director',
@@ -72,6 +73,7 @@ describe('person options', () => {
 			kind: 'series',
 			decade: 1980,
 			genre: 878,
+			service: 8,
 			show: 'watched'
 		});
 		expect(
@@ -116,6 +118,13 @@ describe('person works', () => {
 		expect(ids({ kind: 'series' })).toEqual([2]);
 		expect(ids({ decade: 1980 })).toEqual([1]);
 		expect(ids({ genre: 878 })).toEqual([1]);
+		expect(
+			applyPersonOptions(
+				credits.map((entry) => ({ ...entry, services: entry.id === 2 ? [8] : [] })),
+				{ ...options, service: 8 },
+				() => false
+			).map((entry) => entry.id)
+		).toEqual([2]);
 		expect(ids({ show: 'watched' })).toEqual([1]);
 		expect(ids({ show: 'unwatched' })).toEqual([2, 3]);
 	});
