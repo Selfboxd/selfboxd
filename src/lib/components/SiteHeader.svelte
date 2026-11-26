@@ -183,9 +183,17 @@
 
 	.links,
 	.tools {
+		position: relative;
 		display: flex;
 		gap: var(--space-4);
 		align-items: center;
+	}
+
+	.toggle,
+	.log {
+		transition:
+			opacity var(--duration-fast) var(--ease-out),
+			transform var(--duration-medium) var(--ease-out);
 	}
 
 	.links > a {
@@ -313,33 +321,52 @@
 	}
 
 	.search {
+		position: absolute;
+		z-index: 1;
+		top: 50%;
+		right: 0;
 		display: flex;
+		width: var(--search-open-width);
 		gap: var(--space-3);
 		align-items: center;
-		overflow: hidden;
-		width: 0;
-		margin-inline-end: calc(-1 * var(--space-4));
+		clip-path: inset(0 0 0 100%);
 		opacity: 0;
+		transform: translateY(-50%);
 		visibility: hidden;
 		transition:
-			width var(--duration-fast) ease-out,
-			opacity var(--duration-fast) ease-out,
-			visibility 0s var(--duration-fast);
+			clip-path var(--duration-medium) var(--ease-out),
+			opacity var(--duration-fast) var(--ease-out),
+			visibility 0s var(--duration-medium);
 	}
 
 	.searching .search {
-		width: var(--search-open-width);
-		margin-inline-end: 0;
+		clip-path: inset(0);
 		opacity: 1;
 		visibility: visible;
 		transition:
-			width var(--duration-fast) ease-out,
-			opacity var(--duration-fast) ease-out;
+			clip-path var(--duration-medium) var(--ease-out),
+			opacity var(--duration-fast) var(--ease-out);
 	}
 
 	.searching .toggle,
 	.searching .log {
-		display: none;
+		opacity: 0;
+		pointer-events: none;
+		transform: translateX(var(--space-2));
+		visibility: hidden;
+		transition:
+			opacity var(--duration-fast) var(--ease-out),
+			transform var(--duration-medium) var(--ease-out),
+			visibility 0s var(--duration-fast);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.search,
+		.searching .search,
+		.toggle,
+		.log {
+			transition: none;
+		}
 	}
 
 	.close {

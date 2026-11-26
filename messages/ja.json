@@ -321,7 +321,6 @@
 	"chart_now_playing": "上映中の映画",
 	"chart_upcoming": "公開予定の映画",
 	"chart_empty": "このページには映画がありません。",
-	"search_section_lists": "リスト",
 	"nav_series": "シリーズ",
 	"error_season_invalid": "有効なシーズンを選んでください。",
 	"error_status_invalid": "有効なステータスを選んでください。",
@@ -553,5 +552,16 @@
 	"review_page_edit": "このレビューを編集または削除…",
 	"review_page_work": "{title}へ",
 	"review_page_all": "すべてのレビュー",
-	"review_open": "レビューを読む"
+	"review_open": "レビューを読む",
+	"search_section_own_lists": "あなたのリスト",
+	"search_section_reviews": "レビュー",
+	"search_section_tags": "タグ",
+	"search_section_journal": "ジャーナル記事",
+	"search_section_public_lists": "公開リスト",
+	"search_library": "ライブラリ内",
+	"search_see_all": "すべて見る",
+	"search_tag_count": "{count} 件",
+	"search_broadened": "「{query}」に完全一致する結果はありません。「{broader}」の結果を表示しています。",
+	"search_suggestions": "代わりに、今週人気の映画",
+	"search_catalogue": "映画・シリーズ・人物"
 }

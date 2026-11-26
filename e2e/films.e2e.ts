@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { admin, apiSignIn, bearer, createAccount, signIn } from './support/accounts';
+import { fillTags } from './support/fields';
 import { tmdbRequestCount } from './support/tmdb/requests';
 
 test.describe('search', () => {
@@ -64,6 +65,82 @@ test.describe('search', () => {
 		await page.goto('/search?q=zzzz');
 
 		await expect(page.getByText('No films match this search.')).toBeVisible();
+		await expect(page.getByText('Popular films this week, in the meantime')).toBeVisible();
+		await expect(page.locator('main .suggestions li').first()).toBeVisible();
+	});
+
+	test('broadens a query that finds nothing to its longest word', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+
+		await page.goto('/search?q=blade zzzzzz');
+
+		await expect(
+			page.getByText('Nothing matches “blade zzzzzz” exactly. Showing results for “zzzzzz”.')
+		).toHaveCount(0);
+		await expect(
+			page.getByText('Nothing matches “blade zzzzzz” exactly. Showing results for “blade”.')
+		).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Blade Runner 2049', exact: true })).toBeVisible();
+	});
+
+	test('finds the lists, reviews and tags of the account first', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/film/78');
+		await page
+			.getByRole('region', { name: 'Your actions' })
+			.getByRole('button', { name: /Review or log/ })
+			.click();
+		const dialog = page.getByRole('dialog');
+		await dialog.getByLabel('Review').fill('Tears in rain.');
+		await fillTags(dialog, 'Tags', 'rainy day');
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+		await page.goto('/profile/lists/new');
+		await page.getByLabel('Name', { exact: true }).fill('Rain films');
+		await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
+		await expect(page).toHaveURL(/\/profile\/lists\/\d+$/, { timeout: 15_000 });
+
+		await page.goto('/search?q=rain');
+		const library = page.getByRole('region', { name: 'In your library' });
+		await expect(library.getByRole('link', { name: 'Rain films' })).toBeVisible();
+		await expect(library.getByText('Tears in rain.')).toBeVisible();
+		await expect(library.getByRole('link', { name: /rainy day/ })).toBeVisible();
+
+		await library.getByRole('heading', { name: 'Blade Runner' }).getByRole('link').click();
+		await expect(page).toHaveURL(/\/reviews\/\d+$/);
+
+		const filters = page.getByRole('complementary');
+		await page.goto('/search?q=rainy');
+		await filters.getByRole('link', { name: 'Tags' }).click();
+		await expect(page).toHaveURL('/search?q=rainy&type=tags');
+		await page.getByRole('link', { name: /rainy day/ }).click();
+		await expect(page).toHaveURL('/diary?tag=rainy+day');
+
+		await page.goto('/search?q=tears&type=reviews');
+		await expect(page.getByRole('heading', { name: 'Blade Runner' })).toBeVisible();
+		await page.goto('/search?q=nothing&type=your-lists');
+		await expect(page.getByText('Nothing matches this search.')).toBeVisible();
+	});
+
+	test('finds articles of the journal', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/search?q=filmmaker 2');
+		await page.getByRole('complementary').getByRole('link', { name: 'Journal articles' }).click();
+
+		const results = page.locator('main ul.results > li');
+		await expect(results.first().getByRole('link', { name: 'Interview 2' })).toBeVisible();
+		expect(await results.count()).toBeGreaterThan(1);
+	});
+
+	test('leads from the names under a film to their page', async ({ page, request }) => {
+		await signIn(page, await createAccount(request));
+		await page.goto('/search?q=blade');
+		await page
+			.locator('main ul.results > li')
+			.first()
+			.getByRole('link', { name: 'Ridley Scott' })
+			.click();
+		await expect(page).toHaveURL(/\/person\/\d+$/);
 	});
 
 	test('asks for a title when the query is empty', async ({ page, request }) => {

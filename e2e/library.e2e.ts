@@ -178,6 +178,7 @@ test.describe('watchlist', () => {
 		await expect(dialog.getByLabel('Note')).toHaveValue('First note');
 		await dialog.getByLabel('Note').fill('Second note');
 		await dialog.getByRole('button', { name: 'Save' }).first().click();
+		await expect(dialog).toBeHidden();
 
 		await page.goto('/watchlist');
 		await expect(page.getByText('Second note')).toBeVisible();

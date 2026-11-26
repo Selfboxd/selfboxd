@@ -321,7 +321,6 @@
 	"chart_now_playing": "Em cartaz",
 	"chart_upcoming": "Próximos lançamentos",
 	"chart_empty": "Esta classificação não tem filmes nesta página.",
-	"search_section_lists": "Listas",
 	"nav_series": "Séries",
 	"error_season_invalid": "Escolha uma temporada válida.",
 	"error_status_invalid": "Escolha um estado válido.",
@@ -553,5 +552,16 @@
 	"review_page_edit": "Editar ou excluir esta crítica…",
 	"review_page_work": "Ir para {title}",
 	"review_page_all": "Todas as suas críticas",
-	"review_open": "Ler a crítica"
+	"review_open": "Ler a crítica",
+	"search_section_own_lists": "Suas listas",
+	"search_section_reviews": "Críticas",
+	"search_section_tags": "Tags",
+	"search_section_journal": "Artigos do jornal",
+	"search_section_public_lists": "Listas públicas",
+	"search_library": "Na sua biblioteca",
+	"search_see_all": "Ver tudo",
+	"search_tag_count": "{count} entradas",
+	"search_broadened": "Nada corresponde exatamente a “{query}”. Resultados para “{broader}”.",
+	"search_suggestions": "Enquanto isso, filmes populares nesta semana",
+	"search_catalogue": "Filmes, séries e pessoas"
 }

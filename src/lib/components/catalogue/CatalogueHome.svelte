@@ -96,14 +96,16 @@
 
 	.find label {
 		color: var(--color-text);
-		font-size: var(--font-size-control);
+		font-size: var(--font-size-small);
+		line-height: 1;
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 	}
 
 	.find input {
 		width: 13rem;
-		padding: var(--space-1) var(--space-2);
+		height: var(--browse-height);
+		padding: 0 var(--space-2);
 		border: 0;
 		border-radius: var(--radius-small);
 		background: var(--color-input);
