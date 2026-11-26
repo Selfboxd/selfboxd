@@ -31,7 +31,7 @@
 	}
 </script>
 
-<nav class:filled={!onProfile} aria-label={m.nav_profile()}>
+<nav class="profile-nav" class:filled={!onProfile} aria-label={m.nav_profile()}>
 	{#if !onProfile && user}
 		<a class="owner" href={profile}>
 			<Avatar {user} />
@@ -51,6 +51,18 @@
 </nav>
 
 <style>
+	:global(body:has(.profile-nav)) {
+		--color-background: var(--color-background-profile);
+		--color-background-clear: var(--color-background-profile-clear);
+		--color-background-veil: var(--color-background-profile-veil);
+		--texture-grain: none;
+		background: var(--color-background-profile);
+	}
+
+	:global(.body:has(.profile-nav)) {
+		background: none;
+	}
+
 	nav {
 		position: relative;
 		display: flex;
