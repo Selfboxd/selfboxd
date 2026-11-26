@@ -111,18 +111,24 @@
 		}
 	}
 
-	/** Posts a form, asking the browser to finish the request even if the page is left. */
-	async function post(form: HTMLFormElement, body: FormData): Promise<Response> {
-		const init = {
+	/** Largest body a browser lets outlive the page, with room for the form encoding. */
+	const keepaliveLimit = 48_000;
+
+	/**
+	 * Posts a form once, asking the browser to finish the request even if the page is left
+	 * whenever the body is small enough for it.
+	 */
+	function post(form: HTMLFormElement, body: FormData): Promise<Response> {
+		const size = [...body.values()].reduce(
+			(total, value) => total + (typeof value === 'string' ? value.length * 3 : value.size),
+			0
+		);
+		return fetch(form.action, {
 			method: 'POST',
 			body,
-			headers: { accept: 'application/json', 'x-sveltekit-action': 'true' }
-		};
-		try {
-			return await fetch(form.action, { ...init, keepalive: true });
-		} catch {
-			return await fetch(form.action, init);
-		}
+			headers: { accept: 'application/json', 'x-sveltekit-action': 'true' },
+			keepalive: size < keepaliveLimit
+		});
 	}
 
 	/**

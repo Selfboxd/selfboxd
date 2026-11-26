@@ -12,7 +12,8 @@ interface Published {
 		profile: {
 			name: string;
 			works: { id: number; posterPath: string | null }[];
-			diary: { work: number; review: string }[];
+			diary: { id: number; work: number; review: string; createdAt: string }[];
+			deleted: { id: number; title: string }[];
 			watchlist: unknown[];
 			watchlistHidden: boolean;
 			lists: { name: string; items: { work: number; note: string }[] }[];
@@ -87,9 +88,35 @@ test.describe('public profile', () => {
 		const after = await published(request, handle);
 		expect(after?.payload?.profile.diary[0]?.review).toBe('Tears in rain.');
 		expect(after?.payload?.profile.works[0]?.id).toBe(78);
+		const logged = after?.payload?.profile.diary[0];
+		expect(Date.parse(logged?.createdAt ?? '')).toBeGreaterThan(0);
 		expect(after?.payload?.profile.stats.all.totals.works).toBe(1);
 		expect(after?.payload?.profile.stats.all.directors[0]?.person.name).toBe('Ridley Scott');
 		expect(JSON.stringify(after)).not.toContain('localhost:4173');
+	});
+
+	test('tells the copy which entries were deleted', async ({ page, request }) => {
+		await enable(page);
+		const handle = handleOf(account);
+		await page.goto('/film/78');
+		const actions = page.getByRole('region', { name: 'Your actions' });
+		await actions.getByRole('button', { name: /Review or log/ }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+		await expect
+			.poll(async () => (await published(request, handle))?.payload?.profile.diary.length)
+			.toBe(1);
+		const id = (await published(request, handle))?.payload?.profile.diary[0]?.id;
+
+		await page.goto('/film/78');
+		await actions.getByRole('button', { name: 'Edit entry or add review…' }).click();
+		page.once('dialog', (dialog) => void dialog.accept());
+		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await expect
+			.poll(async () => (await published(request, handle))?.payload?.profile.diary.length)
+			.toBe(0);
+		expect((await published(request, handle))?.payload?.profile.deleted).toEqual([
+			expect.objectContaining({ id, title: 'Blade Runner' })
+		]);
 	});
 
 	test('leaves a private watchlist out of the copy', async ({ page, request }) => {

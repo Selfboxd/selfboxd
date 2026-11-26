@@ -54,8 +54,9 @@ export interface DiaryEntry {
 	rewatch: boolean;
 	review: string;
 	containsSpoilers: boolean;
-	/** Whether the review is shown on the profile of the account. */
 	tags: string[];
+	/** When the entry was logged, as an ISO timestamp. */
+	createdAt: string;
 }
 
 export interface WatchlistItem {

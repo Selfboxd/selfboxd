@@ -4,6 +4,7 @@ import { createTestDatabase, type TestDatabase } from '../testing/database';
 import {
 	createDiaryEntry,
 	deleteDiaryEntry,
+	listDeletedEntries,
 	listDiaryEntries,
 	updateDiaryEntry,
 	type DiaryEntryInput
@@ -310,6 +311,20 @@ describe('library', () => {
 
 			expect(state()).toMatchObject({ watched: true, logCount: 0 });
 			expect(listTagNames(database.db, ada.id, 'diary')).toEqual([]);
+		});
+
+		it('remembers deleted entries for thirty days and never gives their id again', () => {
+			const deletedAt = new Date('2026-03-01T10:00:00Z');
+			const id = createDiaryEntry(database.db, ada.id, film, entry({ watchedOn: '2026-02-28' }));
+			deleteDiaryEntry(database.db, ada.id, id, deletedAt);
+			const again = createDiaryEntry(database.db, ada.id, film, entry());
+
+			expect(again).toBeGreaterThan(id);
+			expect(listDeletedEntries(database.db, ada.id, new Date('2026-03-20'))).toMatchObject([
+				{ id, title: 'Blade Runner', watchedOn: '2026-02-28', deletedAt }
+			]);
+			expect(listDeletedEntries(database.db, grace.id, new Date('2026-03-20'))).toEqual([]);
+			expect(listDeletedEntries(database.db, ada.id, new Date('2026-04-01'))).toEqual([]);
 		});
 
 		it('keeps diary tags and watchlist tags apart', () => {
