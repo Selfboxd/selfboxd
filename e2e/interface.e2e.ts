@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createAccount, signIn } from './support/accounts';
 import { stubJournalImages } from './support/journal/images';
+import { stubTmdbImages } from './support/tmdb/images';
 
 function collectErrors(page: Page): string[] {
 	const errors: string[] = [];
@@ -23,6 +24,33 @@ test.describe('interface', () => {
 		);
 	});
 
+	test('shows films, series, the watchlist, the diary and the journal on the home page', async ({
+		page,
+		request
+	}) => {
+		await stubJournalImages(page);
+		await signIn(page, await createAccount(request));
+		await page.goto('/film/78');
+		await page
+			.getByRole('region', { name: 'Your actions' })
+			.getByRole('button', { name: 'Watchlist', exact: true })
+			.click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Add' }).click();
+		await expect(page.getByRole('dialog')).toBeHidden();
+
+		await page.goto('/');
+		const main = page.getByRole('main');
+		await expect(main.getByRole('heading', { name: 'Popular films this week' })).toBeVisible();
+		await expect(main.getByRole('heading', { name: 'Popular series this week' })).toBeVisible();
+		const watchlist = main.locator('section', {
+			has: page.getByRole('heading', { name: 'Still on your watchlist' })
+		});
+		await expect(watchlist.locator('a[href="/film/78"]').first()).toBeVisible();
+		await expect(main.getByText('Log a film to see it here.')).toBeVisible();
+		await expect(main.getByRole('heading', { name: 'From the journal' })).toBeVisible();
+		await expect(main.getByText('Lead Story', { exact: true })).toBeVisible();
+	});
+
 	test('keeps the sign-in page free of any logo, with the favicon only', async ({ page }) => {
 		await page.goto('/login');
 
@@ -43,6 +71,7 @@ test.describe('interface', () => {
 		const errors = collectErrors(page);
 
 		await stubJournalImages(page);
+		await stubTmdbImages(page);
 		await signIn(page, await createAccount(request));
 		for (const path of [
 			'/',
