@@ -1,20 +1,27 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { listOptionsQuery } from '#lib/catalog/list-view.js';
 	import ListView from '#lib/components/library/ListView.svelte';
+	import LoadMore from '#lib/components/LoadMore.svelte';
+	import { InfinitePages } from '#lib/components/infinite.svelte.js';
 	import { chartName } from '#lib/i18n/charts.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	const name = $derived(chartName(data.chart));
-	const path = $derived(resolve('/(app)/lists/official/[chart]', { chart: data.chart }));
+	type Entry = PageProps['data']['entries'][number];
 
-	function pageQuery(page: number): string {
-		const view = listOptionsQuery({ mode: data.options.mode });
-		return view ? `${view}&page=${String(page)}` : `page=${String(page)}`;
-	}
+	const pages = new InfinitePages<Entry>(
+		() => ({ items: data.entries, page: data.page, more: data.page < data.totalPages }),
+		(loaded) => {
+			const next = loaded as Partial<Pick<PageProps['data'], 'entries' | 'page' | 'totalPages'>>;
+			return next.entries && next.page !== undefined && next.totalPages !== undefined
+				? { items: next.entries, page: next.page, more: next.page < next.totalPages }
+				: null;
+		},
+		(entry) => `${entry.film.kind ?? 'film'}:${String(entry.film.id)}`
+	);
+
+	const name = $derived(chartName(data.chart));
 </script>
 
 <svelte:head>
@@ -27,7 +34,7 @@
 	owner="TMDB"
 	count={null}
 	backdropPath={data.backdropPath}
-	entries={data.entries}
+	entries={pages.items}
 	empty={m.chart_empty()}
 	progress={null}
 	options={data.options}
@@ -35,29 +42,5 @@
 	genres={data.genres}
 	liked={data.liked}
 >
-	{#if data.totalPages > 1}
-		<nav class="pages" aria-label={name}>
-			{#if data.page > 1}
-				<a class="button button-secondary" href="{path}?{pageQuery(data.page - 1)}">
-					{m.search_previous()}
-				</a>
-			{/if}
-			{#if data.page < data.totalPages}
-				<a class="button button-secondary next" href="{path}?{pageQuery(data.page + 1)}">
-					{m.search_next()}
-				</a>
-			{/if}
-		</nav>
-	{/if}
+	<LoadMore more={pages.more} loading={pages.loading} onmore={() => void pages.next()} />
 </ListView>
-
-<style>
-	.pages {
-		display: flex;
-		margin-top: var(--space-6);
-	}
-
-	.pages .next {
-		margin-inline-start: auto;
-	}
-</style>

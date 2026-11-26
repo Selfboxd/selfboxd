@@ -4,12 +4,15 @@
 :root {
 	color-scheme: dark;
 
-	--color-background: #14181c;
+	--color-background: #101317;
 	--color-background-raised: #1b2228;
-	--color-background-clear: rgb(20 24 28 / 0%);
-	--color-background-veil: rgb(20 24 28 / 70%);
-	--color-header: #14181c;
-	--color-header-scrim: rgb(20 24 28 / 92%);
+	--color-background-profile: #0c0f12;
+	--color-background-profile-clear: rgb(12 15 18 / 0%);
+	--color-background-profile-veil: rgb(12 15 18 / 70%);
+	--color-background-clear: rgb(16 19 23 / 0%);
+	--color-background-veil: rgb(16 19 23 / 70%);
+	--color-header: #101317;
+	--color-header-scrim: rgb(16 19 23 / 92%);
 	--shadow-header-text: 0 1px 3px rgb(0 0 0 / 85%);
 	--shadow-header-icon: drop-shadow(0 1px 2px rgb(0 0 0 / 85%));
 	--color-poster-bar: rgb(20 24 28 / 90%);
@@ -17,6 +20,7 @@
 	--color-journal-band: #445566;
 	--color-journal-band-rule: rgb(255 255 255 / 12%);
 	--color-panel: #2c3440;
+	--color-table-head: #0b0e11;
 	--color-surface-raised: #445566;
 	--color-border: #445566;
 	--color-border-subtle: #2c3440;
@@ -167,4 +171,5 @@
 	--dialog-width: 36rem;
 	--dialog-wide-width: 50rem;
 	--sidebar-width: 15rem;
+	--calendar-width: 3.25rem;
 }

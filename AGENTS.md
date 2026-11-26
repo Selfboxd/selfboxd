@@ -168,6 +168,10 @@ Endpoints live under `/api/v1` and return JSON. Validate every input on the serv
   (`personRoles` of `src/lib/catalog/person.ts`, mapped from TMDB jobs by `jobRoles`) and opens on
   the role of the person's department. Studio and network pages reuse `CatalogueBrowse` with a
   `BrowseScope` that narrows the TMDB discover request.
+- Paged results (browse, studios, networks, public lists, charts, search) scroll infinitely: the
+  page load still takes `page`, and `InfinitePages` of `infinite.svelte.ts` loads the next page
+  through `preloadData` and appends it, with `LoadMore.svelte` at the end of the items.
+- The diary filters and sorts with `diary-view.ts`, from the menus of its header.
 - The catalogue has no search of its own. Everything is found from the search of the header.
 - Works are films or series (`WorkKind`). Links to a work go through `workRoute(kind)` of
   `src/lib/paths.ts`, given to `resolve`. A series summary uses `title` for its name, so posters

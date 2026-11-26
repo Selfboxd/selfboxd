@@ -256,6 +256,70 @@ test.describe('diary', () => {
 		await expect(rows.nth(1).getByText('Dec 2025')).toBeVisible();
 	});
 
+	test('filters and sorts the diary from the menus of its header', async ({ page }) => {
+		await openFilm(page);
+		let dialog = await openLog(page);
+		await dialog.getByLabel('Watched on').fill('2025-12-30');
+		await dialog.getByRole('button', { name: '4.5 out of 5 stars', exact: true }).click();
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+		await openFilm(page, 335984);
+		dialog = await openLog(page);
+		await dialog.getByLabel('Watched on').fill('2026-01-02');
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+
+		await page.goto('/diary');
+		const head = page.getByRole('main').locator('header.head');
+		const rows = page.locator('main tbody tr');
+		const choose = async (menu: string | RegExp, option: string) => {
+			await head.getByRole('button', { name: menu }).hover();
+			await head.getByRole('link', { name: option, exact: true }).click();
+		};
+		await expect(rows).toHaveCount(2);
+		await expect(rows.first()).toContainText('Blade Runner 2049');
+
+		await choose('Diary year', '2025');
+		await expect(page).toHaveURL('/diary?year=2025');
+		await expect(rows).toHaveCount(1);
+		await expect(rows.first()).toContainText('Blade Runner');
+
+		await choose('2025', 'Any year');
+		await expect(page).toHaveURL('/diary');
+		await page.mouse.move(0, 0);
+		await choose('Rating', 'Not rated');
+		await expect(page).toHaveURL('/diary?rating=none');
+		await expect(rows).toHaveCount(1);
+		await expect(rows.first()).toContainText('Blade Runner 2049');
+
+		await choose('Not rated', 'Any rating');
+		await expect(page).toHaveURL('/diary');
+		await page.mouse.move(0, 0);
+		await choose(/^Sort by/, 'Earliest watched');
+		await expect(page).toHaveURL('/diary?sort=watched_oldest');
+		await expect(rows.first()).not.toContainText('2049');
+
+		await page.mouse.move(0, 0);
+		await choose('Decade', '2010s');
+		await expect(rows).toHaveCount(1);
+		await expect(rows.first()).toContainText('Blade Runner 2049');
+
+		await page.goto('/diary?show=reviews');
+		await expect(page.getByText('No entry matches these filters.')).toBeVisible();
+	});
+
+	test('groups the activity by day, newest first', async ({ page }) => {
+		await openFilm(page);
+		await actions(page).getByRole('button', { name: 'Like', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Liked' })).toBeVisible();
+
+		await page.goto('/activity');
+		const today = page.getByRole('region', { name: 'Today' });
+		await expect(today).toBeVisible();
+		await expect(today.getByRole('listitem').first()).toContainText('You liked Blade Runner');
+		await expect(today.getByRole('listitem').first().locator('time')).toHaveText(/\d{2}:\d{2}/);
+	});
+
 	test('refuses a date in the future', async ({ page }) => {
 		await openFilm(page);
 		const dialog = await openLog(page);

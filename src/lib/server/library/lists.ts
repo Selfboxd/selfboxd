@@ -175,6 +175,49 @@ export function setMembership(
 	});
 }
 
+/**
+ * Appends to a list of an account the given works it does not hold yet, in order.
+ * Returns whether the list belongs to the account.
+ */
+export function appendToList(
+	db: AppDatabase,
+	userId: number,
+	listId: number,
+	workIds: number[],
+	now = new Date()
+): boolean {
+	return db.transaction((transaction) => {
+		const list = transaction
+			.select({ id: lists.id })
+			.from(lists)
+			.where(and(eq(lists.id, listId), eq(lists.userId, userId)))
+			.get();
+		if (!list) return false;
+		const held = new Set(
+			transaction
+				.select({ workId: listItems.workId })
+				.from(listItems)
+				.where(eq(listItems.listId, listId))
+				.all()
+				.map((row) => row.workId)
+		);
+		const added = [...new Set(workIds)].filter((workId) => !held.has(workId));
+		if (added.length === 0) return true;
+		const last = transaction
+			.select({ value: max(listItems.position) })
+			.from(listItems)
+			.where(eq(listItems.listId, listId))
+			.get();
+		const start = (last?.value ?? 0) + 1;
+		transaction
+			.insert(listItems)
+			.values(added.map((workId, index) => ({ listId, workId, position: start + index })))
+			.run();
+		touch(transaction, listId, now);
+		return true;
+	});
+}
+
 /** Removes a work from a list of an account. Returns whether something was removed. */
 export function removeListItem(
 	db: AppDatabase,

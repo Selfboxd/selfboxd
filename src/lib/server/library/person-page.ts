@@ -12,6 +12,12 @@ import { getTmdbContext } from '../tmdb/index';
 import { requestLanguage } from '../tmdb/page';
 import { getGenres, getPerson, getSeriesGenres } from '../tmdb/service';
 import { listMarks, markKey } from './marks';
+import { listActionMax } from '../../catalog/list-view';
+import type { PersonCredit } from '../../catalog/person';
+import { roleName } from '../../i18n/person';
+import { listLists } from './lists';
+import { progressOf, workInput } from './list-page';
+import type { WorkInput } from './works';
 
 /** Genres of films and of series, each once. */
 async function allGenres(
@@ -49,7 +55,11 @@ export async function loadPerson(userId: number, id: number, params: URLSearchPa
 	const options = parsePersonOptions(params, fallback);
 	const inRole = credits.filter((credit) => credit.role === options.role);
 	const used = new Set(inRole.flatMap((credit) => credit.genres));
-	const marks = listMarks(getDatabase(), userId);
+	const db = getDatabase();
+	const marks = listMarks(db, userId);
+	const watched = (credit: PersonCredit) =>
+		marks.get(markKey(credit.kind, credit.id))?.watched ?? false;
+	const shown = applyPersonOptions(credits, { ...options, show: 'all' }, watched);
 	return {
 		state: 'ready' as const,
 		person: details,
@@ -58,10 +68,22 @@ export async function loadPerson(userId: number, id: number, params: URLSearchPa
 		options,
 		decades: creditDecades(credits, options.role),
 		genres: genres.filter((genre) => used.has(genre.id)),
-		works: applyPersonOptions(
-			credits,
-			options,
-			(credit) => marks.get(markKey(credit.kind, credit.id))?.watched ?? false
-		)
+		works: applyPersonOptions(credits, options, watched),
+		progress: progressOf(shown.map((credit) => ({ watched: credit.watched }))),
+		lists: listLists(db, userId).map(({ id: listId, name }) => ({ id: listId, name }))
+	};
+}
+
+/** Works of a person page as its options show them, as many as one action applies to. */
+export async function personWorks(
+	userId: number,
+	id: number,
+	params: URLSearchParams
+): Promise<{ name: string; works: WorkInput[] }> {
+	const loaded = await loadPerson(userId, id, params);
+	if (loaded.state !== 'ready') error(502);
+	return {
+		name: `${loaded.person.name} - ${roleName(loaded.options.role)}`,
+		works: loaded.works.slice(0, listActionMax).map((work) => workInput(work))
 	};
 }

@@ -7,7 +7,7 @@ import { requestLanguage } from '../tmdb/page';
 import { getGenres, getSeriesGenres } from '../tmdb/service';
 import { formFlag } from './forms';
 import { isListLiked, setListLiked } from './list-likes';
-import { createListWithWorks } from './lists';
+import { appendToList, createListWithWorks } from './lists';
 import { listMarks, markKey } from './marks';
 import { loadWorkDetails } from './resolve';
 import { addAllToWatchlist } from './watchlist';
@@ -63,7 +63,7 @@ export async function genreChoices(): Promise<string[]> {
 }
 
 /** How much of a list the account has watched, or `null` for an empty list. */
-export function progressOf(entries: ListEntry[]): ListProgress | null {
+export function progressOf(entries: Pick<ListEntry, 'watched'>[]): ListProgress | null {
 	if (entries.length === 0) return null;
 	return { watched: entries.filter((entry) => entry.watched).length, total: entries.length };
 }
@@ -86,6 +86,11 @@ export function cloneWorks(
 		{ name: name.slice(0, listNameMaxLength), description, ranked: false },
 		store(works)
 	);
+}
+
+/** Appends the given works to a list of the account; returns whether the list is its own. */
+export function addWorksToList(userId: number, listId: number, works: WorkInput[]): boolean {
+	return appendToList(getDatabase(), userId, listId, store(works));
 }
 
 /** Puts the given works on the watchlist of the account. */

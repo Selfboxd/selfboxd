@@ -4,6 +4,7 @@ import { createTestDatabase, type TestDatabase } from '../testing/database';
 import { parseId, parseListForm } from './forms';
 import {
 	createList,
+	appendToList,
 	createListWithWorks,
 	deleteList,
 	getList,
@@ -98,6 +99,21 @@ describe('lists', () => {
 
 	it('appends works in the order they are added', () => {
 		expect(titles(filled())).toEqual(['One', 'Two', 'Three']);
+	});
+
+	it('appends the works a list misses, in order, and only to a list of the account', () => {
+		const id = createListWithWorks(
+			database.db,
+			ada.id,
+			{ name: 'Some', description: '', ranked: false },
+			[work(1)]
+		);
+
+		expect(appendToList(database.db, ada.id, id, [work(2), work(1), work(0), work(2)])).toBe(true);
+		expect(titles(id)).toEqual(['Two', 'Three', 'One']);
+		expect(appendToList(database.db, grace.id, id, [work(0)])).toBe(false);
+		expect(appendToList(database.db, ada.id, 9999, [work(0)])).toBe(false);
+		expect(titles(id)).toEqual(['Two', 'Three', 'One']);
 	});
 
 	it('puts a work in exactly the requested lists', () => {
