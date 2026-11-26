@@ -88,7 +88,7 @@ export function updateDiaryEntry(
 	return db.transaction((transaction) => {
 		const [entry] = transaction
 			.update(diaryEntries)
-			.set({ ...entryValues(input), ...(input.review === '' ? { pinned: false } : {}) })
+			.set(entryValues(input))
 			.where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
 			.returning({ workId: diaryEntries.workId })
 			.all();
@@ -142,7 +142,6 @@ function toEntries(db: DatabaseExecutor, rows: EntryRow[]): DiaryEntry[] {
 		rewatch: entry.rewatch,
 		review: entry.review,
 		containsSpoilers: entry.containsSpoilers,
-		pinned: entry.pinned,
 		tags: names.get(entry.id) ?? []
 	}));
 }

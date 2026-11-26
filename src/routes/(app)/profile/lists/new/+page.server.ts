@@ -3,7 +3,13 @@ import { requireUser } from '#lib/server/auth/guards.js';
 import { getDatabase } from '#lib/server/db/index.js';
 import { parseListForm } from '#lib/server/library/forms.js';
 import { createList } from '#lib/server/library/lists.js';
-import type { Actions } from './$types';
+import { listTagNames } from '#lib/server/library/tags.js';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = ({ locals }) => {
+	const { user } = requireUser(locals);
+	return { knownTags: listTagNames(getDatabase(), user.id, 'list') };
+};
 
 export const actions: Actions = {
 	default: async ({ locals, request }) => {

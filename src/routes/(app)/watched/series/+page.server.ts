@@ -1,11 +1,8 @@
 import { requireUser } from '#lib/server/auth/guards.js';
-import { getDatabase } from '#lib/server/db/index.js';
-import { listWatched } from '#lib/server/library/watched.js';
+import { loadWatchedPage } from '#lib/server/library/watched-page.js';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals }) => {
+export const load: PageServerLoad = ({ locals, url }) => {
 	const { user } = requireUser(locals);
-	return {
-		films: listWatched(getDatabase(), user.id).filter((entry) => entry.work.kind === 'series')
-	};
+	return loadWatchedPage(user.id, 'series', url.searchParams);
 };

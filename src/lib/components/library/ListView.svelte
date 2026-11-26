@@ -266,7 +266,7 @@
 	</div>
 
 	<aside>
-		<div class="panel">
+		<div class="panel action-panel">
 			<form method="POST" action="{path}?/like" use:enhance>
 				<input type="hidden" name="liked" value={liked ? '' : 'on'} />
 				<button class="like" class:liked aria-pressed={liked}>
@@ -528,39 +528,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-6);
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		border-radius: var(--radius-medium);
-		background: var(--color-surface-raised);
-	}
-
-	.panel > a,
-	.panel button {
-		display: block;
-		width: 100%;
-		padding: var(--space-3);
-		border: 0;
-		border-top: 1px solid var(--color-dialog-divider);
-		background: none;
-		color: var(--color-text-panel);
-		font-family: inherit;
-		font-size: var(--font-size-body);
-		text-align: center;
-		cursor: pointer;
-	}
-
-	.panel > :first-child,
-	.panel > :first-child button {
-		border-top: 0;
-	}
-
-	.panel > a:hover,
-	.panel button:hover {
-		color: var(--color-heading);
 	}
 
 	.like {

@@ -9,6 +9,7 @@ import {
 import { requireUser } from '#lib/server/auth/guards.js';
 import { getDatabase } from '#lib/server/db/index.js';
 import { listDiaryEntries } from '#lib/server/library/diary.js';
+import { listLiked } from '#lib/server/library/profile.js';
 import { genreChoices } from '#lib/server/library/list-page.js';
 import { loadWorkDetails } from '#lib/server/library/resolve.js';
 import { chosenServices, streamingOn } from '#lib/server/library/services.js';
@@ -37,7 +38,12 @@ async function refine(entries: DiaryRow[], options: DiaryOptions): Promise<Diary
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { user } = requireUser(locals);
-	const all = listDiaryEntries(getDatabase(), user.id);
+	const db = getDatabase();
+	const liked = new Set(listLiked(db, user.id).map((item) => item.work.id));
+	const all = listDiaryEntries(db, user.id).map((entry) => ({
+		...entry,
+		liked: entry.liked || liked.has(entry.work.id)
+	}));
 	const parsed = parseDiaryOptions(url.searchParams);
 	const tag = parsed.tag;
 	const services = await chosenServices(user.id);

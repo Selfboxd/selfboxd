@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { listDescriptionMaxLength, listNameMaxLength } from '#lib/catalog/library.js';
+	import TagsInput from '#lib/components/TagsInput.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 
 	interface Props {
 		/** Values the fields start with. */
-		initial?: { name: string; description: string; ranked: boolean };
+		initial?: { name: string; description: string; ranked: boolean; tags: string[] };
+		/** List tags already used, offered while typing. */
+		knownTags?: string[];
 	}
 
-	let { initial = { name: '', description: '', ranked: false } }: Props = $props();
+	let { initial = { name: '', description: '', ranked: false, tags: [] }, knownTags = [] }: Props =
+		$props();
 
 	const id = $props.id();
+	let tags = $derived([...initial.tags]);
 </script>
 
 <div class="field">
@@ -34,6 +39,17 @@
 		rows="5"
 		maxlength={listDescriptionMaxLength}
 		defaultValue={initial.description}></textarea>
+</div>
+<div class="field">
+	<label class="field-label" for="{id}-tags">{m.list_field_tags()}</label>
+	<TagsInput
+		id="{id}-tags"
+		name="tags"
+		bind:value={tags}
+		suggestions={knownTags}
+		placeholder={m.log_tags_placeholder()}
+	/>
+	<p class="field-hint">{m.list_tags_hint()}</p>
 </div>
 <label class="ranked">
 	<input type="checkbox" name="ranked" defaultChecked={initial.ranked} />

@@ -59,3 +59,43 @@ img {
 	display: block;
 	max-width: 100%;
 }
+
+.action-panel {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border-radius: var(--radius-medium);
+	background: var(--color-surface-raised);
+}
+
+.action-panel > a,
+.action-panel > button,
+.action-panel > form > button {
+	display: block;
+	width: 100%;
+	padding: var(--space-3);
+	border: 0;
+	border-top: 1px solid var(--color-dialog-divider);
+	background: none;
+	color: var(--color-text-panel);
+	font-family: inherit;
+	font-size: var(--font-size-body);
+	text-align: center;
+	cursor: pointer;
+}
+
+.action-panel > :first-child,
+.action-panel > form:first-child > button {
+	border-top: 0;
+}
+
+.action-panel > a:hover,
+.action-panel > button:hover:not(:disabled),
+.action-panel > form > button:hover:not(:disabled) {
+	color: var(--color-heading);
+}
+
+.action-panel button:disabled {
+	cursor: default;
+	opacity: 0.5;
+}

@@ -1,12 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createUser, type User } from '../auth/users';
 import { createTestDatabase, type TestDatabase } from '../testing/database';
-import {
-	createDiaryEntry,
-	listDiaryEntries,
-	updateDiaryEntry,
-	type DiaryEntryInput
-} from './diary';
+import { createDiaryEntry, type DiaryEntryInput } from './diary';
 import { parseProfileForm } from './forms';
 import { createList } from './lists';
 import {
@@ -19,7 +14,6 @@ import {
 	listTagCounts,
 	setBanner,
 	setFavourite,
-	setPinned,
 	updateProfile
 } from './profile';
 import { setLiked, setRating, setWatched } from './states';
@@ -171,53 +165,6 @@ describe('profile', () => {
 			{ name: 'cinema', count: 2 },
 			{ name: '35mm', count: 1 }
 		]);
-	});
-
-	describe('pinned reviews', () => {
-		function pinnedIds(): number[] {
-			return listDiaryEntries(database.db, ada.id)
-				.filter((item) => item.pinned)
-				.map((item) => item.id);
-		}
-
-		it('pins and unpins a review', () => {
-			const id = createDiaryEntry(database.db, ada.id, work(0), entry());
-
-			expect(setPinned(database.db, ada.id, id, true)).toBe('done');
-			expect(pinnedIds()).toEqual([id]);
-			expect(setPinned(database.db, ada.id, id, false)).toBe('done');
-			expect(pinnedIds()).toEqual([]);
-		});
-
-		it('pins two reviews at most', () => {
-			const ids = [0, 1, 2].map((index) =>
-				createDiaryEntry(database.db, ada.id, work(index), entry())
-			);
-
-			expect(setPinned(database.db, ada.id, ids[0] ?? 0, true)).toBe('done');
-			expect(setPinned(database.db, ada.id, ids[1] ?? 0, true)).toBe('done');
-			expect(setPinned(database.db, ada.id, ids[2] ?? 0, true)).toBe('limit_reached');
-			expect(setPinned(database.db, ada.id, ids[1] ?? 0, true)).toBe('done');
-			expect(pinnedIds()).toHaveLength(2);
-		});
-
-		it('refuses an entry without review or of another account', () => {
-			const silent = createDiaryEntry(database.db, ada.id, work(0), entry({ review: '' }));
-			const foreign = createDiaryEntry(database.db, grace.id, work(1), entry());
-
-			expect(setPinned(database.db, ada.id, silent, true)).toBe('not_found');
-			expect(setPinned(database.db, ada.id, foreign, true)).toBe('not_found');
-			expect(setPinned(database.db, ada.id, 9999, true)).toBe('not_found');
-		});
-
-		it('unpins a review once its text is removed', () => {
-			const id = createDiaryEntry(database.db, ada.id, work(0), entry());
-			setPinned(database.db, ada.id, id, true);
-
-			updateDiaryEntry(database.db, ada.id, id, entry({ review: '' }));
-
-			expect(pinnedIds()).toEqual([]);
-		});
 	});
 });
 

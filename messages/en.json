@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Any tag",
 	"watchlist_sort_added": "Added",
 	"watchlist_sort_added_oldest": "Added earliest",
-	"watchlist_make_private": "Make the watchlist private",
-	"watchlist_make_public": "Show the watchlist on the public profile",
+	"watchlist_make_private": "Make private",
+	"watchlist_make_public": "Make public",
 	"watchlist_private_notice": "Private: your public profile does not show it.",
 	"watchlist_made_private": "Your watchlist is now private.",
 	"watchlist_made_public": "Your watchlist shows on your public profile again.",
@@ -681,5 +681,16 @@
 	"stats_times": "{count} times",
 	"stats_cast": "Cast",
 	"stats_directors_title": "Directors",
-	"stats_studios": "Studios"
+	"stats_studios": "Studios",
+	"list_field_tags": "Tags",
+	"list_tags_hint": "Tag a list profile to pin it on your profile, two at most.",
+	"reviews_pin_hint": "Tag a review profile to pin it on your profile, two at most.",
+	"profile_pinned_lists": "Pinned lists",
+	"watched_sort_recent": "Recently watched",
+	"watched_show_all": "Everything",
+	"watched_show_liked": "Liked only",
+	"watched_show": "Show",
+	"poster_size_small": "Small",
+	"poster_size_large": "Large",
+	"watched_filtered_empty": "Nothing matches these filters."
 }

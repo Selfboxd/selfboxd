@@ -277,7 +277,8 @@ export function applyImport(
 				{
 					name: sameName === undefined ? list.name : `${list.name} (Letterboxd)`,
 					description: list.description,
-					ranked: choices.ranked
+					ranked: choices.ranked,
+					tags: list.tags
 				},
 				items.map((item) => item.id)
 			);

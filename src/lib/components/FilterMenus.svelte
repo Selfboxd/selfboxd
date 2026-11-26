@@ -64,7 +64,7 @@
 		gap: var(--space-1);
 		align-items: center;
 		padding: 2px var(--space-2);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-filter);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 		white-space: nowrap;

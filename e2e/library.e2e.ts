@@ -125,7 +125,7 @@ test.describe('watchlist', () => {
 		await addToWatchlist(page, 335984, '', 'recent');
 
 		await page.goto('/watchlist');
-		const bar = page.getByRole('main').locator('.bar');
+		const bar = page.getByRole('main').locator('.head');
 		await bar.getByRole('button', { name: 'Tag' }).hover();
 		await bar.getByRole('link', { name: 'classics', exact: true }).click();
 
@@ -200,7 +200,7 @@ test.describe('watchlist', () => {
 		await expect(page.getByRole('status')).toHaveText('Neon Precinct is on your watchlist.');
 		await expect(page.getByRole('heading', { name: 'You want to see 2 titles' })).toBeVisible();
 
-		const bar = page.getByRole('main').locator('.bar');
+		const bar = page.getByRole('main').locator('.head');
 		await bar.getByRole('button', { name: 'Type' }).hover();
 		await bar.getByRole('link', { name: 'Series', exact: true }).click();
 		await expect(page).toHaveURL('/watchlist?kind=series');
@@ -208,7 +208,7 @@ test.describe('watchlist', () => {
 		await expect(page.locator('main a[href="/film/78"]')).toHaveCount(0);
 	});
 
-	test('exports, turns private and clears the watchlist', async ({ page }) => {
+	test('exports and clears the watchlist', async ({ page }) => {
 		await addToWatchlist(page, 78, 'Why not', 'classics');
 		await page.goto('/watchlist');
 		const panel = page.getByRole('complementary');
@@ -220,11 +220,7 @@ test.describe('watchlist', () => {
 		expect(csv).toContain('Date,Name,Year,Type,TMDB ID,Note,Tags');
 		expect(csv).toContain(',Blade Runner,1982,film,78,Why not,classics');
 
-		await panel.getByRole('button', { name: 'Make the watchlist private' }).click();
-		await expect(page.getByRole('status')).toHaveText('Your watchlist is now private.');
-		await expect(panel.getByText('Private: your public profile does not show it.')).toBeVisible();
-		await panel.getByRole('button', { name: 'Show the watchlist on the public profile' }).click();
-		await expect(panel.getByText('Private: your public profile does not show it.')).toHaveCount(0);
+		await expect(panel.getByRole('button', { name: 'Make private' })).toHaveCount(0);
 
 		await panel.getByRole('button', { name: 'Clear watchlist' }).click();
 		await expect(panel.getByText('Remove all 1 titles from your watchlist?')).toBeVisible();
@@ -236,6 +232,22 @@ test.describe('watchlist', () => {
 test.describe('diary', () => {
 	test.beforeEach(async ({ page, request }) => {
 		await signIn(page, await createAccount(request));
+	});
+
+	test('shows a heart for a film liked outside its entry', async ({ page }) => {
+		await openFilm(page);
+		const dialog = await openLog(page);
+		await dialog.getByRole('button', { name: 'Save' }).first().click();
+		await expect(dialog).toBeHidden();
+		await page.goto('/diary');
+		const row = page.getByRole('row').filter({ hasText: 'Blade Runner' });
+		await expect(row.getByRole('img', { name: 'Liked' })).toHaveCount(0);
+
+		await openFilm(page);
+		await actions(page).getByRole('button', { name: 'Like', exact: true }).click();
+		await expect(actions(page).getByRole('button', { name: 'Liked' })).toBeVisible();
+		await page.goto('/diary');
+		await expect(row.getByRole('img', { name: 'Liked' })).toBeVisible();
 	});
 
 	test('logs a film with a date, rating, like, review and tags', async ({ page }) => {

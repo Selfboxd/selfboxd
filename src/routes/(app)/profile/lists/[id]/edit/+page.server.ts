@@ -12,6 +12,7 @@ import {
 	setListItemNote,
 	updateList
 } from '#lib/server/library/lists.js';
+import { listTagNames } from '#lib/server/library/tags.js';
 import type { Actions, PageServerLoad } from './$types';
 
 type ListEvent = RequestEvent<{ id: string }>;
@@ -28,7 +29,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const { user } = requireUser(locals);
 	const list = getList(getDatabase(), user.id, listId(params));
 	if (!list) error(404);
-	return { list };
+	return { list, knownTags: listTagNames(getDatabase(), user.id, 'list') };
 };
 
 export const actions: Actions = {

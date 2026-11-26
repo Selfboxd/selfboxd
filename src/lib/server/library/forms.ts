@@ -102,7 +102,15 @@ export function parseListForm(form: FormData): Parsed<ListInput> {
 	if (description.length > listDescriptionMaxLength) {
 		return { ok: false, error: 'list_description_too_long' };
 	}
-	return { ok: true, value: { name, description, ranked: formFlag(form, 'ranked') } };
+	return {
+		ok: true,
+		value: {
+			name,
+			description,
+			ranked: formFlag(form, 'ranked'),
+			tags: parseTags(formText(form, 'tags'))
+		}
+	};
 }
 
 /** Reads a positive identifier from a form field or a route parameter. */

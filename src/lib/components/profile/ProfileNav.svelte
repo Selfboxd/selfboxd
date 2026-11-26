@@ -17,7 +17,6 @@
 		{ href: resolve('/(app)/watchlist'), label: m.nav_watchlist() },
 		{ href: resolve('/(app)/profile/lists'), label: m.nav_lists() },
 		{ href: resolve('/(app)/likes'), label: m.profile_tab_likes() },
-		{ href: resolve('/(app)/tags'), label: m.profile_tab_tags() },
 		{ href: resolve('/(app)/stats'), label: m.profile_tab_stats() }
 	]);
 

@@ -106,11 +106,20 @@ test.describe('public profile', () => {
 			.toBe(1);
 
 		await page.goto('/watchlist');
-		await page.getByRole('button', { name: 'Make the watchlist private' }).click();
+		const panel = page.getByRole('complementary');
+		await panel.getByRole('button', { name: 'Make private' }).click();
+		await expect(page.getByRole('status')).toHaveText('Your watchlist is now private.');
+		await expect(panel.getByText('Private: your public profile does not show it.')).toBeVisible();
 		await expect
 			.poll(async () => (await published(request, handle))?.payload?.profile.watchlistHidden)
 			.toBe(true);
 		expect((await published(request, handle))?.payload?.profile.watchlist).toEqual([]);
+
+		await panel.getByRole('button', { name: 'Make public' }).click();
+		await expect(panel.getByText('Private: your public profile does not show it.')).toHaveCount(0);
+		await expect
+			.poll(async () => (await published(request, handle))?.payload?.profile.watchlist.length)
+			.toBe(1);
 	});
 
 	test('sends the poster chosen by the account', async ({ page, request }) => {

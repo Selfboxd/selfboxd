@@ -1,13 +1,46 @@
 import { and, asc, count, desc, eq, inArray, max } from 'drizzle-orm';
 import { listPreviewSize, type ListSummary, type WorkList } from '../../catalog/library';
 import type { AppDatabase, DatabaseExecutor } from '../db/connection';
-import { listItems, lists, works } from '../db/schema';
+import { listItems, listTags, lists, tags, works } from '../db/schema';
+import { deleteUnusedTags, resolveTagIds } from './tags';
 import { forgetListLikes } from './list-likes';
 
 export interface ListInput {
 	name: string;
 	description: string;
 	ranked: boolean;
+	tags?: string[];
+}
+
+/** Gives a list exactly the named tags. */
+function writeListTags(
+	db: DatabaseExecutor,
+	userId: number,
+	listId: number,
+	names: string[]
+): void {
+	db.delete(listTags).where(eq(listTags.listId, listId)).run();
+	const ids = resolveTagIds(db, userId, 'list', names);
+	if (ids.length > 0)
+		db.insert(listTags)
+			.values(ids.map((tagId) => ({ listId, tagId })))
+			.run();
+	deleteUnusedTags(db, userId);
+}
+
+/** Tag names of each of the given lists, in alphabetical order. */
+function tagsByList(db: DatabaseExecutor, listIds: number[]): Map<number, string[]> {
+	const names = new Map<number, string[]>();
+	if (listIds.length === 0) return names;
+	const rows = db
+		.select({ listId: listTags.listId, name: tags.name })
+		.from(listTags)
+		.innerJoin(tags, eq(listTags.tagId, tags.id))
+		.where(inArray(listTags.listId, listIds))
+		.orderBy(tags.name)
+		.all();
+	for (const row of rows) names.set(row.listId, [...(names.get(row.listId) ?? []), row.name]);
+	return names;
 }
 
 function ownedList(db: DatabaseExecutor, userId: number, listId: number) {
@@ -28,11 +61,14 @@ export function createList(
 	input: ListInput,
 	now = new Date()
 ): number {
-	return db
+	const { tags: names = [], ...fields } = input;
+	const id = db
 		.insert(lists)
-		.values({ userId, ...input, createdAt: now, updatedAt: now })
+		.values({ userId, ...fields, createdAt: now, updatedAt: now })
 		.returning({ id: lists.id })
 		.get().id;
+	if (names.length > 0) writeListTags(db, userId, id, names);
+	return id;
 }
 
 /** Changes the name, description and ranking of a list. Returns whether the list was found. */
@@ -43,11 +79,13 @@ export function updateList(
 	input: ListInput,
 	now = new Date()
 ): boolean {
+	const { tags: names, ...fields } = input;
 	const result = db
 		.update(lists)
-		.set({ ...input, updatedAt: now })
+		.set({ ...fields, updatedAt: now })
 		.where(and(eq(lists.id, listId), eq(lists.userId, userId)))
 		.run();
+	if (result.changes > 0 && names !== undefined) writeListTags(db, userId, listId, names);
 	return result.changes > 0;
 }
 
@@ -68,6 +106,10 @@ export function listLists(db: DatabaseExecutor, userId: number): ListSummary[] {
 		.where(eq(lists.userId, userId))
 		.orderBy(desc(lists.updatedAt), desc(lists.id))
 		.all();
+	const names = tagsByList(
+		db,
+		rows.map((list) => list.id)
+	);
 	return rows.map((list) => {
 		const total = db
 			.select({ value: count() })
@@ -87,6 +129,7 @@ export function listLists(db: DatabaseExecutor, userId: number): ListSummary[] {
 			name: list.name,
 			description: list.description,
 			ranked: list.ranked,
+			tags: names.get(list.id) ?? [],
 			count: total?.value ?? 0,
 			preview: preview.map((row) => row.work)
 		};
@@ -113,6 +156,7 @@ export function getList(
 		name: list.name,
 		description: list.description,
 		ranked: list.ranked,
+		tags: tagsByList(db, [list.id]).get(list.id) ?? [],
 		updatedAt: list.updatedAt.toISOString(),
 		items
 	};

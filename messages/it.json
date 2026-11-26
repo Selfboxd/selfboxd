@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Qualsiasi tag",
 	"watchlist_sort_added": "Aggiunta",
 	"watchlist_sort_added_oldest": "Aggiunta meno recente",
-	"watchlist_make_private": "Rendi privata la watchlist",
-	"watchlist_make_public": "Mostra la watchlist sul profilo pubblico",
+	"watchlist_make_private": "Rendi privata",
+	"watchlist_make_public": "Rendi pubblica",
 	"watchlist_private_notice": "Privata: il tuo profilo pubblico non la mostra.",
 	"watchlist_made_private": "La tua watchlist ora è privata.",
 	"watchlist_made_public": "La tua watchlist torna visibile sul profilo pubblico.",
@@ -681,5 +681,16 @@
 	"stats_times": "{count} volte",
 	"stats_cast": "Cast",
 	"stats_directors_title": "Registi",
-	"stats_studios": "Studi"
+	"stats_studios": "Studi",
+	"list_field_tags": "Tag",
+	"list_tags_hint": "Aggiungi il tag profile per fissare la lista sul profilo, al massimo due.",
+	"reviews_pin_hint": "Aggiungi il tag profile a una recensione per fissarla sul profilo, al massimo due.",
+	"profile_pinned_lists": "Liste fissate",
+	"watched_sort_recent": "Visti di recente",
+	"watched_show_all": "Tutto",
+	"watched_show_liked": "Solo quelli che piacciono",
+	"watched_show": "Mostra",
+	"poster_size_small": "Piccolo",
+	"poster_size_large": "Grande",
+	"watched_filtered_empty": "Niente corrisponde a questi filtri."
 }

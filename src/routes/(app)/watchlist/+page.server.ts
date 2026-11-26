@@ -10,6 +10,7 @@ import { formText } from '#lib/server/auth/forms.js';
 import { requireUser } from '#lib/server/auth/guards.js';
 import { isWatchlistPrivate, setWatchlistPrivate } from '#lib/server/auth/users.js';
 import { getDatabase } from '#lib/server/db/index.js';
+import { getPublicProfile } from '#lib/server/public/profile.js';
 import { formFlag } from '#lib/server/library/forms.js';
 import { genreChoices } from '#lib/server/library/list-page.js';
 import { loadWorkDetails, resolveWork } from '#lib/server/library/resolve.js';
@@ -65,7 +66,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		genres,
 		services,
 		tags,
-		isPrivate: isWatchlistPrivate(db, user.id)
+		isPrivate: isWatchlistPrivate(db, user.id),
+		published: getPublicProfile(db, user.id) !== undefined
 	};
 };
 

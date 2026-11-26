@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "すべてのタグ",
 	"watchlist_sort_added": "追加日",
 	"watchlist_sort_added_oldest": "追加日（古い順）",
-	"watchlist_make_private": "ウォッチリストを非公開にする",
-	"watchlist_make_public": "公開プロフィールにウォッチリストを表示",
+	"watchlist_make_private": "非公開にする",
+	"watchlist_make_public": "公開する",
 	"watchlist_private_notice": "非公開：公開プロフィールには表示されません。",
 	"watchlist_made_private": "ウォッチリストを非公開にしました。",
 	"watchlist_made_public": "ウォッチリストを公開プロフィールに再表示します。",
@@ -681,5 +681,16 @@
 	"stats_times": "{count}回",
 	"stats_cast": "出演者",
 	"stats_directors_title": "監督",
-	"stats_studios": "スタジオ"
+	"stats_studios": "スタジオ",
+	"list_field_tags": "タグ",
+	"list_tags_hint": "タグ profile を付けるとプロフィールに固定されます（最大2件）。",
+	"reviews_pin_hint": "レビューにタグ profile を付けるとプロフィールに固定されます（最大2件）。",
+	"profile_pinned_lists": "固定したリスト",
+	"watched_sort_recent": "最近観た順",
+	"watched_show_all": "すべて",
+	"watched_show_liked": "いいねのみ",
+	"watched_show": "表示",
+	"poster_size_small": "小",
+	"poster_size_large": "大",
+	"watched_filtered_empty": "条件に合う作品はありません。"
 }

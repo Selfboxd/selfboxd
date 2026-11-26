@@ -236,7 +236,7 @@
 		inset: auto 0 0;
 		display: flex;
 		justify-content: center;
-		padding-bottom: 6%;
+		padding-bottom: 10%;
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity var(--duration-fast);
@@ -251,7 +251,7 @@
 
 	.bar {
 		display: flex;
-		gap: 0.7em;
+		gap: 0.55em;
 		align-items: center;
 		padding: 0.45em 0.75em;
 		border-radius: 0.4em;

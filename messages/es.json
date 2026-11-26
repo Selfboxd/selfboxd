@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Cualquier etiqueta",
 	"watchlist_sort_added": "Añadido",
 	"watchlist_sort_added_oldest": "Añadido primero",
-	"watchlist_make_private": "Hacer privada la watchlist",
-	"watchlist_make_public": "Mostrar la watchlist en el perfil público",
+	"watchlist_make_private": "Hacer privada",
+	"watchlist_make_public": "Hacer pública",
 	"watchlist_private_notice": "Privada: tu perfil público no la muestra.",
 	"watchlist_made_private": "Tu watchlist ahora es privada.",
 	"watchlist_made_public": "Tu watchlist vuelve a mostrarse en tu perfil público.",
@@ -681,5 +681,16 @@
 	"stats_times": "{count} veces",
 	"stats_cast": "Reparto",
 	"stats_directors_title": "Directores",
-	"stats_studios": "Estudios"
+	"stats_studios": "Estudios",
+	"list_field_tags": "Etiquetas",
+	"list_tags_hint": "Añade la etiqueta profile para fijar la lista en tu perfil, dos como máximo.",
+	"reviews_pin_hint": "Añade la etiqueta profile a una reseña para fijarla en tu perfil, dos como máximo.",
+	"profile_pinned_lists": "Listas fijadas",
+	"watched_sort_recent": "Vistos recientemente",
+	"watched_show_all": "Todo",
+	"watched_show_liked": "Solo los que me gustan",
+	"watched_show": "Mostrar",
+	"poster_size_small": "Pequeño",
+	"poster_size_large": "Grande",
+	"watched_filtered_empty": "Nada coincide con estos filtros."
 }

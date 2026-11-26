@@ -574,8 +574,8 @@
 	"watchlist_any_tag": "Alle Tags",
 	"watchlist_sort_added": "Hinzugefügt",
 	"watchlist_sort_added_oldest": "Zuerst hinzugefügt",
-	"watchlist_make_private": "Watchlist privat machen",
-	"watchlist_make_public": "Watchlist im öffentlichen Profil zeigen",
+	"watchlist_make_private": "Privat machen",
+	"watchlist_make_public": "Öffentlich machen",
 	"watchlist_private_notice": "Privat: dein öffentliches Profil zeigt sie nicht.",
 	"watchlist_made_private": "Deine Watchlist ist jetzt privat.",
 	"watchlist_made_public": "Deine Watchlist erscheint wieder in deinem öffentlichen Profil.",
@@ -681,5 +681,16 @@
 	"stats_times": "{count}-mal",
 	"stats_cast": "Besetzung",
 	"stats_directors_title": "Regie",
-	"stats_studios": "Studios"
+	"stats_studios": "Studios",
+	"list_field_tags": "Tags",
+	"list_tags_hint": "Mit dem Tag profile wird die Liste auf deinem Profil angeheftet, höchstens zwei.",
+	"reviews_pin_hint": "Mit dem Tag profile wird eine Kritik auf deinem Profil angeheftet, höchstens zwei.",
+	"profile_pinned_lists": "Angeheftete Listen",
+	"watched_sort_recent": "Zuletzt gesehen",
+	"watched_show_all": "Alles",
+	"watched_show_liked": "Nur gemochte",
+	"watched_show": "Anzeigen",
+	"poster_size_small": "Klein",
+	"poster_size_large": "Groß",
+	"watched_filtered_empty": "Nichts passt zu diesen Filtern."
 }
