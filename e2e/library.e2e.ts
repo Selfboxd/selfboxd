@@ -369,6 +369,26 @@ test.describe('diary', () => {
 		await expect(rows.nth(1).getByText('Dec 2025')).toBeVisible();
 	});
 
+	test('puts the latest logged first among films watched the same day', async ({ page }) => {
+		for (const id of [78, 335984]) {
+			await openFilm(page, id);
+			const dialog = await openLog(page);
+			await pickDate(dialog, 'Watched on', '2026-02-01');
+			const saved = page.waitForResponse((response) => response.url().includes('?/log'));
+			await dialog.getByRole('button', { name: 'Save' }).first().click();
+			await saved;
+		}
+
+		await page.goto('/diary');
+		await expect(page.locator('main tbody tr').first()).toContainText('Blade Runner 2049');
+		await page.goto('/profile');
+		const recent = page.locator('section', { hasText: 'Recent activity' }).first();
+		await expect(recent.locator('a[href^="/film/"]').first()).toHaveAttribute(
+			'href',
+			'/film/335984'
+		);
+	});
+
 	test('filters and sorts the diary from the menus of its header', async ({ page }) => {
 		await openFilm(page);
 		let dialog = await openLog(page);
