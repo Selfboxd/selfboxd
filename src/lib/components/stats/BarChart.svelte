@@ -1,188 +1,143 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
+	import Tooltip from '#lib/components/Tooltip.svelte';
+
 	interface Bar {
 		label: string;
 		value: number;
 		/** What the tooltip of the bar says. */
 		tip: string;
+		/** Page the bar opens, when there is one. */
+		href?: string | null;
 	}
 
 	interface Props {
 		bars: Bar[];
 		/** Name of the chart, read out for the list of bars. */
 		label: string;
-		/** Whether the bars light up in the accent colour. */
-		accent?: boolean;
+		/** Shows every label under the bars instead of a few. */
+		allLabels?: boolean;
 	}
 
-	let { bars, label, accent = false }: Props = $props();
-
-	const barWidth = 9;
-	const barGap = 2;
-	const height = 60;
-	const minimum = 0.5;
+	let { bars, label, allLabels = false }: Props = $props();
 
 	let active = $state<number | null>(null);
 
 	const highest = $derived(Math.max(1, ...bars.map((bar) => bar.value)));
-	const shapes = $derived(
-		bars.map((bar, index) => {
-			const size = bar.value === 0 ? minimum : Math.max(1.5, (bar.value / highest) * height);
-			return { index, x: index * (barWidth + barGap), y: height - size, size };
-		})
+	/** Height of each bar out of 100, a sliver for an empty one so that the axis stays readable. */
+	const heights = $derived(
+		bars.map((bar) => (bar.value <= 0 ? 1.5 : Math.max(4, (bar.value / highest) * 100)))
 	);
-	/** Labels shown under the chart: the first, the last and a few between. */
 	const ticks = $derived.by(() => {
-		if (bars.length <= 12) return bars.map((_, index) => index);
-		const step = Math.ceil(bars.length / 6);
-		return bars
-			.map((_, index) => index)
-			.filter((index) => index % step === 0 || index === bars.length - 1);
+		if (allLabels || bars.length <= 12) return new Set(bars.map((_, index) => index));
+		const step = Math.ceil(bars.length / 7);
+		return new Set(
+			bars
+				.map((_, index) => index)
+				.filter((index) => index % step === 0 || index === bars.length - 1)
+		);
 	});
 </script>
 
-<div class="chart" class:accent>
-	<div class="plot">
-		<svg
-			viewBox="0 0 {Math.max(1, bars.length * (barWidth + barGap) - barGap)} {height}"
-			preserveAspectRatio="none"
-			aria-hidden="true"
-		>
-			{#each shapes as shape (shape.index)}
-				<rect
-					class:active={active === shape.index}
-					x={shape.x}
-					y={shape.y}
-					width={barWidth}
-					height={shape.size}
-					rx="1"
-				/>
-			{/each}
-		</svg>
-		<ul class="columns" aria-label={label}>
-			{#each bars as bar, index (index)}
-				<li>
-					<button
-						type="button"
+<div class="chart">
+	<ol class="bars" aria-label={label}>
+		{#each bars as bar, index (index)}
+			<li
+				class:active={active === index}
+				onpointerenter={() => (active = index)}
+				onpointerleave={() => (active = null)}
+			>
+				{#if active === index}<Tooltip>{bar.tip}</Tooltip>{/if}
+				{#if bar.href}
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+					<a
+						href={bar.href}
 						aria-label={bar.tip}
-						onmouseenter={() => (active = index)}
-						onmouseleave={() => (active = null)}
 						onfocus={() => (active = index)}
 						onblur={() => (active = null)}
-					></button>
-					{#if active === index}<span
-							class="tip"
-							aria-hidden="true"
-							in:fade={{ delay: 380, duration: 160 }}
-						>
-							{bar.tip}
-						</span>{/if}
-				</li>
-			{/each}
-		</ul>
-	</div>
-	<ul class="ticks" aria-hidden="true">
-		{#each bars as bar, index (index)}
-			<li>{ticks.includes(index) ? bar.label : ''}</li>
+					>
+						<svg viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true">
+							<rect x="0" y={100 - (heights[index] ?? 0)} width="10" height={heights[index]} />
+						</svg>
+					</a>
+					<!-- eslint-enable svelte/no-navigation-without-resolve -->
+				{:else}
+					<span class="bar" role="img" aria-label={bar.tip}>
+						<svg viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true">
+							<rect x="0" y={100 - (heights[index] ?? 0)} width="10" height={heights[index]} />
+						</svg>
+					</span>
+				{/if}
+			</li>
 		{/each}
-	</ul>
+	</ol>
+	<ol class="labels" aria-hidden="true">
+		{#each bars as bar, index (index)}
+			<li>{ticks.has(index) ? bar.label : ''}</li>
+		{/each}
+	</ol>
 </div>
 
 <style>
-	.plot {
-		position: relative;
-		height: var(--stats-chart-height);
-	}
-
-	svg {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
-
-	rect {
-		fill: var(--color-surface-raised);
-		transition: fill var(--duration-fast);
-	}
-
-	.accent rect {
-		fill: var(--color-accent-dim);
-	}
-
-	rect.active {
-		fill: var(--color-text-muted);
-	}
-
-	.accent rect.active {
-		fill: var(--color-accent);
-	}
-
-	.columns,
-	.ticks {
+	.bars,
+	.labels {
 		display: grid;
-		grid-auto-columns: 1fr;
+		grid-auto-columns: minmax(0, var(--stats-bar-max));
 		grid-auto-flow: column;
+		gap: var(--stats-bar-gap);
+		justify-content: center;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.columns {
+	.bars {
+		height: var(--stats-chart-height);
+		align-items: end;
+	}
+
+	.bars li {
+		position: relative;
+		height: 100%;
+	}
+
+	a,
+	.bar {
 		position: absolute;
+		display: block;
 		inset: 0;
 	}
 
-	.columns li {
-		position: relative;
-	}
-
-	.columns button {
+	svg {
+		position: absolute;
 		display: block;
 		width: 100%;
 		height: 100%;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: default;
+		inset: 0;
 	}
 
-	.columns button:focus-visible {
+	rect {
+		fill: var(--color-stat-bar);
+		transition: fill var(--duration-fast);
+	}
+
+	.active rect {
+		fill: var(--color-stat-bar-hover);
+	}
+
+	a:focus-visible {
 		outline: 1px solid var(--color-focus);
+		outline-offset: 2px;
 	}
 
-	.tip {
-		position: absolute;
-		z-index: 5;
-		bottom: calc(100% + var(--space-2));
-		left: 50%;
-		padding: var(--space-1) var(--space-2);
-		border-radius: var(--radius-small);
-		background: var(--color-tooltip);
-		box-shadow: var(--shadow-menu);
-		color: var(--color-tooltip-text);
-		font-size: var(--font-size-small);
-		white-space: nowrap;
-		pointer-events: none;
-		transform: translateX(-50%);
-	}
-
-	.tip::after {
-		position: absolute;
-		top: 100%;
-		left: 50%;
-		border: var(--space-1) solid transparent;
-		border-top-color: var(--color-tooltip);
-		content: '';
-		transform: translateX(-50%);
-	}
-
-	.ticks {
-		margin-top: var(--space-1);
+	.labels {
+		margin-top: var(--space-2);
 		color: var(--color-text-muted);
 		font-size: var(--font-size-micro);
+		letter-spacing: var(--letter-spacing-caps);
+		text-align: center;
 	}
 
-	.ticks li {
+	.labels li {
 		overflow: visible;
 		white-space: nowrap;
 	}

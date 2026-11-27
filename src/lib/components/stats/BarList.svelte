@@ -4,6 +4,8 @@
 		value: number;
 		/** Text shown at the end of the row. */
 		display: string;
+		/** Page the row opens, when there is one. */
+		href?: string | null;
 	}
 
 	interface Props {
@@ -18,15 +20,24 @@
 	const highest = $derived(scale ?? Math.max(1, ...rows.map((row) => row.value)));
 </script>
 
+{#snippet line(row: Row)}
+	<span class="name">{row.name}</span>
+	<span class="value">{row.display}</span>
+	<svg viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+		<rect width="100" height="4" rx="2" class="track" />
+		<rect width={Math.max(2, (row.value / highest) * 100)} height="4" rx="2" class="fill" />
+	</svg>
+{/snippet}
+
 <ol class="list" aria-label={label}>
 	{#each rows as row, index (index)}
 		<li>
-			<span class="name">{row.name}</span>
-			<svg viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
-				<rect width="100" height="4" rx="2" class="track" />
-				<rect width={Math.max(2, (row.value / highest) * 100)} height="4" rx="2" />
-			</svg>
-			<span class="value">{row.display}</span>
+			{#if row.href}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+				<a class="row" href={row.href}>{@render line(row)}</a>
+			{:else}
+				<span class="row">{@render line(row)}</span>
+			{/if}
 		</li>
 	{/each}
 </ol>
@@ -35,45 +46,54 @@
 	.list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--space-3);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	li {
+	.row {
 		display: grid;
-		grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) auto;
-		gap: var(--space-3);
-		align-items: center;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: var(--space-1) var(--space-3);
+		align-items: baseline;
+		color: var(--color-text-panel);
 		font-size: var(--font-size-control);
 	}
 
 	.name {
 		overflow: hidden;
-		color: var(--color-text-strong);
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	svg {
-		display: block;
-		width: 100%;
-		height: var(--space-1);
+	.value {
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
+		font-variant-numeric: tabular-nums;
 	}
 
-	rect {
-		fill: var(--color-accent-dim);
+	svg {
+		display: block;
+		grid-column: 1 / -1;
+		width: 100%;
+		height: 4px;
 	}
 
 	.track {
-		fill: var(--color-panel);
+		fill: var(--color-stat-track);
 	}
 
-	.value {
-		min-width: 2.5rem;
-		color: var(--color-text-muted);
-		font-size: var(--font-size-small);
-		text-align: end;
+	.fill {
+		fill: var(--color-stat-bar);
+		transition: fill var(--duration-fast);
+	}
+
+	a.row:hover {
+		color: var(--color-heading);
+	}
+
+	a.row:hover .fill {
+		fill: var(--color-stat-bar-hover);
 	}
 </style>

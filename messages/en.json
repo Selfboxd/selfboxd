@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Nothing matches these filters.",
 	"profile_stat_series": "Series",
 	"filter_rating_range": "Rating (or range)",
-	"filter_rating_drag": "Drag to define range"
+	"filter_rating_drag": "Drag to define range",
+	"stats_weighted_note": "Ranked by a weighted average: a few top-rated titles alone do not put a name first.",
+	"filter_remove": "Remove the filter"
 }

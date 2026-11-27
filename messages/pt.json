@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Nada corresponde a estes filtros.",
 	"profile_stat_series": "Séries",
 	"filter_rating_range": "Nota (ou intervalo)",
-	"filter_rating_drag": "Arraste para definir um intervalo"
+	"filter_rating_drag": "Arraste para definir um intervalo",
+	"stats_weighted_note": "Ordenado por uma média ponderada: poucos títulos muito bem avaliados não bastam para ficar em primeiro.",
+	"filter_remove": "Remover o filtro"
 }

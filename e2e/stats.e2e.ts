@@ -48,6 +48,50 @@ test.describe('stats', () => {
 		await expect(main.getByText('Ridley Scott')).toHaveCount(0);
 	});
 
+	test('lead from each statistic to the titles behind it', async ({ page }) => {
+		await logFilm(page, '2025-03-14', '4 out of 5 stars');
+		await page.goto('/stats');
+		const main = page.getByRole('main');
+		await expect(main.getByText('Ridley Scott')).toBeVisible({ timeout: 15_000 });
+
+		await main
+			.getByRole('list', { name: 'Genres' })
+			.getByRole('link', { name: /Science Fiction/ })
+			.click();
+		await expect(page).toHaveURL('/watched?genre=Science+Fiction');
+		await expect(page.locator('main ul.grid > li')).toHaveCount(1);
+
+		await page.goto('/stats');
+		await main
+			.getByRole('list', { name: 'Countries' })
+			.getByRole('link', { name: /United States/ })
+			.click();
+		await expect(page).toHaveURL('/watched?country=US');
+		await expect(page.locator('main ul.grid > li')).toHaveCount(1);
+		await page.getByRole('link', { name: 'Remove the filter: United States' }).click();
+		await expect(page).toHaveURL('/watched');
+
+		await page.goto('/stats');
+		await main
+			.getByRole('list', { name: 'Ratings' })
+			.getByRole('link', { name: /4 out of 5 stars|★★★★/ })
+			.first()
+			.click();
+		await expect(page).toHaveURL('/watched?rating=8');
+
+		await page.goto('/stats');
+		await main.getByRole('link', { name: /Ridley Scott/ }).click();
+		await expect(page).toHaveURL('/person/578');
+
+		await page.goto('/stats');
+		await main.getByRole('link', { name: /The Ladd Company/ }).click();
+		await expect(page).toHaveURL(/\/studio\/\d+$/);
+
+		await page.goto('/stats');
+		await main.getByRole('link', { name: '1', exact: true }).first().click();
+		await expect(page).toHaveURL('/watched');
+	});
+
 	test('ignore a year or kind it does not know', async ({ page }) => {
 		await logFilm(page, '2025-03-14', '4 out of 5 stars');
 		await page.goto('/stats?year=1900&kind=books');

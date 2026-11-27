@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Nada coincide con estos filtros.",
 	"profile_stat_series": "Series",
 	"filter_rating_range": "Valoración (o rango)",
-	"filter_rating_drag": "Arrastra para definir un rango"
+	"filter_rating_drag": "Arrastra para definir un rango",
+	"stats_weighted_note": "Ordenado por una media ponderada: unos pocos títulos muy bien valorados no bastan para quedar primero.",
+	"filter_remove": "Quitar el filtro"
 }

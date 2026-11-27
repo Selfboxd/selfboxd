@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Rien ne correspond à ces filtres.",
 	"profile_stat_series": "Séries",
 	"filter_rating_range": "Note (ou fourchette)",
-	"filter_rating_drag": "Glissez pour choisir une fourchette"
+	"filter_rating_drag": "Glissez pour choisir une fourchette",
+	"stats_weighted_note": "Classé selon une moyenne pondérée : quelques titres très bien notés ne suffisent pas à passer devant.",
+	"filter_remove": "Retirer le filtre"
 }
