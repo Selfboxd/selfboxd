@@ -477,7 +477,7 @@
 
 	.diary a {
 		overflow: hidden;
-		color: var(--color-text-strong);
+		color: var(--color-text-panel);
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
