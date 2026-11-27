@@ -22,7 +22,7 @@ function work(
 	kind: 'film' | 'series' = 'film'
 ): StatsInputWork {
 	return {
-		work: { kind, id, title: `Work ${id}`, year, posterPath: null },
+		work: { kind, id, title: `Work ${id}`, year, posterPath: `/p${id}.jpg` },
 		rating,
 		facts: facts(kind === 'series' ? { runtime: null, ...extra } : extra)
 	};
@@ -85,8 +85,12 @@ describe('computeStats', () => {
 	it('ranks genres, countries, languages and people, with averages once enough is rated', () => {
 		const stats = computeStats(works, entries, { year: null, kind: null });
 
-		expect(stats.genres[0]).toEqual({ name: 'Drama', count: 4, average: 7.75 });
-		expect(stats.genres[1]).toEqual({ name: 'Comedy', count: 1, average: null });
+		expect(stats.genres[0]).toMatchObject({ name: 'Drama', count: 4, average: 7.75 });
+		expect(stats.genres[0]?.weighted).toBeCloseTo(
+			(7.75 * 4 + 5 * (stats.totals.average ?? 0)) / 9,
+			5
+		);
+		expect(stats.genres[1]).toEqual({ name: 'Comedy', count: 1, average: null, weighted: null });
 		expect(stats.languages.map((item) => item.name)).toEqual(['fr', 'en']);
 		expect(stats.cast[0]).toEqual({ person: { id: 10, name: 'Corinne Marchand' }, count: 4 });
 		expect(stats.directors[0]?.count).toBe(3);
@@ -97,6 +101,8 @@ describe('computeStats', () => {
 
 		expect(stats.decades.map((decade) => [decade.decade, decade.average])).toEqual([[1980, 7]]);
 		expect(stats.decades[0]?.best.map((item) => item.id)).toEqual(['2', '3']);
+		expect(stats.posters.length).toBeGreaterThan(0);
+		expect(stats.posters.every((work) => work.posterPath !== null)).toBe(true);
 	});
 
 	it('keeps the works logged in a year, counted by month', () => {

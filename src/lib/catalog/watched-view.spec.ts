@@ -21,7 +21,10 @@ describe('watched view', () => {
 		expect(options).toEqual({
 			rating: { min: 5, max: 9 },
 			decade: 1980,
+			released: null,
 			genre: null,
+			country: null,
+			language: null,
 			service: 8,
 			liked: true,
 			sort: 'name'
@@ -32,6 +35,14 @@ describe('watched view', () => {
 			parseWatchedOptions(new URLSearchParams('rating=11&decade=1985&sort=x&service=a'))
 		).toEqual(defaultWatchedOptions);
 		expect(parseWatchedOptions(new URLSearchParams('rating=none')).rating).toBe('none');
+		const narrowed = parseWatchedOptions(
+			new URLSearchParams('released=1982&country=FR&language=fr')
+		);
+		expect(narrowed).toMatchObject({ released: 1982, country: 'FR', language: 'fr' });
+		expect(watchedQuery(narrowed)).toBe('released=1982&country=FR&language=fr');
+		expect(parseWatchedOptions(new URLSearchParams('released=82&country=fr&language=FRA'))).toEqual(
+			defaultWatchedOptions
+		);
 		expect(watchedQuery(defaultWatchedOptions)).toBe('');
 	});
 
@@ -51,6 +62,7 @@ describe('watched view', () => {
 		expect(titles({ rating: { min: 8, max: 8 } })).toEqual([]);
 		expect(titles({ decade: 1970 })).toEqual(['Alien']);
 		expect(titles({ genre: 'Drama' })).toEqual(['Blade Runner', 'Arrival']);
+		expect(titles({ released: 1979 })).toEqual(['Alien']);
 		expect(titles({ liked: true })).toEqual(['Blade Runner']);
 		expect(watchedDecades(rows)).toEqual([2010, 1980, 1970]);
 	});

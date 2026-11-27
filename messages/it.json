@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Niente corrisponde a questi filtri.",
 	"profile_stat_series": "Serie",
 	"filter_rating_range": "Voto (o intervallo)",
-	"filter_rating_drag": "Trascina per scegliere un intervallo"
+	"filter_rating_drag": "Trascina per scegliere un intervallo",
+	"stats_weighted_note": "Ordinato per media ponderata: pochi titoli molto votati non bastano per arrivare primi.",
+	"filter_remove": "Rimuovi il filtro"
 }

@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "没有符合筛选条件的作品。",
 	"profile_stat_series": "剧集",
 	"filter_rating_range": "评分（或范围）",
-	"filter_rating_drag": "拖动以选择范围"
+	"filter_rating_drag": "拖动以选择范围",
+	"stats_weighted_note": "按加权平均排序：仅凭少数高分作品无法排在前列。",
+	"filter_remove": "移除筛选"
 }

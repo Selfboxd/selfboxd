@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "Nichts passt zu diesen Filtern.",
 	"profile_stat_series": "Serien",
 	"filter_rating_range": "Bewertung (oder Bereich)",
-	"filter_rating_drag": "Ziehen, um einen Bereich zu wählen"
+	"filter_rating_drag": "Ziehen, um einen Bereich zu wählen",
+	"stats_weighted_note": "Nach gewichtetem Durchschnitt sortiert: Ein paar sehr gut bewertete Titel reichen nicht für den ersten Platz.",
+	"filter_remove": "Filter entfernen"
 }

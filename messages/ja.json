@@ -694,5 +694,7 @@
 	"watched_filtered_empty": "条件に合う作品はありません。",
 	"profile_stat_series": "シリーズ",
 	"filter_rating_range": "評価（または範囲）",
-	"filter_rating_drag": "ドラッグで範囲を指定"
+	"filter_rating_drag": "ドラッグで範囲を指定",
+	"stats_weighted_note": "加重平均で並べています。高評価の作品が数本あるだけでは上位になりません。",
+	"filter_remove": "絞り込みを解除"
 }

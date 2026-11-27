@@ -22,18 +22,26 @@ export async function loadWatchedPage(userId: number, kind: WorkKind, params: UR
 		service: services.some((service) => service.id === parsed.service) ? parsed.service : null
 	};
 	const context = getTmdbContext();
-	const needsDetails = (options.genre !== null || options.service !== null) && context;
+	const needsFacts =
+		options.genre !== null || options.country !== null || options.language !== null;
+	const needsDetails = (needsFacts || options.service !== null) && context;
 	const rows = needsDetails
 		? await Promise.all(
 				all.map(async (row) => {
 					const { externalId } = row.work;
 					const [details, streams] = await Promise.all([
-						options.genre === null ? undefined : loadWorkDetails(context, kind, externalId),
+						needsFacts ? loadWorkDetails(context, kind, externalId) : undefined,
 						options.service === null ? undefined : streamingOn(kind, externalId)
 					]);
 					return {
 						...row,
-						...(details ? { genres: details.ok ? details.value.genres : [] } : {}),
+						...(details
+							? {
+									genres: details.ok ? details.value.genres : [],
+									countries: details.ok ? details.value.countries : [],
+									language: details.ok ? details.value.originalLanguage : ''
+								}
+							: {}),
 						...(streams ? { services: streams } : {})
 					};
 				})

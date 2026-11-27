@@ -21,7 +21,13 @@ export interface WatchedOptions {
 	rating: RatingRange | 'none' | null;
 	/** First year of the decade the works were released in. */
 	decade: number | null;
+	/** Year the works were released in. */
+	released: number | null;
 	genre: string | null;
+	/** ISO 3166-1 code of a production country. */
+	country: string | null;
+	/** ISO 639-1 code of the original language. */
+	language: string | null;
 	/** Identifier of a TMDB watch provider the works must stream on. */
 	service: number | null;
 	liked: boolean;
@@ -35,12 +41,17 @@ export interface WatchedRow {
 	liked: boolean;
 	genres?: string[];
 	services?: number[];
+	countries?: string[];
+	language?: string;
 }
 
 export const defaultWatchedOptions: WatchedOptions = {
 	rating: null,
 	decade: null,
+	released: null,
 	genre: null,
+	country: null,
+	language: null,
 	service: null,
 	liked: false,
 	sort: 'watched'
@@ -68,10 +79,16 @@ export function parseWatchedOptions(params: URLSearchParams): WatchedOptions {
 	const decade = params.get('decade');
 	const service = params.get('service');
 	const genre = params.get('genre')?.trim();
+	const released = params.get('released');
+	const country = params.get('country');
+	const language = params.get('language');
 	return {
 		rating: parseRatingRange(rating),
 		decade: decade !== null && /^\d{3}0$/.test(decade) ? Number(decade) : null,
+		released: released !== null && /^\d{4}$/.test(released) ? Number(released) : null,
 		genre: genre ? genre.slice(0, 100) : null,
+		country: country !== null && /^[A-Z]{2}$/.test(country) ? country : null,
+		language: language !== null && /^[a-z]{2,3}$/.test(language) ? language : null,
 		service: service !== null && /^\d{1,9}$/.test(service) ? Number(service) : null,
 		liked: params.get('liked') === '1',
 		sort: watchedSorts.find((sort) => sort === params.get('sort')) ?? 'watched'
@@ -83,7 +100,10 @@ export function watchedQuery(options: WatchedOptions): string {
 	const params = new URLSearchParams();
 	if (options.rating !== null) params.set('rating', ratingRangeText(options.rating));
 	if (options.decade !== null) params.set('decade', String(options.decade));
+	if (options.released !== null) params.set('released', String(options.released));
 	if (options.genre !== null) params.set('genre', options.genre);
+	if (options.country !== null) params.set('country', options.country);
+	if (options.language !== null) params.set('language', options.language);
 	if (options.service !== null) params.set('service', String(options.service));
 	if (options.liked) params.set('liked', '1');
 	if (options.sort !== 'watched') params.set('sort', options.sort);
@@ -121,7 +141,10 @@ export function applyWatchedOptions<T extends WatchedRow>(rows: T[], options: Wa
 				(row.work.year !== null &&
 					row.work.year >= options.decade &&
 					row.work.year < options.decade + 10)) &&
+			(options.released === null || row.work.year === options.released) &&
 			(options.genre === null || (row.genres ?? []).includes(options.genre)) &&
+			(options.country === null || (row.countries ?? []).includes(options.country)) &&
+			(options.language === null || row.language === options.language) &&
 			(options.service === null || (row.services ?? []).includes(options.service)) &&
 			(!options.liked || row.liked)
 	);

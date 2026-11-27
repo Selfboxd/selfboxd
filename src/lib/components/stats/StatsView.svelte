@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import type { RatingScale } from '#lib/catalog/library.js';
-	import type { Stats, StatsCount } from '#lib/catalog/stats.js';
+	import type { Stats, StatsCount, StatsTarget, StatsWork } from '#lib/catalog/stats.js';
 	import FilmPoster from '#lib/components/film/FilmPoster.svelte';
 	import PersonPhoto from '#lib/components/PersonPhoto.svelte';
-	import RatingHistogram from '#lib/components/profile/RatingHistogram.svelte';
 	import { formatDate } from '#lib/i18n/dates.js';
-	import { ratingLabel } from '#lib/i18n/ratings.js';
+	import { tmdbImage } from '#lib/images.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import BarChart from './BarChart.svelte';
@@ -27,9 +25,13 @@
 		kinds: Choice[];
 		/** Whether the period is one year, which counts the diary by month. */
 		yearly: boolean;
+		/** The year of the period, which the diary links narrow to. */
+		year: number | null;
+		/** Address of a part of the statistics, `null` where the page has none. */
+		link: (target: StatsTarget) => string | null;
 	}
 
-	let { stats, scale, title, subtitle, periods, kinds, yearly }: Props = $props();
+	let { stats, scale, title, subtitle, periods, kinds, yearly, year, link }: Props = $props();
 
 	type ByYear = 'releases' | 'ratings' | 'diary';
 	type Breakdown = 'watched' | 'rated';
@@ -53,7 +55,7 @@
 	const number = new Intl.NumberFormat(locale);
 	const decimal = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
 
-	function name(code: string, kind: 'region' | 'language'): string {
+	function displayName(code: string, kind: 'region' | 'language'): string {
 		try {
 			return (kind === 'region' ? regions.of(code) : languages.of(code)) ?? code;
 		} catch {
@@ -61,42 +63,79 @@
 		}
 	}
 
-	function averageLabel(average: number | null): string {
-		return average === null ? '' : ratingLabel(Math.round(average), scale);
+	/** A rating as short text: ★★★½ on the five-star scale, 7.5/10 on the ten-point one. */
+	function short(rating: number | null): string {
+		if (rating === null) return '';
+		if (scale === 'ten') return `${decimal.format(rating)}/10`;
+		const halves = Math.round(rating);
+		return `${'★'.repeat(Math.floor(halves / 2))}${halves % 2 === 1 ? '½' : ''}`;
 	}
 
+	/** Label of a rating under the histogram. */
+	function step(rating: number): string {
+		if (scale === 'ten') return String(rating);
+		return rating % 2 === 0
+			? `${String(rating / 2)}★`
+			: rating === 1
+				? '½'
+				: `${String((rating - 1) / 2)}½`;
+	}
+
+	const backdrop = $derived.by((): StatsWork[] => {
+		const posters = stats.posters;
+		if (posters.length < 6) return [];
+		return Array.from({ length: 30 }, (_, index) => posters[index % posters.length] as StatsWork);
+	});
+
 	const totals = $derived([
-		{ value: number.format(stats.totals.works), label: m.stats_works() },
-		{ value: number.format(stats.totals.hours), label: m.stats_hours() },
-		{ value: number.format(stats.totals.directors), label: m.stats_directors() },
-		{ value: number.format(stats.totals.countries), label: m.stats_countries() },
+		{
+			value: number.format(stats.totals.works),
+			label: m.stats_works(),
+			href: link({ to: 'works', filter: {} })
+		},
+		{ value: number.format(stats.totals.hours), label: m.stats_hours(), href: null },
+		{ value: number.format(stats.totals.directors), label: m.stats_directors(), href: null },
+		{ value: number.format(stats.totals.countries), label: m.stats_countries(), href: null },
 		{
 			value: m.stats_weeks_short({ count: stats.totals.streakWeeks }),
 			label: m.stats_streak(),
+			href: null,
 			title:
 				stats.totals.streakStart === null
 					? undefined
 					: m.stats_streak_since({ date: formatDate(new Date(stats.totals.streakStart)) })
-		},
-		{ value: number.format(stats.totals.busyDays), label: m.stats_busy_days() }
+		}
 	]);
 
 	const extras = $derived([
-		{ value: number.format(stats.totals.entries), label: m.stats_entries() },
-		{ value: number.format(stats.totals.reviews), label: m.stats_reviews() },
+		{
+			value: number.format(stats.totals.entries),
+			label: m.stats_entries(),
+			href: link({ to: 'diary', ...(year === null ? {} : { year }) })
+		},
+		{
+			value: number.format(stats.totals.reviews),
+			label: m.stats_reviews(),
+			href: link({ to: 'reviews' })
+		},
 		{
 			value:
 				stats.totals.entries === 0
 					? '0%'
 					: `${String(Math.round((stats.totals.rewatches / stats.totals.entries) * 100))}%`,
-			label: m.stats_rewatch_rate()
+			label: m.stats_rewatch_rate(),
+			href: null
 		},
+		{ value: number.format(stats.totals.busyDays), label: m.stats_busy_days(), href: null },
 		{
 			value:
 				stats.totals.average === null
 					? '-'
-					: decimal.format(scale === 'ten' ? stats.totals.average : stats.totals.average / 2),
-			label: m.stats_average()
+					: scale === 'ten'
+						? `${decimal.format(stats.totals.average)}/10`
+						: `${decimal.format(stats.totals.average / 2)}★`,
+			label: m.stats_average(),
+			href: null
 		}
 	]);
 
@@ -104,15 +143,18 @@
 		if (byYear === 'diary') {
 			return stats.diary.map((entry) => {
 				const label = yearly ? (months[Number(entry.label) - 1] ?? entry.label) : entry.label;
+				const diaryYear = yearly ? year : Number(entry.label);
 				return {
 					label,
 					value: entry.count,
-					tip: m.stats_tip_entries({ label, count: entry.count })
+					tip: m.stats_tip_entries({ label, count: entry.count }),
+					href: link(diaryYear === null ? { to: 'diary' } : { to: 'diary', year: diaryYear })
 				};
 			});
 		}
 		return stats.releases.map((entry) => {
 			const label = String(entry.year);
+			const href = entry.count > 0 ? link({ to: 'works', filter: { released: entry.year } }) : null;
 			return byYear === 'ratings'
 				? {
 						label,
@@ -120,27 +162,53 @@
 						tip:
 							entry.average === null
 								? label
-								: m.stats_tip_rating({ label, rating: averageLabel(entry.average) })
+								: m.stats_tip_rating({ label, rating: short(entry.average) }),
+						href
 					}
 				: {
 						label,
 						value: entry.count,
-						tip: m.stats_tip_works({ label, count: entry.count })
+						tip: m.stats_tip_works({ label, count: entry.count }),
+						href
 					};
 		});
 	});
 
-	function rows(items: StatsCount[], kind: 'plain' | 'region' | 'language') {
+	const ratingBars = $derived(
+		stats.ratings.map((count, index) => ({
+			label: step(index + 1),
+			value: count,
+			tip: m.stats_tip_works({ label: short(index + 1), count }),
+			href: count > 0 ? link({ to: 'works', filter: { rating: index + 1 } }) : null
+		}))
+	);
+
+	const weekdayBars = $derived(
+		stats.weekdays.map((count, index) => ({
+			label: weekdays[index] ?? '',
+			value: count,
+			tip: m.stats_tip_entries({ label: weekdays[index] ?? '', count })
+		}))
+	);
+
+	function rows(items: StatsCount[], kind: 'genre' | 'country' | 'language') {
 		const sorted =
 			breakdown === 'rated'
 				? items
-						.filter((item) => item.average !== null)
-						.toSorted((a, b) => (b.average ?? 0) - (a.average ?? 0))
+						.filter((item) => item.weighted !== null)
+						.toSorted((a, b) => (b.weighted ?? 0) - (a.weighted ?? 0))
 				: items;
 		return sorted.slice(0, 10).map((item) => ({
-			name: kind === 'plain' ? item.name : name(item.name, kind),
-			value: breakdown === 'rated' ? (item.average ?? 0) : item.count,
-			display: breakdown === 'rated' ? averageLabel(item.average) : number.format(item.count)
+			name:
+				kind === 'genre'
+					? item.name
+					: displayName(item.name, kind === 'country' ? 'region' : 'language'),
+			value: breakdown === 'rated' ? (item.weighted ?? 0) : item.count,
+			display:
+				breakdown === 'rated'
+					? `${short(item.average)} · ${number.format(item.count)}`
+					: number.format(item.count),
+			href: link({ to: 'works', filter: { [kind]: item.name } })
 		}));
 	}
 
@@ -148,7 +216,8 @@
 		stats.studios.map((studio) => ({
 			name: studio.name,
 			value: studio.count,
-			display: number.format(studio.count)
+			display: number.format(studio.count),
+			href: link({ to: 'studio', id: studio.id })
 		}))
 	);
 	const half = $derived(Math.ceil(studioRows.length / 2));
@@ -156,35 +225,58 @@
 
 <article class="stats">
 	<header class="hero">
-		<p class="subtitle">{subtitle}</p>
-		<h1>{title}</h1>
-		<nav class="periods" aria-label={m.stats_period()}>
-			{#each periods as period (period.href)}
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
-				<a href={period.href} aria-current={period.current ? 'page' : undefined}>{period.label}</a>
-			{/each}
-		</nav>
-		{#if kinds.length > 0}
-			<nav class="kinds" aria-label={m.stats_kind()}>
-				{#each kinds as kind (kind.href)}
+		{#if backdrop.length > 0}
+			<div class="wall" aria-hidden="true">
+				<div class="tiles">
+					{#each backdrop as work, index (index)}
+						<img src={tmdbImage(work.posterPath ?? '', 'w154')} alt="" loading="lazy" />
+					{/each}
+				</div>
+			</div>
+		{/if}
+		<div class="intro">
+			<p class="subtitle">{subtitle}</p>
+			<h1>{title}</h1>
+			<nav class="periods" aria-label={m.stats_period()}>
+				{#each periods as period (period.href)}
 					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
-					<a href={kind.href} aria-current={kind.current ? 'page' : undefined}>{kind.label}</a>
+					<a href={period.href} aria-current={period.current ? 'page' : undefined}>
+						{period.label}
+					</a>
 				{/each}
 			</nav>
-		{/if}
+			{#if kinds.length > 0}
+				<nav class="kinds" aria-label={m.stats_kind()}>
+					{#each kinds as kind (kind.href)}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+						<a href={kind.href} aria-current={kind.current ? 'page' : undefined}>{kind.label}</a>
+					{/each}
+				</nav>
+			{/if}
+		</div>
 		<dl class="totals">
 			{#each totals as total (total.label)}
 				<div title={total.title}>
-					<dd>{total.value}</dd>
 					<dt>{total.label}</dt>
+					<dd>
+						{#if total.href}
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+							<a href={total.href}>{total.value}</a>
+						{:else}{total.value}{/if}
+					</dd>
 				</div>
 			{/each}
 		</dl>
 		<dl class="extras">
 			{#each extras as extra (extra.label)}
 				<div>
-					<dd>{extra.value}</dd>
 					<dt>{extra.label}</dt>
+					<dd>
+						{#if extra.href}
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+							<a href={extra.href}>{extra.value}</a>
+						{:else}{extra.value}{/if}
+					</dd>
 				</div>
 			{/each}
 		</dl>
@@ -193,9 +285,9 @@
 	{#if stats.totals.works === 0}
 		<p class="empty">{m.stats_empty()}</p>
 	{:else}
-		<section>
+		<section class="card">
 			<header class="head">
-				<h2>{m.stats_by_year()}</h2>
+				<h2 class="section-title">{m.stats_by_year()}</h2>
 				<div class="tabs" role="tablist">
 					{#each [{ id: 'releases', label: m.stats_tab_releases() }, { id: 'ratings', label: m.stats_tab_ratings() }, { id: 'diary', label: m.stats_tab_diary() }] as const as tab (tab.id)}
 						<button
@@ -209,41 +301,39 @@
 					{/each}
 				</div>
 			</header>
-			<BarChart bars={yearBars} label={m.stats_by_year()} accent={byYear === 'diary'} />
+			<BarChart bars={yearBars} label={m.stats_by_year()} />
 		</section>
 
 		<div class="pair">
-			<section>
-				<header class="head"><h2>{m.stats_ratings()}</h2></header>
-				<RatingHistogram counts={stats.ratings} {scale} />
+			<section class="card">
+				<header class="head"><h2 class="section-title">{m.stats_ratings()}</h2></header>
+				<BarChart bars={ratingBars} label={m.stats_ratings()} allLabels />
 			</section>
-			<section>
-				<header class="head"><h2>{m.stats_weekdays()}</h2></header>
-				<BarChart
-					bars={stats.weekdays.map((count, index) => ({
-						label: weekdays[index] ?? '',
-						value: count,
-						tip: m.stats_tip_entries({ label: weekdays[index] ?? '', count })
-					}))}
-					label={m.stats_weekdays()}
-					accent
-				/>
+			<section class="card">
+				<header class="head"><h2 class="section-title">{m.stats_weekdays()}</h2></header>
+				<BarChart bars={weekdayBars} label={m.stats_weekdays()} allLabels />
 			</section>
 		</div>
 
 		{#if stats.decades.length > 0}
 			<section>
-				<header class="head"><h2>{m.stats_decades()}</h2></header>
+				<header class="head"><h2 class="section-title">{m.stats_decades()}</h2></header>
 				<ol class="decades">
 					{#each stats.decades as decade (decade.decade)}
-						<li>
+						{@const href = link({ to: 'works', filter: { decade: decade.decade } })}
+						<li class="card">
 							<div class="decade">
-								<span class="years">{m.browse_decade({ decade: String(decade.decade) })}</span>
-								<span class="score">{averageLabel(decade.average)}</span>
+								{#if href}
+									<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+									<a class="years" {href}>{m.browse_decade({ decade: String(decade.decade) })}</a>
+								{:else}
+									<span class="years">{m.browse_decade({ decade: String(decade.decade) })}</span>
+								{/if}
+								<span class="score">{short(decade.average)}</span>
 								<span class="count">{m.stats_count_works({ count: decade.count })}</span>
 							</div>
 							<ul class="posters">
-								{#each decade.best as work (`${work.kind}:${work.id}`)}
+								{#each decade.best.slice(0, 4) as work (`${work.kind}:${work.id}`)}
 									<li><FilmPoster film={work} size="fill" /></li>
 								{/each}
 							</ul>
@@ -255,7 +345,7 @@
 
 		<section>
 			<header class="head">
-				<h2>{m.stats_breakdown()}</h2>
+				<h2 class="section-title">{m.stats_breakdown()}</h2>
 				<div class="tabs" role="tablist">
 					{#each [{ id: 'watched', label: m.stats_most_watched() }, { id: 'rated', label: m.stats_highest_rated() }] as const as tab (tab.id)}
 						<button
@@ -269,16 +359,17 @@
 					{/each}
 				</div>
 			</header>
+			{#if breakdown === 'rated'}<p class="note">{m.stats_weighted_note()}</p>{/if}
 			<div class="three">
-				<div>
+				<div class="card">
 					<h3>{m.stats_genres()}</h3>
-					<BarList rows={rows(stats.genres, 'plain')} label={m.stats_genres()} />
+					<BarList rows={rows(stats.genres, 'genre')} label={m.stats_genres()} />
 				</div>
-				<div>
+				<div class="card">
 					<h3>{m.stats_countries()}</h3>
-					<BarList rows={rows(stats.countries, 'region')} label={m.stats_countries()} />
+					<BarList rows={rows(stats.countries, 'country')} label={m.stats_countries()} />
 				</div>
-				<div>
+				<div class="card">
 					<h3>{m.stats_languages()}</h3>
 					<BarList rows={rows(stats.languages, 'language')} label={m.stats_languages()} />
 				</div>
@@ -287,12 +378,12 @@
 
 		{#if stats.mostWatched.length > 0}
 			<section>
-				<header class="head"><h2>{m.stats_rewatched()}</h2></header>
+				<header class="head"><h2 class="section-title">{m.stats_rewatched()}</h2></header>
 				<ul class="watched">
 					{#each stats.mostWatched as item (`${item.work.kind}:${item.work.id}`)}
 						<li>
 							<FilmPoster film={item.work} size="fill" />
-							<span>{m.stats_times({ count: item.count })}</span>
+							<span class="times">{m.stats_times({ count: item.count })}</span>
 						</li>
 					{/each}
 				</ul>
@@ -302,11 +393,13 @@
 		{#each [{ title: m.stats_cast(), people: stats.cast }, { title: m.stats_directors_title(), people: stats.directors }] as group (group.title)}
 			{#if group.people.length > 0}
 				<section>
-					<header class="head"><h2>{group.title}</h2></header>
+					<header class="head"><h2 class="section-title">{group.title}</h2></header>
 					<ul class="people">
 						{#each group.people as item (item.person.id)}
+							{@const href = link({ to: 'person', id: item.person.id })}
 							<li>
-								<a href={resolve('/(app)/person/[id]', { id: String(item.person.id) })}>
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built by the page from resolved routes -->
+								<a href={href ?? undefined}>
 									<span class="photo">
 										<PersonPhoto
 											path={item.person.profilePath ?? null}
@@ -326,8 +419,8 @@
 
 		{#if stats.studios.length > 0}
 			<section>
-				<header class="head"><h2>{m.stats_studios()}</h2></header>
-				<div class="studios">
+				<header class="head"><h2 class="section-title">{m.stats_studios()}</h2></header>
+				<div class="studios card">
 					{#each [studioRows.slice(0, half), studioRows.slice(half)] as column, index (index)}
 						{#if column.length > 0}
 							<BarList rows={column} label={m.stats_studios()} scale={studioRows[0]?.value} />
@@ -340,36 +433,76 @@
 </article>
 
 <style>
-	.studios {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-2) var(--space-12);
-	}
-
-	@media (max-width: 40rem) {
-		.studios {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
-
 	.stats {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-12);
 	}
 
+	/* Hero: the posters of the period behind the totals. */
 	.hero {
+		position: relative;
+		z-index: 0;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
+		gap: var(--space-8);
 		align-items: center;
-		padding: var(--space-8) 0 var(--space-6);
-		border-bottom: 1px solid var(--color-border);
+		overflow: hidden;
+		margin-top: var(--space-4);
+		padding: var(--space-16) var(--space-6) var(--space-10);
+		border-radius: var(--radius-large);
+		background: var(--color-stats-hero);
+		box-shadow: var(--shadow-stack);
 		text-align: center;
 	}
 
+	.wall {
+		position: absolute;
+		z-index: -1;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.tiles {
+		display: grid;
+		width: 130%;
+		grid-template-columns: repeat(10, minmax(0, 1fr));
+		gap: var(--space-2);
+		margin: -12% 0 0 -15%;
+		opacity: 0.28;
+		filter: saturate(0.7);
+		transform: rotate(-8deg);
+	}
+
+	.tiles img {
+		width: 100%;
+		aspect-ratio: 2 / 3;
+		border-radius: var(--radius-small);
+		object-fit: cover;
+	}
+
+	.wall::after {
+		position: absolute;
+		background:
+			radial-gradient(
+				ellipse at center,
+				var(--color-stats-veil-center) 0%,
+				var(--color-stats-veil) 70%
+			),
+			linear-gradient(to bottom, transparent 40%, var(--color-stats-hero) 100%);
+		content: '';
+		inset: 0;
+	}
+
+	.intro {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		align-items: center;
+	}
+
 	.subtitle {
-		color: var(--color-text-muted);
+		color: var(--color-text-panel);
 		font-size: var(--font-size-control);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
@@ -381,6 +514,7 @@
 		font-size: var(--font-size-display);
 		font-weight: 900;
 		line-height: 1;
+		text-shadow: var(--shadow-text);
 	}
 
 	.periods,
@@ -395,7 +529,7 @@
 	.kinds a {
 		padding: var(--space-1) var(--space-3);
 		border-radius: var(--radius-pill);
-		color: var(--color-text);
+		color: var(--color-text-panel);
 		font-size: var(--font-size-control);
 	}
 
@@ -405,7 +539,7 @@
 	}
 
 	.periods a[aria-current='page'] {
-		background: var(--color-panel);
+		background: var(--color-stats-pill);
 		color: var(--color-heading);
 	}
 
@@ -413,7 +547,7 @@
 		overflow: hidden;
 		gap: 0;
 		border-radius: var(--radius-small);
-		background: var(--color-input);
+		background: var(--color-stats-pill);
 	}
 
 	.kinds a {
@@ -421,154 +555,165 @@
 	}
 
 	.kinds a[aria-current='page'] {
-		background: var(--color-secondary);
+		background: var(--color-surface-raised);
 		color: var(--color-heading);
 	}
 
 	.totals,
 	.extras {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-4) var(--space-8);
-		justify-content: center;
-		margin: var(--space-4) 0 0;
+		display: grid;
+		width: 100%;
+		max-width: 56rem;
+		margin: 0;
+	}
+
+	.totals {
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+	}
+
+	.extras {
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		padding-top: var(--space-6);
+		border-top: 1px solid var(--color-stats-divider);
 	}
 
 	.totals div,
 	.extras div {
 		display: flex;
 		flex-direction: column-reverse;
+		gap: var(--space-1);
 		align-items: center;
 	}
 
-	.totals dd {
-		margin: 0;
-		color: var(--color-heading);
-		font-family: var(--font-display);
-		font-size: var(--font-size-journal-feature);
-		font-weight: 900;
-		line-height: 1.1;
+	.totals div + div,
+	.extras div + div {
+		border-left: 1px solid var(--color-stats-divider);
 	}
 
-	.extras {
-		margin-top: 0;
+	dd {
+		margin: 0;
+		color: var(--color-heading);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.totals dd {
+		font-family: var(--font-display);
+		font-size: var(--font-size-stats-total);
+		font-weight: 900;
+		line-height: 1;
 	}
 
 	.extras dd {
-		margin: 0;
-		color: var(--color-text-strong);
 		font-size: var(--font-size-large);
-		font-weight: 700;
+		font-weight: 600;
+	}
+
+	dd a {
+		color: inherit;
+	}
+
+	dd a:hover {
+		color: var(--color-link-hover);
 	}
 
 	dt {
 		color: var(--color-text-muted);
-		font-size: var(--font-size-small);
+		font-size: var(--font-size-filter);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
 	}
 
 	.empty {
-		color: var(--color-text-muted);
+		color: var(--color-text);
 		text-align: center;
+	}
+
+	/* Sections */
+	.card {
+		padding: var(--space-6);
+		border-radius: var(--radius-medium);
+		background: var(--color-stats-card);
 	}
 
 	.head {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-2) var(--space-4);
-		align-items: baseline;
+		align-items: end;
 		justify-content: space-between;
-		margin-bottom: var(--space-4);
-		padding-bottom: var(--space-1);
-		border-bottom: 1px solid var(--color-border);
+		margin-bottom: var(--space-6);
 	}
 
-	h2 {
-		color: var(--color-text);
-		font-family: var(--font-body);
-		font-size: var(--font-size-control);
-		font-weight: 400;
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
+	.head .section-title {
+		flex: 1;
+		margin: 0;
 	}
 
-	h3 {
-		margin-bottom: var(--space-3);
-		color: var(--color-text-muted);
-		font-family: var(--font-body);
-		font-size: var(--font-size-small);
-		font-weight: 400;
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
+	.card .head {
+		margin-bottom: var(--space-6);
 	}
 
 	.tabs {
 		display: flex;
-		gap: var(--space-3);
+		gap: var(--space-1);
 	}
 
 	.tabs button {
-		padding: 0;
+		padding: var(--space-1) var(--space-3);
 		border: 0;
+		border-radius: var(--radius-pill);
 		background: none;
 		color: var(--color-text-muted);
-		font: inherit;
+		font-family: inherit;
 		font-size: var(--font-size-small);
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
 		cursor: pointer;
 	}
 
-	.tabs button:hover,
-	.tabs button[aria-selected='true'] {
+	.tabs button:hover {
 		color: var(--color-heading);
 	}
 
-	.pair,
-	.three {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-12);
+	.tabs button[aria-selected='true'] {
+		background: var(--color-stats-pill);
+		color: var(--color-heading);
 	}
 
-	.three {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: var(--space-8);
+	.pair {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-6);
 	}
 
 	.decades {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: var(--space-6);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.decades > li {
-		display: grid;
-		grid-template-columns: 9rem minmax(0, 1fr);
-		gap: var(--space-6);
-		align-items: center;
-	}
-
 	.decade {
 		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-3);
+		align-items: baseline;
+		margin-bottom: var(--space-4);
 	}
 
 	.years {
 		color: var(--color-heading);
 		font-family: var(--font-display);
-		font-size: var(--font-size-title);
+		font-size: var(--font-size-heading);
 		font-weight: 900;
 	}
 
+	a.years:hover {
+		color: var(--color-link-hover);
+	}
+
 	.score {
-		color: var(--color-rating);
-		font-size: var(--font-size-control);
+		color: var(--color-text-panel);
 	}
 
 	.count {
@@ -576,20 +721,49 @@
 		font-size: var(--font-size-small);
 	}
 
-	.posters,
-	.watched {
+	.posters {
 		display: grid;
-		grid-template-columns: repeat(6, minmax(0, 1fr));
-		gap: var(--space-3);
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-2);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.watched li {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
+	.note {
+		margin: calc(-1 * var(--space-4)) 0 var(--space-4);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-small);
+	}
+
+	.three {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-6);
+	}
+
+	h3 {
+		margin-bottom: var(--space-4);
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: var(--font-size-filter);
+		font-weight: 400;
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.watched {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(var(--poster-small), 1fr));
+		gap: var(--space-4) var(--space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.times {
+		display: block;
+		margin-top: var(--space-1);
 		color: var(--color-text-muted);
 		font-size: var(--font-size-small);
 		text-align: center;
@@ -598,7 +772,7 @@
 	.people {
 		display: grid;
 		grid-template-columns: repeat(5, minmax(0, 1fr));
-		gap: var(--space-6) var(--space-4);
+		gap: var(--space-8) var(--space-4);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -614,37 +788,61 @@
 
 	.photo {
 		overflow: hidden;
-		width: 100%;
-		max-width: 8rem;
-		margin-bottom: var(--space-1);
-		aspect-ratio: 1;
+		width: var(--stats-person-size);
+		margin-bottom: var(--space-2);
 		border-radius: 50%;
-		box-shadow: var(--shadow-poster);
+		aspect-ratio: 1;
+		box-shadow: var(--shadow-poster-frame);
+		transition: box-shadow var(--duration-medium) var(--ease-out);
+	}
+
+	.people a:hover .photo {
+		box-shadow: var(--shadow-stack-hover);
+	}
+
+	.photo :global(img),
+	.photo :global(.person-photo) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
 	.person {
-		color: var(--color-text-strong);
+		color: var(--color-text-panel);
 		font-size: var(--font-size-control);
-		font-weight: 700;
+		font-weight: 600;
 	}
 
 	.people a:hover .person {
-		color: var(--color-link-hover);
+		color: var(--color-heading);
 	}
 
-	@media (max-width: 48rem) {
-		.pair,
+	.studios {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-3) var(--space-12);
+	}
+
+	@media (max-width: 60rem) {
+		.totals,
+		.extras {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: var(--space-6);
+		}
+
+		.decades,
 		.three {
 			grid-template-columns: minmax(0, 1fr);
 		}
 
-		.people,
-		.posters,
-		.watched {
+		.people {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
+	}
 
-		.decades > li {
+	@media (max-width: 40rem) {
+		.pair,
+		.studios {
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}

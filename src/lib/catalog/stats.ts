@@ -32,6 +32,11 @@ export interface StatsCount {
 	count: number;
 	/** Average rating from 1 to 10, `null` without rated works. */
 	average: number | null;
+	/**
+	 * Average pulled toward the overall average of the period while few works are rated, so that
+	 * a single great film does not top the ranking; what "highest rated" sorts by.
+	 */
+	weighted: number | null;
 }
 
 export interface StatsPerson {
@@ -69,14 +74,23 @@ export interface Stats {
 	weekdays: number[];
 	/** Rated works for each rating from 1 to 10. */
 	ratings: number[];
-	decades: { decade: number; average: number; count: number; best: StatsWork[] }[];
+	decades: {
+		decade: number;
+		average: number;
+		/** Average weighted like those of the breakdowns, which orders the decades. */
+		weighted: number;
+		count: number;
+		best: StatsWork[];
+	}[];
 	genres: StatsCount[];
 	countries: StatsCount[];
 	languages: StatsCount[];
 	mostWatched: { work: StatsWork; count: number }[];
 	cast: StatsPerson[];
 	directors: StatsPerson[];
-	studios: { name: string; count: number }[];
+	studios: { id: number; name: string; count: number }[];
+	/** Works of the period with a poster, the best rated and most watched first. */
+	posters: StatsWork[];
 }
 
 /** A watched work with its state and its facts, as statistics read them. */
@@ -101,6 +115,18 @@ const listSize = 10;
 const breakdownSize = 30;
 /** Rated works a decade or a name needs before its average counts. */
 const minimumRated = 2;
+/** Weight, in rated works, of the overall average in a weighted average. */
+const prior = 5;
+/** Posters kept for the background of the statistics. */
+const posterCount = 40;
+
+/** Bayesian average of ratings, pulled toward `overall` while there are few of them. */
+function weightedAverage(ratings: number[], overall: number | null): number | null {
+	if (ratings.length === 0) return null;
+	const sum = ratings.reduce((total, value) => total + value, 0);
+	if (overall === null) return sum / ratings.length;
+	return (sum + prior * overall) / (ratings.length + prior);
+}
 const day = 24 * 60 * 60 * 1000;
 
 function average(values: number[]): number | null {
@@ -116,7 +142,7 @@ function weekOf(date: string): number {
 function counted<T>(
 	items: { key: string; value: T; rating: number | null }[],
 	limit = listSize
-): { value: T; count: number; average: number | null }[] {
+): { value: T; count: number; average: number | null; ratings: number[] }[] {
 	const groups = new Map<string, { value: T; count: number; ratings: number[] }>();
 	for (const item of items) {
 		const group = groups.get(item.key) ?? { value: item.value, count: 0, ratings: [] };
@@ -125,26 +151,34 @@ function counted<T>(
 		groups.set(item.key, group);
 	}
 	return [...groups.values()]
-		.map((group) => ({ value: group.value, count: group.count, average: average(group.ratings) }))
+		.map((group) => ({
+			value: group.value,
+			count: group.count,
+			average: average(group.ratings),
+			ratings: group.ratings
+		}))
 		.sort((a, b) => b.count - a.count || (b.average ?? 0) - (a.average ?? 0))
 		.slice(0, limit);
 }
 
 /** Names ranked by count, with their average rating when enough of their works are rated. */
-function ranked(items: { name: string; rating: number | null }[]): StatsCount[] {
+function ranked(
+	items: { name: string; rating: number | null }[],
+	overall: number | null
+): StatsCount[] {
 	const all = counted(
 		items.map((item) => ({ key: item.name, value: item.name, rating: item.rating })),
 		breakdownSize
 	);
-	return all.map((entry) => ({
-		name: entry.value,
-		count: entry.count,
-		average:
-			items.filter((item) => item.name === entry.value && item.rating !== null).length >=
-			minimumRated
-				? entry.average
-				: null
-	}));
+	return all.map((entry) => {
+		const enough = entry.ratings.length >= minimumRated;
+		return {
+			name: entry.value,
+			count: entry.count,
+			average: enough ? entry.average : null,
+			weighted: enough ? weightedAverage(entry.ratings, overall) : null
+		};
+	});
 }
 
 /**
@@ -175,6 +209,7 @@ export function computeStats(
 	});
 	const rating = (item: StatsInputWork) => item.rating;
 	const rated = chosen.flatMap((item) => (item.rating === null ? [] : [item.rating]));
+	const overall = average(rated);
 
 	const viewings = new Map<number, number>();
 	for (const entry of diary) viewings.set(entry.work, (viewings.get(entry.work) ?? 0) + 1);
@@ -261,15 +296,16 @@ export function computeStats(
 			);
 			const scores = ofDecade.flatMap((item) => (item.rating === null ? [] : [item.rating]));
 			const mean = average(scores);
-			if (mean === null || scores.length < minimumRated) return [];
+			const weighted = weightedAverage(scores, average(rated));
+			if (mean === null || weighted === null || scores.length < minimumRated) return [];
 			const best = ofDecade
 				.filter((item) => item.rating !== null)
 				.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
 				.slice(0, 6)
 				.map((item) => item.work);
-			return [{ decade, average: mean, count: ofDecade.length, best }];
+			return [{ decade, average: mean, weighted, count: ofDecade.length, best }];
 		})
-		.sort((a, b) => b.average - a.average || b.count - a.count)
+		.sort((a, b) => b.weighted - a.weighted || b.count - a.count)
 		.slice(0, 3);
 
 	const people = (pick: (facts: WorkFacts) => Person[]) =>
@@ -310,17 +346,20 @@ export function computeStats(
 		genres: ranked(
 			chosen.flatMap((item) =>
 				(item.facts?.genres ?? []).map((name) => ({ name, rating: rating(item) }))
-			)
+			),
+			overall
 		),
 		countries: ranked(
 			chosen.flatMap((item) =>
 				(item.facts?.countries ?? []).map((name) => ({ name, rating: rating(item) }))
-			)
+			),
+			overall
 		),
 		languages: ranked(
 			chosen.flatMap((item) =>
 				item.facts?.language ? [{ name: item.facts.language, rating: rating(item) }] : []
-			)
+			),
+			overall
 		),
 		mostWatched: chosen
 			.map((item) => ({ work: item.work, count: viewings.get(item.index) ?? 0 }))
@@ -333,10 +372,37 @@ export function computeStats(
 			chosen.flatMap((item) =>
 				(item.facts?.studios ?? []).map((studio) => ({
 					key: String(studio.id),
-					value: studio.name,
+					value: studio,
 					rating: null
 				}))
 			)
-		).map((entry) => ({ name: entry.value, count: entry.count }))
+		).map((entry) => ({ id: entry.value.id, name: entry.value.name, count: entry.count })),
+		posters: chosen
+			.filter((item) => item.work.posterPath !== null)
+			.sort(
+				(a, b) =>
+					(b.rating ?? 0) - (a.rating ?? 0) ||
+					(viewings.get(b.index) ?? 0) - (viewings.get(a.index) ?? 0)
+			)
+			.slice(0, posterCount)
+			.map((item) => item.work)
 	};
 }
+
+/** Where a piece of the statistics leads; each page turns it into an address it has. */
+export type StatsTarget =
+	| {
+			to: 'works';
+			filter: {
+				decade?: number;
+				released?: number;
+				rating?: number;
+				genre?: string;
+				country?: string;
+				language?: string;
+			};
+	  }
+	| { to: 'diary'; year?: number }
+	| { to: 'reviews' }
+	| { to: 'person'; id: number }
+	| { to: 'studio'; id: number };

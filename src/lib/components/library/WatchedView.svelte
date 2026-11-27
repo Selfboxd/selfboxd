@@ -11,6 +11,7 @@
 	import FilterMenus from '#lib/components/FilterMenus.svelte';
 	import type { FilterEntry, FilterMenu } from '#lib/components/filter-menus.js';
 	import Icon from '#lib/components/Icon.svelte';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import RatingDisplay from '#lib/components/library/RatingDisplay.svelte';
 	import RatingRangePicker from '#lib/components/RatingRange.svelte';
 	import { ratingLabel } from '#lib/i18n/ratings.js';
@@ -64,6 +65,31 @@
 	function entry(label: string, change: Partial<WatchedOptions>, current: boolean): FilterEntry {
 		return { label, query: watchedQuery({ ...options, ...change }), current };
 	}
+
+	const locale = getLocale();
+
+	function displayName(code: string, type: 'region' | 'language'): string {
+		try {
+			return new Intl.DisplayNames(locale, { type }).of(code) ?? code;
+		} catch {
+			return code;
+		}
+	}
+
+	/** Filters reached from elsewhere, such as the statistics, shown so that they can be removed. */
+	const chips = $derived(
+		[
+			options.released === null
+				? null
+				: { label: String(options.released), href: address({ released: null }) },
+			options.country === null
+				? null
+				: { label: displayName(options.country, 'region'), href: address({ country: null }) },
+			options.language === null
+				? null
+				: { label: displayName(options.language, 'language'), href: address({ language: null }) }
+		].filter((chip) => chip !== null)
+	);
 
 	const range = $derived(
 		options.rating === null || options.rating === 'none' ? null : options.rating
@@ -164,6 +190,20 @@
 	{/if}
 </header>
 
+{#if chips.length > 0}
+	<ul class="chips">
+		{#each chips as chip (chip.label)}
+			<li>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built from the resolved path -->
+				<a href={chip.href} aria-label="{m.filter_remove()}: {chip.label}">
+					{chip.label}
+					<Icon name="close" />
+				</a>
+			</li>
+		{/each}
+	</ul>
+{/if}
+
 {#if total === 0}
 	<p class="empty">{empty}</p>
 {:else if works.length === 0}
@@ -211,6 +251,30 @@
 		gap: var(--space-2);
 		align-items: center;
 		margin-inline-start: auto;
+	}
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+		padding: 0;
+		list-style: none;
+	}
+
+	.chips a {
+		display: inline-flex;
+		gap: var(--space-1);
+		align-items: center;
+		padding: 2px var(--space-2);
+		border-radius: var(--radius-pill);
+		background: var(--color-chip);
+		color: var(--color-text-panel);
+		font-size: var(--font-size-small);
+	}
+
+	.chips a:hover {
+		color: var(--color-heading);
 	}
 
 	.empty {
